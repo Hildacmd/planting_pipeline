@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>App Statistics — What Each Number Means</title>
+  <style>
+
+html {
+color: #1a1a1a;
+background-color: #fdfdfd;
+}
+body {
+margin: 0 auto;
+max-width: 36em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 12px;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+html {
+background-color: white;
+}
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+a {
+color: #1a1a1a;
+}
+a:visited {
+color: #1a1a1a;
+}
+img {
+max-width: 100%;
+}
+svg {
+height: auto;
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+font-size: 85%;
+margin: 0;
+hyphens: manual;
+}
+pre {
+margin: 1em 0;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+.sourceCode {
+background-color: transparent;
+overflow: visible;
+}
+hr {
+border: none;
+border-top: 1px solid #1a1a1a;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid #1a1a1a;
+border-bottom: 1px solid #1a1a1a;
+}
+th {
+border-top: 1px solid #1a1a1a;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">App Statistics — What Each Number Means</h1>
+</header>
+<h1 id="app-statistics-what-each-number-means">App Statistics — What
+Each Number Means</h1>
+<p>A guide to every statistic shown in the <strong>Planting-Window
+Explorer</strong> and the <strong>2024 Maize Risk Monitor</strong>. Each
+value is a per-admin summary (county / constituency / ward, or region /
+zone / woreda) over the <strong>maize</strong> area of that unit. Time
+is measured in <strong>dekads</strong> (10-day periods, 1–36 per year;
+labelled <code>N·Mon-dN</code>, e.g. <code>9·Mar-d3</code>). See §8 for
+conventions.</p>
+<hr />
+<h2 id="planting-window">1. Planting window</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Statistic (app label)</th>
+<th>Key</th>
+<th>What it represents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Modal planting</strong></td>
+<td><code>md</code></td>
+<td>The most common estimated planting dekad in the unit — the headline
+“plant around here” date.</td>
+</tr>
+<tr>
+<td><strong>Mean planting</strong></td>
+<td><code>mean</code></td>
+<td>Area-average planting dekad.</td>
+</tr>
+<tr>
+<td><strong>Median (P50)</strong></td>
+<td><code>p50</code></td>
+<td>Middle planting dekad (half the maize plants earlier, half
+later).</td>
+</tr>
+<tr>
+<td><strong>Earliest–Latest (P10–P90)</strong></td>
+<td><code>p10</code>,<code>p90</code></td>
+<td>The spread: 10% of maize plants by P10, 90% by P90. A wide gap =
+varied onset across the unit.</td>
+</tr>
+<tr>
+<td><strong>Last Viable Planting (LVPD)</strong></td>
+<td><code>lvpd</code></td>
+<td>The <strong>climatological latest</strong> dekad you can plant and
+still have short-duration maize mature before the reliable rains end
+(<code>LGP-end + residual soil water − early-maize cycle</code>). A
+“plant <strong>no later than</strong>” guide. <em>Short rains
+only.</em></td>
+</tr>
+<tr>
+<td><strong>Planting viability %</strong></td>
+<td><code>viab</code></td>
+<td>% of the unit’s maize area where <strong>early-variety (~90-day)
+maize planted at the 2024 onset reaches WRSI ≥ 50</strong> (i.e. not
+crop-failure). Low = the onset was too late / the land too dry to grow
+maize reliably. <em>Short rains only.</em></td>
+</tr>
+</tbody>
+</table>
+<p><em>Reading the window:</em> <strong>plant-by (Modal) → LVPD</strong>
+is the usable planting window; <strong>viability %</strong> says how
+much of that maize area actually made it in 2024.</p>
+<h2 id="calendar-skill-agreement-with-the-fews-fao-calendar">2. Calendar
+skill (agreement with the FEWS / FAO calendar)</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Statistic</th>
+<th>Key</th>
+<th>What it represents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Calendar hit-rate</strong></td>
+<td><code>hit</code></td>
+<td>Share of maize pixels whose planting dekad falls
+<strong>inside</strong> the indicative FEWS/FAO planting window. Higher
+= closer to the reference calendar.</td>
+</tr>
+<tr>
+<td><strong>Bias</strong></td>
+<td><code>bias</code></td>
+<td>Mean dekads <strong>early (−)</strong> or <strong>late (+)</strong>
+relative to the window centre.</td>
+</tr>
+<tr>
+<td><strong>MAE</strong></td>
+<td><code>mae</code></td>
+<td>Mean absolute departure (in dekads) from the window centre — the
+typical size of the miss, regardless of direction.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="crop-extent">3. Crop extent</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Statistic</th>
+<th>Key</th>
+<th>What it represents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Crop area fraction (CAF)</strong></td>
+<td><code>caf</code></td>
+<td>Share of the whole unit that is <strong>detected maize</strong>
+(maize pixels ÷ total pixels). Also the denominator for the ASAP “% of
+crop area” risk rule.</td>
+</tr>
+<tr>
+<td><strong>Maize pixels</strong></td>
+<td><code>n</code></td>
+<td>Number of maize pixels the statistics were computed from.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="water-balance-crop-water-risk">4. Water balance &amp; crop-water
+risk</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Statistic</th>
+<th>Key</th>
+<th>What it represents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Mean WRSI</strong></td>
+<td><code>wrsi</code></td>
+<td>FAO-56/33 <strong>Water Requirement Satisfaction Index</strong>
+(0–100): how much of the crop’s water need was met over the season.
+<strong>≥ 95</strong> no stress · <strong>80–95</strong> good ·
+<strong>60–80</strong> mediocre · <strong>50–60</strong> poor ·
+<strong>&lt; 50</strong> crop failure.</td>
+</tr>
+<tr>
+<td><strong>Water deficit</strong></td>
+<td><code>def</code></td>
+<td>Season-cumulative unmet crop water demand, in
+<strong>mm</strong>.</td>
+</tr>
+<tr>
+<td><strong>Crop-failure risk</strong></td>
+<td><code>fail</code></td>
+<td>% of the unit’s maize area with <strong>WRSI &lt; 50</strong>
+(failure). Shown as <strong>ASAP classes</strong> (§8): Watch ≥ 25% ·
+Alert ≥ 50% · Critical ≥ 75%.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="drought-rainfall-anomaly">5. Drought (rainfall anomaly)</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Statistic</th>
+<th>Key</th>
+<th>What it represents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Mean SPI-3</strong></td>
+<td><code>spi</code></td>
+<td>3-month <strong>Standardized Precipitation Index</strong> vs the
+1981–2020 climatology: <strong>− dry / + wet</strong>. ≤ −1 moderate
+drought, ≤ −1.5 severe, ≥ +1 notably wet.</td>
+</tr>
+<tr>
+<td><strong>Drought risk (SPI-3)</strong></td>
+<td><code>spidry</code></td>
+<td>% of maize area in <strong>SPI-3 ≤ −1</strong> (drought). Shown as
+<strong>ASAP classes</strong>: Watch ≥ 25% · Alert ≥ 50% · Critical ≥
+75%.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="phenology-gdd-clock-predicted-stage-dekads">6. Phenology — GDD
+clock (predicted stage dekads)</h2>
+<p>Per-pixel dekad each maize stage is reached, from the
+Growing-Degree-Day clock, summarised to the unit.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Statistic</th>
+<th>Key</th>
+<th>What it represents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Peak vegetative</strong></td>
+<td><code>pkv</code></td>
+<td>Tasseling (VT) — end of vegetative growth / canopy peak.</td>
+</tr>
+<tr>
+<td><strong>Flowering</strong></td>
+<td><code>flo</code></td>
+<td>Silking (R1) — the <strong>critical</strong> water/heat-sensitive
+stage.</td>
+</tr>
+<tr>
+<td><strong>Grain filling</strong></td>
+<td><code>grf</code></td>
+<td>R2/R3 — yield formation begins.</td>
+</tr>
+<tr>
+<td><strong>Maturity</strong></td>
+<td><code>mat</code></td>
+<td>R6 physiological maturity — <strong>end of season</strong>.</td>
+</tr>
+</tbody>
+</table>
+<p><em>Short rains</em> mature in the <strong>next calendar
+year</strong>, so these dekads can exceed 36 and are labelled with
+<code>+1y</code> (e.g. <code>44·Mar-d2+1y</code> = the next year).</p>
+<h2 id="b.-stage-resolved-water-balance-short-rains-how-the-season-unfolds">6b.
+Stage-resolved water balance (short rains) — how the season unfolds</h2>
+<p>The whole-season WRSI (§4) is one number; these show the water
+balance <strong>evolving across the three growth stages</strong>, so you
+can see <em>when</em> stress bites. <em>Short rains only.</em></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Statistic</th>
+<th>Key</th>
+<th>What it represents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>WRSI veg → flo → grf</strong></td>
+<td><code>wrv</code>,<code>wrf</code>,<code>wrg</code></td>
+<td><strong>Running WRSI</strong> at the end of vegetative / flowering /
+grain-fill (0–100). A falling sequence (e.g. 100 → 84 → 76) shows
+satisfaction eroding as the season dries.</td>
+</tr>
+<tr>
+<td><strong>Water stress veg / flo / grf</strong></td>
+<td><code>wsv</code>,<code>wsf</code>,<code>wsg</code></td>
+<td>The <strong>worst dekadal water stress</strong> within each stage
+(0–100, higher = worse). A spike at grain-fill = the rains quit before
+filling finished.</td>
+</tr>
+<tr>
+<td><strong>Crop-failure @ flowering</strong></td>
+<td><code>failflo</code></td>
+<td>% of maize area with <strong>running WRSI &lt; 50 at
+flowering</strong> — the <em>critical</em> stage (FAO-33 Ky 1.5). The
+headline stage risk; ASAP-classed.</td>
+</tr>
+</tbody>
+</table>
+<p><em>Reading it:</em> <code>WRSI 100 → 84 → 76</code> with
+<code>stress 0 / 5 / 40%</code> says the crop was well-watered through
+flowering and only stressed during grain-fill — a common short-rains
+pattern.</p>
+<h2 id="where-a-statistic-comes-from-season-by-season">7. Where a
+statistic comes from (season by season)</h2>
+<ul>
+<li><strong>Kenya Long rains</strong> and <strong>Ethiopia
+Meher</strong> — planting is <strong>green-up-led</strong> (Sentinel-2
+red-edge SOS), genuinely fine resolution. LVPD / viability are
+<strong>not shown</strong> (main seasons — maize fits comfortably).</li>
+<li><strong>Kenya Short rains</strong> — planting is
+<strong>rainfall-anchored</strong> (CHIRPS onset),
+<strong>LVPD-gated</strong>, with <strong>year-wrapping</strong> GDD
+phenology. This is the season that carries LVPD and viability %.</li>
+</ul>
+<h2 id="conventions-cautions">8. Conventions &amp; cautions</h2>
+<ul>
+<li><strong>Dekad</strong> = 10-day period, 1–36 per year; labelled
+<code>N·Mon-dN</code>. <strong><code>+1y</code></strong> = the following
+calendar year (short-rains phenology).</li>
+<li><strong>Median</strong> is used to summarise dekad quantities
+(robust, returns a real dekad); <strong>mean</strong> for
+fractions/percentages.</li>
+<li><strong>“No signal” (grey unit)</strong> = <strong>no value computed
+here</strong> — fewer than ~5 valid maize pixels for that layer
+(little/no mapped maize, or that layer’s raster didn’t resolve the
+unit). It is <em>not</em> zero or failure, and it differs from the ASAP
+<strong>“None”</strong> class, which means <em>has data, low
+risk</em>.</li>
+<li><strong>ASAP classes</strong> (crop-failure, drought) grade a unit
+by the <strong>% of its maize area affected</strong>: Watch ≥ 25% ·
+Alert ≥ 50% · Critical ≥ 75%.</li>
+<li><strong>Resolution honesty:</strong> planting and phenology are
+genuinely <strong>250 m</strong> (Sentinel-2/1-driven,
+elevation-resolved); <strong>WRSI, SPI-3 and the LVPD</strong> carry
+<strong>~5.5 km</strong> (CHIRPS/climate) information content displayed
+on the 250 m grid — robust for admin roll-ups, not pixel-sharp.</li>
+</ul>
+<p><em>Full methods and citations:
+<code>ALGORITHMS_AND_REFERENCES</code>, <code>WORKFLOW</code>,
+<code>WORKFLOW_SHORTRAINS</code>,
+<code>RISK_MONITORING_DESIGN</code>.</em></p>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# FAO-56 / FAO-33 crop coefficients & stage lengths (in DEKADS, 1 dekad ~= 10 days).
+# Kc curve: constant Kc_ini over L_ini; linear ramp to Kc_mid over L_dev; constant Kc_mid
+# over L_mid; linear to Kc_end over L_late. LGP_dekads = L_ini+L_dev+L_mid+L_late.
+# Sources: Allen et al. (1998) FAO-56 Table 12/17. Teff not in FAO-56 -> small-grain-cereal
+# analogue (approximate; flag before operational use).
+
+# root_depth_m = FAO-56 effective rooting depth (used to integrate spatial WHC).
+maize:   { LGP_dekads: 12, L_ini: 3, L_dev: 4, L_mid: 3, L_late: 2, Kc_ini: 0.30, Kc_mid: 1.20, Kc_end: 0.35, root_depth_m: 1.0 }
+wheat:   { LGP_dekads: 12, L_ini: 3, L_dev: 4, L_mid: 3, L_late: 2, Kc_ini: 0.40, Kc_mid: 1.15, Kc_end: 0.35, root_depth_m: 1.0 }
+teff:    { LGP_dekads: 9,  L_ini: 2, L_dev: 3, L_mid: 3, L_late: 1, Kc_ini: 0.30, Kc_mid: 1.10, Kc_end: 0.40, root_depth_m: 0.6 }  # APPROX
+
+# soil water holding capacity (mm) over the root zone. Default constant; override with an
+# ee.Image from OpenLandMap/SoilGrids for spatial WHC.
+soil:
+  default_whc_mm: 100              # fallback if spatial WHC disabled
+  init_soil_water_frac: 0.0        # dry start at onset (WRSI convention)
+  use_spatial_whc: true            # build WHC from OpenLandMap (src/soil.py)
+  whc_source: saxton_soilgrids     # saxton_soilgrids (FC & WP from SoilGrids texture) | openlandmap
+  whc_asset: "projects/ee-manzikye/assets/whc_saxton_soilgrids_gha_250m"  # materialized static WHC (no per-run recompute)
+  openlandmap_fc_asset: "OpenLandMap/SOL/SOL_WATERCONTENT-33KPA_USDA-4B1C_M/v01"
+  wp_over_fc_frac: 0.45            # wilting point ~ frac * field capacity (openlandmap fallback only)
+  wp_asset: ""                     # optional: real WP raster for the openlandmap builder
+  min_whc_mm: 25

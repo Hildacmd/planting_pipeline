@@ -1,0 +1,22 @@
+flowchart TD
+  S2["Sentinel-2 SR<br/>red-edge NDRE"] --> FUSE["Fusion → gap-free greenness G"]
+  S1["Sentinel-1 GRD<br/>VV/VH/RVI"] --> FUSE
+  FPAR["MODIS FPAR"] --> FUSE
+  FUSE --> SOS["SOS detection<br/>(LTN-gated)"]
+  PHENO["Phenology LTN<br/>MCD12Q2 ~24yr"] --> SOS
+  RAINLTN["Rainfall onset LTN<br/>CHIRPS ~45yr"] --> SOS
+  MASK["WorldCereal mask"] --> SOS
+  SOS --> PLANT["Planting dekad = SOS − offset"]
+  TEMPLTN["Temperature LTN"] --> PLANT
+  CHIRPS["CHIRPS"] --> ONSET["FEWS onset<br/>25/20mm + P/PET≥0.5"]
+  ERA5["ERA5-Land"] --> ONSET
+  ONSET -. cross-check .-> PLANT
+  PLANT --> WRSI["WRSI balance FAO-56/33"]
+  CHIRPS --> WRSI
+  SOIL["OpenLandMap soil"] --> WRSI
+  PLANT --> ZONAL["Zonal aggregation"]
+  WRSI --> ZONAL
+  ZONAL --> ADMIN["Admin 1/2/3 stats + skill"]
+  ZONAL --> AEZOUT["AEZ → maturity class"]
+  ADMIN --> OUT["GeoTIFF · CSV/WKT · PDF/PNG"]
+  AEZOUT --> OUT

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Algorithms &amp; References</title>
+  <style>
+
+html {
+color: #1a1a1a;
+background-color: #fdfdfd;
+}
+body {
+margin: 0 auto;
+max-width: 36em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 12px;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+html {
+background-color: white;
+}
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+a {
+color: #1a1a1a;
+}
+a:visited {
+color: #1a1a1a;
+}
+img {
+max-width: 100%;
+}
+svg {
+height: auto;
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+font-size: 85%;
+margin: 0;
+hyphens: manual;
+}
+pre {
+margin: 1em 0;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+.sourceCode {
+background-color: transparent;
+overflow: visible;
+}
+hr {
+border: none;
+border-top: 1px solid #1a1a1a;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid #1a1a1a;
+border-bottom: 1px solid #1a1a1a;
+}
+th {
+border-top: 1px solid #1a1a1a;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Algorithms &amp; References</h1>
+</header>
+<h1 id="algorithms-references-planting-window-and-gdd-stage-weighted-risk-monitoring">Algorithms
+&amp; References — Planting Window and GDD Stage-Weighted Risk
+Monitoring</h1>
+<p>Each algorithmic step is stated as the actual equation/logic used in
+the code, followed by the reference(s) that support the method. Symbols:
+<code>P</code> precipitation, <code>PET</code>/<code>ET₀</code>
+reference ET, <code>Tmax/Tmin</code> daily air temperature,
+<code>z</code> elevation, dekad = 10-day period (1–36/yr). <strong>§C
+explains how the many spatial/temporal resolutions are
+reconciled.</strong> Citations are numbered and listed in
+<strong>§D</strong>. <em>Verify DOIs against your library before formal
+publication.</em></p>
+<hr />
+<h2 id="a.-planting-window-estimation-algorithm">A. Planting-window
+estimation algorithm</h2>
+<h3 id="a1.-optical-red-edge-signal-srcs2_preprocess.py">A1. Optical
+red-edge signal — <code>src/s2_preprocess.py</code></h3>
+<p>Per dekad, a cloud-masked median composite of the red-edge index:</p>
+<pre><code>NDRE1 = (B6 − B5) / (B6 + B5)          # Sentinel-2 red-edge (B5=705 nm, B6=740 nm)
+keep pixels where Cloud Score+ cs_cdf ≥ 0.60</code></pre>
+<p>Red-edge NDRE is chlorophyll-sensitive and less soil-biased than NDVI
+on sparse early canopy, which sharpens onset detection [1, 2]; cloud
+masking via Cloud Score+ [3].</p>
+<h3 id="a2.-sar-structural-signal-srcs1_preprocess.py">A2. SAR
+structural signal — <code>src/s1_preprocess.py</code></h3>
+<pre><code>RVI = 4·σ⁰VH / (σ⁰VV + σ⁰VH)           # terrain-flattened dB, speckle-filtered</code></pre>
+<p>The Radar Vegetation Index [4] tracks canopy structure and is
+cloud-penetrating, so it carries the green-up signal when rainy-season
+cloud blinds the optical sensor [5, 6].</p>
+<h3 id="a3.-cue-fusion-gap-free-greenness-g-srcfusion_phenometrics.py">A3.
+Cue fusion → gap-free greenness <code>G</code> —
+<code>src/fusion_phenometrics.py</code></h3>
+<pre><code>opt_G = mean( unitScale(NDRE), unitScale(FPAR) )
+G     = opt_G  gap-filled by  unitScale(RVI)  where optical is missing</code></pre>
+<p><strong>What is actually happening.</strong> No single sensor gives a
+clean, gap-free, fine-resolution greenness curve through a tropical
+rainy season, so three are fused — each contributing where it is
+strongest:</p>
+<ul>
+<li><strong>Sentinel-2 red-edge NDRE</strong> (10–20 m, ~5-day revisit)
+is the <em>sharpest onset signal</em> — chlorophyll- sensitive and
+fine-grained — but it is <strong>cloud-gapped</strong> exactly when
+onset happens.</li>
+<li><strong>MODIS FPAR</strong> (500 m, 4-day composite) is <em>dense in
+time</em> and rarely missing, but <em>coarse in space</em>.</li>
+<li><strong>Sentinel-1 SAR RVI</strong> (10 m, ~6–12 day) is
+<em>cloud-proof</em> (radar sees through cloud) but measures canopy
+<strong>structure</strong>, not chlorophyll — a weaker but
+always-available proxy.</li>
+</ul>
+<p>The fusion is a <strong>per-pixel, per-dekad decision</strong> that
+reconciles their different resolutions in three moves:</p>
+<ol type="1">
+<li><strong>Put them on one grid and one scale.</strong> Each layer is
+first composited to the common <strong>dekadal</strong> time step (§C)
+and resampled to the common <strong>analysis grid</strong>, then
+<strong><code>unitScale</code>-normalised to 0–1</strong> so a 10 m
+red-edge value and a resampled 500 m FPAR value contribute
+<em>comparably</em> despite different native units and resolutions.</li>
+<li><strong>Primary optical greenness</strong>
+<code>opt_G = mean(NDRE&#39;, FPAR&#39;)</code> — this marries S2’s
+<strong>spatial detail</strong> (NDRE carries the fine texture) with
+MODIS’s <strong>temporal density</strong> (FPAR guarantees a value most
+dekads). It is the signal used wherever the sky was clear enough for
+S2.</li>
+<li><strong>Cloud gap-fill.</strong> Where the S2 composite is empty for
+that pixel-dekad (persistent cloud), <code>opt_G</code> is masked and
+the algorithm substitutes the <strong>SAR</strong> value
+<code>unitScale(RVI)</code>, which is unaffected by cloud. This keeps
+the series <strong>gap-free</strong> so SOS detection (§A4) never breaks
+on a missing dekad.</li>
+</ol>
+<p>The output is one continuous 0–1 greenness image per dekad on the
+analysis grid — fine where S2 saw the ground, still populated (via
+FPAR/SAR) where it did not. Multi-sensor optical+SAR phenology fusion
+follows [5, 6]; FPAR from MODIS MCD15A3H [7].</p>
+<h3 id="a3b.-ubestarfm-the-spatiotemporal-fusion-that-was-tested-and-shelved">A3b.
+ubESTARFM — the spatiotemporal fusion that was tested (and shelved)</h3>
+<p>A stronger, heavier alternative to the SAR gap-fill was trialled:
+<strong>unbiased ESTARFM</strong> [8], which <em>predicts</em> a
+fine-resolution value on a cloudy date instead of substituting SAR. It
+is the clearest illustration of true spatial×temporal fusion, so the
+mechanism is worth stating:</p>
+<pre><code>On a clear base date t0 you have BOTH fine F(t0) (S2, 10/250 m) and coarse C(t0) (MODIS, 500 m).
+ 1. Local conversion coefficient  V = cov(F,C)/var(C)  in a moving window     (how a fine pixel
+    responds to a coarse change — the spatial cross-scale relationship)
+ 2. Predict the fine value at target tp from the coarse change:
+        F(tp) = F(t0) + V·( C(tp) − C(t0) )          (MODIS is cloud-free, so C(tp) is always known)
+ 3. UNBIASED step: force mean_coarsen(F_pred) = C(tp)  (removes ESTARFM&#39;s additive bias)
+ 4. TWO-PAIR temporal blend: predict from the nearest earlier and later clear base dates, weight by
+    inverse coarse-change magnitude.</code></pre>
+<p>So it uses the <strong>dense coarse</strong> MODIS series to carry
+the <strong>sparse fine</strong> S2 series across cloud — spatial fusion
+(local regression across scales) plus temporal fusion (blending base
+dates). <strong>Why it was shelved:</strong> MODIS has no red-edge, so
+the only cross-scale partner is <strong>NDVI</strong>, whose earlier,
+flatter green-up propagates into the fill and pulls SOS ~1 dekad early —
+a <strong>documented negative result</strong> at matched resolution (−3
+to −4 pts skill; <code>UBESTARFM_FINDING.md</code>). Resolution, not
+fusion, is the dominant skill lever (§C).</p>
+<h3 id="a4.-start-of-season-sos-detection-detect_sos">A4.
+Start-of-season (SOS) detection — <code>detect_sos</code></h3>
+<p>Within the crop-calendar window, SOS is the earliest dekad where
+greenness crosses a <strong>dynamic amplitude threshold</strong> with a
+sustained positive slope:</p>
+<pre><code>SOS = min{ dk : G(dk) ≥ baseline + 0.25·(amplitude)  AND  G(dk) − G(dk−1) &gt; 0 }</code></pre>
+<p>The dynamic/relative amplitude-threshold method for SOS is the
+standard land-surface-phenology approach [9, 10, 11].</p>
+<h3 id="a5.-long-term-normal-ltn-prior-rainfall-led-greenness-confirmed-srcltn.py">A5.
+Long-term-normal (LTN) prior — rainfall-led, greenness-confirmed —
+<code>src/ltn.py</code></h3>
+<p>The search is anchored by a <strong>rainfall onset normal</strong>
+and confirmed by a <strong>phenology normal</strong>:</p>
+<pre><code>anchor = CHIRPS 25/20 mm onset climatology            # exists every season, every pixel
+refine by MODIS MCD12Q2 Greenup normal where present  # ± ltn_pad dekads, pass-through where absent</code></pre>
+<p>Rainfall-based onset climatology [12, 13]; MODIS land-cover-dynamics
+phenology (Greenup) [14]; CHIRPS rainfall [15].</p>
+<h3 id="a6.-fews-agroclimatic-onset-cross-check-srcwrsi_feedback.py">A6.
+FEWS agroclimatic onset cross-check —
+<code>src/wrsi_feedback.py</code></h3>
+<pre><code>onset if:  P₀ ≥ 25 mm  AND  P₁+P₂ ≥ 20 mm            # FEWS/GeoWRSI 25/20 mm rule
+           AND  P₀ / ET₀ ≥ 0.5                        # agroclimatic sufficiency gate</code></pre>
+<p>The 25/20 mm onset rule is the FEWS/GeoWRSI convention [12, 13]; the
+P/PET ≥ 0.5 growing-period criterion is the FAO agroclimatic definition
+[16].</p>
+<h3 id="a6b.-5-7-false-start-gate-germination-trigger-dry-spell-continuity-srcwrsi_feedback.py">A6b.
+“5 + 7” false-start gate — germination trigger + dry-spell continuity —
+<code>src/wrsi_feedback.py</code></h3>
+<p>Per the inception report, false-start rejection for the
+<strong>green-up-led seasons</strong> (Long rains, Meher) pairs a
+germination trigger with a dry-spell test, alongside P/PET (short rains
+already carry this via the 25/20 mm three-dekad rule, so the gate is not
+applied there):</p>
+<pre><code>accept onset only if:
+  (a) Σ rain over first 5 days ≥ 20 mm                 # germination trigger  (&quot;high-confidence 5-day&quot;)
+  (b) longest dry spell (&lt;1 mm) ≤ 7 days in next 20 d  # continuity           (&quot;extended 7-day outlook&quot;)
+  (c) P/PET ≥ 0.5 at onset                             # adequacy (A6)</code></pre>
+<ol type="a">
+<li>ensures enough concentrated rain to wet the seed zone; (b) rejects
+onsets a killing dry spell follows — the classic
+accumulation-plus-dry-spell onset criterion [40, 41]. Operationally the
+5-day/ 7-day windows are filled by the 6-obs+4-forecast blend;
+retrospective runs use observed CHIRPS. Toggle
+<code>DRYSPELL_GATE</code> (default on). Complements P/PET (adequacy)
+with a <strong>continuity</strong> test.</li>
+</ol>
+<h3 id="a7.-planting-date-srcplanting_date.py">A7. Planting date —
+<code>src/planting_date.py</code></h3>
+<pre><code>planting_dekad = SOS_dekad − emergence_offset         # maize 2 dekads; temperature-varying where LTN on</code></pre>
+<p>Satellite green-up marks emergence, which lags sowing by a
+crop/temperature-dependent offset; solving planting from the
+phenological signal follows the satellite-to-planting-date literature
+[17, 18].</p>
+<h3 id="a8.-wrsi-water-balance-fao-5633-srcwrsi_waterbalance.py">A8.
+WRSI water balance (FAO-56/33) —
+<code>src/wrsi_waterbalance.py</code></h3>
+<p>Full dekadal water accounting started at each pixel’s planting
+dekad:</p>
+<pre><code>ET₀  = Hargreaves(Tmax, Tmin, Ra(lat, DOY))            # temperature ET₀
+WR   = Kc(days-since-planting) · ET₀                   # crop water requirement
+Wb   = SW + P ;  AET = min(Wb, WR) ;  SW = min(Wb − AET, WHC)
+WRSI = 100 · ΣAET / ΣWR    (+ deficit mm, + FEWS class 1–5)</code></pre>
+<p>Reference ET₀ by Hargreaves [19]; Kc curve and crop-water-requirement
+framework FAO-56 [20]; grid-cell crop-water-balance / WRSI for FEWS [12,
+13]; spatial water-holding capacity (WHC) from <strong>SoilGrids 2.0
+texture</strong> with field capacity and wilting point both derived by
+the <strong>Saxton–Rawls (2006) pedotransfer</strong> [21, 21a] (legacy
+OpenLandMap builder retained via
+<code>whc_source: openlandmap</code>).</p>
+<hr />
+<h2 id="b.-gdd-stage-weighted-risk-monitoring-algorithm">B. GDD
+stage-weighted risk-monitoring algorithm</h2>
+<h3 id="b1.-gdd-phenology-clock-thermal-branch-maize-srcgdd_clock.py">B1.
+GDD phenology clock — thermal branch (maize) —
+<code>src/gdd_clock.py</code></h3>
+<p>Per-pixel thermal time from the SOS anchor, on DEM-lapse-corrected
+daily air temperature:</p>
+<pre><code>T&#39;max = Tmax − lapse·(z − z_coarse) ;  T&#39;min likewise    # lapse = 6.5 °C/km, z = SRTM 30 m
+GDD_dekad = 10 · max( 0, (min(T&#39;max, Tcap) + T&#39;min)/2 − Tbase )   # maize Tbase 8–10 °C, Tcap ~30 °C
+GDD_cum(dk) = Σ_{d≥SOS} GDD_dekad</code></pre>
+<p>GDD single-equation formulation and cardinal temperatures [22];
+anchoring a thermal-time crop clock to a satellite-detected start date
+[17, 18, 23, 24]; environmental lapse-rate correction over terrain [25]
+on the SRTM DEM [26]; daily air temperature from ERA5-Land / AgERA5 [27,
+28].</p>
+<h3 id="b2.-stage-transitions-aez-seeded-target">B2. Stage transitions
+&amp; AEZ-seeded target</h3>
+<pre><code>stage_dekad(s) = min{ dk : GDD_cum(dk) ≥ frac(s) · GDD_maturity }
+frac:  peak_vegetative 0.45 · flowering 0.55 · grain_filling 0.65 · maturity 1.00
+GDD_maturity (per pixel, AEZ class):  early 1300 · medium 1500 · late 1700 °C·d</code></pre>
+<p>Maize GDD-to-stage fractions from canonical maize development staging
+[22, 29]; length-of-growing-period / agro-ecological-zone basis for the
+maturity target [30, 31].</p>
+<h3 id="b3.-stage-sensitivity-weights-fao-33-ky">B3. Stage sensitivity
+weights (FAO-33 Ky)</h3>
+<p>The risk weight applied to an anomaly is the yield-response factor of
+the interval the pixel is in:</p>
+<pre><code>Ky:  vegetative (SOS→peak-veg) 0.40 · flowering (peak-veg→grain-fill) 1.50 · grain-fill→maturity 0.50</code></pre>
+<p>Stage-specific yield-response factors Ky from FAO-33 [32] — an
+anomaly at silking (Ky 1.5) counts ~3–4× the same anomaly during
+vegetative growth or grain fill.</p>
+<h3 id="b4.-meteorological-drought-spi-3-srcspi.py">B4. Meteorological
+drought — SPI-3 — <code>src/spi.py</code></h3>
+<p>3-month CHIRPS accumulation, gamma-fit per pixel/period, mapped to a
+z-score by the <strong>Wilson–Hilferty</strong> cube-root normal
+approximation of the gamma (pure GEE, no incomplete-gamma function):</p>
+<pre><code>a   = (μ/σ)²                                          # gamma shape, method of moments
+SPI = ( (P₃/μ)^(1/3) − 1 + 1/(9a) ) · √(9a)          # ≤ −1 moderate, ≤ −1.5 severe drought</code></pre>
+<p>Standardized Precipitation Index [33, 34]; the cube-root
+(Wilson–Hilferty) normal approximation of the gamma/χ² [35]; CHIRPS
+climatology [15].</p>
+<h3 id="b5.-crop-water-stress-performance">B5. Crop-water-stress &amp;
+performance</h3>
+<pre><code>crop-failure   = WRSI &lt; 50                            # FEWS crop-performance failure class
+CPI            = 100·[ 1 − Σ_stage Ky·(1 − ETa/ETm) ] # stage-weighted relative yield (FAO-33 closure)</code></pre>
+<p>WRSI crop-performance classes [12, 13]; the yield-limited closure
+<code>1 − Ya/Ym = Σ Ky(1 − ETa/ETm)</code> is FAO-33 [32]. (Roadmap
+indicators: vegetation-condition VCI [36]; heat-stress at
+flowering.)</p>
+<h3 id="b6.-admin-aggregation-asap-of-crop-area-spi_admin.py-risk_app.html">B6.
+Admin aggregation — ASAP % of crop area — <code>spi_admin.py</code>,
+<code>risk_app.html</code></h3>
+<pre><code>CAF(unit)      = maize pixels / total pixels                       # crop area fraction (ASAP denominator)
+affected%      = maize-area with [hazard active &amp; persistent ≥2 dekads] / maize-area
+ASAP class:  ≥25% Watch · ≥50% Alert · ≥75% Critical</code></pre>
+<p>The “% of crop area affected” hotspot classification is the JRC ASAP
+method [37].</p>
+<h3 id="b7.-cultivar-split-self-calibration-design-roadmap">B7. Cultivar
+split &amp; self-calibration (design; roadmap)</h3>
+<p>Maize/improved wheat use the <strong>thermal</strong> branch above;
+<strong>landrace sorghum &amp; pearl millet</strong> are
+photoperiod-sensitive and must use a threshold–hyperbolic
+<strong>photoperiod branch</strong> (daylength from lat×DOY), else
+GDD-from-SOS predicts flowering weeks late [38, 39]. Stage targets
+self-calibrate against the observed EVI/NDVI peak per crop×zone
+(CropSow-style inversion) [18], with a Sentinel-1 SAR
+backscatter-turnaround structural check [6]. Full spec:
+<code>GDD_Phenology_Clock_Workflow.docx</code>.</p>
+<hr />
+<h2 id="c.-spatial-temporal-resolution-how-the-layers-are-reconciled">C.
+Spatial &amp; temporal resolution — how the layers are reconciled</h2>
+<p>The pipeline mixes inputs spanning <strong>10 m to ~11 km</strong>
+and <strong>daily to annual</strong>. Two devices reconcile them: a
+common <strong>time step (the dekad)</strong> and a common
+<strong>analysis grid</strong>, with normalisation before any fusion and
+lapse-correction where fine detail must be injected into a coarse
+field.</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Native spatial</th>
+<th>Native temporal</th>
+<th>Handling</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sentinel-2 NDRE</td>
+<td>10–20 m</td>
+<td>~5-day revisit</td>
+<td>native; dekadal median composite</td>
+</tr>
+<tr>
+<td>Sentinel-1 SAR RVI</td>
+<td>10 m</td>
+<td>~6–12 day</td>
+<td>native; dekadal composite</td>
+</tr>
+<tr>
+<td>MODIS FPAR (MCD15A3H)</td>
+<td>500 m</td>
+<td>4-day</td>
+<td>resampled to grid; dekad mean</td>
+</tr>
+<tr>
+<td>MODIS MCD43A4 (ubESTARFM)</td>
+<td>500 m</td>
+<td>daily NBAR</td>
+<td>coarse partner in cross-scale regression</td>
+</tr>
+<tr>
+<td>MODIS Greenup (MCD12Q2)</td>
+<td>500 m</td>
+<td>annual</td>
+<td>LTN prior, resampled</td>
+</tr>
+<tr>
+<td>CHIRPS</td>
+<td>~5.5 km (0.05°)</td>
+<td>daily</td>
+<td>dekad <strong>sum</strong>; resampled to grid</td>
+</tr>
+<tr>
+<td>ERA5-Land</td>
+<td>~9–11 km</td>
+<td>hourly→daily</td>
+<td>dekad <strong>mean</strong>; DEM-lapse downscaled</td>
+</tr>
+<tr>
+<td>SRTM DEM</td>
+<td>30 m</td>
+<td>static</td>
+<td>native; drives lapse + AEZ</td>
+</tr>
+<tr>
+<td>WorldCereal maize</td>
+<td>10 m</td>
+<td>annual</td>
+<td>native mask</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Temporal reconciliation — the dekad is the universal
+clock.</strong> Every source is composited or aggregated to the same
+<strong>36 dekads/year</strong>: optical/SAR by <em>median
+compositing</em> of all acquisitions in the 10-day window (which absorbs
+the differing revisit cycles — a dekad is long enough that even the
+coarsest optical revisit usually yields ≥1 clear look, yet short enough
+to resolve crop phenology), MODIS 4-day by dekad mean, CHIRPS daily by
+dekad <strong>sum</strong> (a flux), ERA5 daily by dekad
+<strong>mean</strong> (a state). This <em>is</em> the temporal fusion:
+sensors of ~5-day to daily cadence are brought onto one calendar so they
+can be combined and so SOS/GDD accumulate on a fixed step.</p>
+<p><strong>Spatial reconciliation — one analysis grid, normalise, then
+fuse.</strong> A single grid is chosen — <strong>250 m in
+production</strong> (multi-country; two concurrent 10 m country exports
+do not sustain on GEE), <strong>10 m for a single-AOI reference</strong>
+run. Fine inputs (S2, S1, DEM, mask) sit at or below the grid and are
+used natively; coarse inputs (MODIS, CHIRPS, ERA5) are <strong>resampled
+up</strong> to the grid. <em>Resampling places a coarse value on fine
+pixels so it can be combined arithmetically — it does not manufacture
+new information</em>; a CHIRPS-derived field is still ~5.5 km in true
+content even when written at 250 m. Before any fusion, indices are
+<strong><code>unitScale</code>-normalised to 0–1</strong> so layers of
+different native resolution and units contribute on equal footing
+(§A3).</p>
+<p><strong>Injecting genuine fine detail into a coarse field — only
+where physically justified.</strong> The one place a coarse variable
+gains real sub-grid structure is <strong>temperature</strong>: ERA5-Land
+(~9 km) is <strong>lapse-corrected against the 30 m SRTM DEM</strong>
+(<code>T&#39; = T − 6.5 °C/km · (z − z_coarse)</code>, §B1), because the
+dominant fine-scale control on temperature <em>is</em> elevation — so a
+cool ridge and a warm valley in the same reanalysis cell get correctly
+different GDD. Rainfall has no such universal fine predictor, so
+<strong>SPI-3 and the WRSI rainfall terms are honestly ~5.5 km</strong>
+in information content: when SPI-3 is overlaid on 250 m maize for admin
+aggregation it is nearest-resampled, and many maize pixels share one SPI
+value — the admin <strong>% of crop area</strong> is still meaningful,
+but the per-pixel SPI is not truly 250 m, and this is stated rather than
+implied.</p>
+<p><strong>Where resolution matters most.</strong> Onset skill is
+dominated by the <em>optical</em> grid (10 m → 250 m costs ~11 skill
+points — far more than any fusion choice), which is why the finest
+affordable grid is preferred and why ubESTARFM’s coarse-partner fill
+could not help (§A3b). The <em>water-balance and drought</em> layers are
+climate-limited and therefore coarse by nature; their value is in the
+anomaly and the admin roll-up, not in pixel-level sharpness.</p>
+<hr />
+<h2 id="d.-references">D. References</h2>
+<p><strong>Optical / SAR / fusion / phenology</strong> 1. Eisfelder, C.
+et al. (2024). <em>Cropland &amp; crop type with S1/S2 in GEE,
+Ethiopia.</em> Remote Sensing 16(5):866.
+https://doi.org/10.3390/rs16050866 2. Vrieling, A. et al. (2019). <em>S1
+&amp; S2 time series for meadow phenology.</em> Remote Sensing
+11(5):542. https://doi.org/10.3390/rs11050542 3. Pasquarella, V. J. et
+al. (2023). <em>Cloud Score+ S2_HARMONIZED.</em> Google Earth Engine
+dataset (Sentinel-2 cloud/atmospheric masking). 4. Kim, Y. &amp; van
+Zyl, J. J. (2009). <em>A time-series approach to estimate soil moisture
+using polarimetric radar data (Radar Vegetation Index).</em> IEEE TGRS
+47(8), 2519–2527. https://doi.org/10.1109/TGRS.2009.2014944 5. (2025)
+<em>S1 SAR annual rice area &amp; long-term SOS dynamics.</em>
+Scientific Reports. https://doi.org/10.1038/s41598-025-91655-z 6.
+Mercier, A. et al. (2020). <em>Evaluation of S1 &amp; S2 time series for
+predicting wheat and rapeseed phenological stages.</em> ISPRS J. 163,
+231–256. https://doi.org/10.1016/j.isprsjprs.2020.03.009 7. Myneni, R.
+et al. <em>MODIS MCD15A3H FPAR/LAI C6.1.</em> NASA LP DAAC.
+https://doi.org/10.5067/MODIS/MCD15A3H.061 8. Zhu, X. et al. (2010).
+<em>ESTARFM — enhanced spatial-temporal adaptive reflectance
+fusion.</em> RSE 114(11), 2610–2623.
+https://doi.org/10.1016/j.rse.2010.05.032</p>
+<p><strong>Start-of-season / land-surface phenology</strong> 9. White,
+M. A. et al. (1997). <em>A continental phenology model … (dynamic
+threshold).</em> Global Biogeochemical Cycles 11(2), 217–234.
+https://doi.org/10.1029/97GB00330 10. Jönsson, P. &amp; Eklundh, L.
+(2002). <em>Seasonality extraction by function fitting to time-series
+satellite data.</em> IEEE TGRS 40(8), 1824–1832.
+https://doi.org/10.1109/TGRS.2002.802519 11. Jönsson, P. &amp; Eklundh,
+L. (2004). <em>TIMESAT — a program for analyzing time-series of
+satellite sensor data.</em> Computers &amp; Geosciences 30(8), 833–845.
+https://doi.org/10.1016/j.cageo.2004.05.006</p>
+<p><strong>Rainfall onset / WRSI / water balance</strong> 12. Verdin, J.
+&amp; Klaver, R. (2002). <em>Grid-cell-based crop water accounting for
+FEWS.</em> Hydrological Processes 16, 1617–1630.
+https://doi.org/10.1002/hyp.1025 13. Senay, G. B. &amp; Verdin, J.
+(2003). <em>GIS crop water balance model, Ethiopia (25/20 mm onset;
+WRSI).</em> Can. J. Remote Sensing 29(6), 687–692.
+https://doi.org/10.5589/m03-039 14. Friedl, M. et al. (2019). <em>MODIS
+MCD12Q2 Land Cover Dynamics (Greenup) C6.</em> NASA LP DAAC.
+https://doi.org/10.5067/MODIS/MCD12Q2.006 15. Funk, C. et al. (2015).
+<em>CHIRPS.</em> Scientific Data 2:150066.
+https://doi.org/10.1038/sdata.2015.66 16. Frère, M. &amp; Popov, G. F.
+(1979). <em>Agrometeorological crop monitoring and forecasting (P/PET ≥
+0.5 growing period).</em> FAO Plant Production &amp; Protection Paper
+17. FAO, Rome.</p>
+<p><strong>Planting-date from phenology</strong> 17. Sadeh, Y. et
+al. (2019). <em>Sowing-date detection at field scale using
+CubeSats.</em> Computers &amp; Electronics in Agriculture 157, 568–580.
+https://doi.org/10.1016/j.compag.2019.01.042 18. Liu, Y., Diao, C. &amp;
+Yang, Z. (2023). <em>CropSow: remotely sensed crop-modeling framework
+for planting-date estimation.</em> ISPRS J. 202, 334–355.
+https://doi.org/10.1016/j.isprsjprs.2023.06.012</p>
+<p><strong>Evapotranspiration</strong> 19. Hargreaves, G. H. &amp;
+Samani, Z. A. (1985). <em>Reference ET from temperature.</em> Applied
+Eng. in Agriculture 1(2), 96–99. https://doi.org/10.13031/2013.26773 20.
+Allen, R. G. et al. (1998). <em>Crop evapotranspiration (Kc, ET₀).</em>
+FAO Irrigation &amp; Drainage Paper 56. FAO, Rome.
+https://www.fao.org/3/x0490e/x0490e00.htm 21. Saxton, K. E. &amp; Rawls,
+W. J. (2006). <em>Soil water characteristic estimates by texture and
+organic matter for hydrologic solutions.</em> Soil Sci. Soc. Am. J.
+70(5), 1569–1578. https://doi.org/10.2136/sssaj2005.0117 — FC (θ₃₃)
+&amp; WP (θ₁₅₀₀) pedotransfer used for WHC. 21a. Poggio, L. et
+al. (2021). <em>SoilGrids 2.0: producing soil information for the globe
+with quantified spatial uncertainty.</em> SOIL 7, 217–240.
+https://doi.org/10.5194/soil-7-217-2021 — sand/clay/SOC texture inputs.
+(Legacy: OpenLandMap 33 kPa water content,
+https://doi.org/10.5281/zenodo.2784001.)</p>
+<p><strong>GDD clock / temperature / staging</strong> 22. McMaster, G.
+S. &amp; Wilhelm, W. W. (1997). <em>Growing degree-days: one equation,
+two interpretations.</em> Agric. &amp; Forest Meteorology 87(4),
+291–300. https://doi.org/10.1016/S0168-1923(97)00027-0 23. Aires, U. R.
+V. et al. (2026). <em>Operational field-scale sowing/emergence from
+daily synthetic HLS.</em> Journal of Remote Sensing 6:0878.
+https://doi.org/10.34133/remotesensing.0878 24. Zhou, Q. et al. (2024).
+<em>From phenological metrics to field-level planting dates.</em> ISPRS
+J. 216, 259–273. https://doi.org/10.1016/j.isprsjprs.2024.07.031 25.
+Minder, J. R. et al. (2010). <em>Surface temperature lapse rates over
+complex terrain.</em> J. Geophysical Research 115, D14122.
+https://doi.org/10.1029/2009JD013493 26. Farr, T. G. et al. (2007).
+<em>The Shuttle Radar Topography Mission.</em> Reviews of Geophysics 45,
+RG2004. https://doi.org/10.1029/2005RG000183 27. Muñoz-Sabater, J. et
+al. (2021). <em>ERA5-Land.</em> Earth System Science Data 13, 4349–4383.
+https://doi.org/10.5194/essd-13-4349-2021 28. Copernicus Climate Change
+Service (2020). <em>AgERA5 — agrometeorological indicators.</em>
+Copernicus CDS. https://doi.org/10.24381/cds.6c68c9bb 29. Abendroth, L.
+J. et al. (2011). <em>Corn growth and development (GDD stage
+targets).</em> Iowa State Univ. Extension PMR 1009. 30. FAO (1996 /
+updated). <em>Agro-ecological zoning &amp; length of growing
+period.</em> FAO Soils Bulletin 73 / GAEZ framework. 31. Jaetzold, R.
+&amp; Schmidt, H. <em>Farm Management Handbook of Kenya (agro-ecological
+zones).</em> Ministry of Agriculture, Kenya.</p>
+<p><strong>Stage weighting / yield response</strong> 32. Doorenbos, J.
+&amp; Kassam, A. H. (1979). <em>Yield response to water (Ky).</em> FAO
+Irrigation &amp; Drainage Paper 33. FAO, Rome.</p>
+<p><strong>Drought index (SPI)</strong> 33. McKee, T. B., Doesken, N. J.
+&amp; Kleist, J. (1993). <em>The relationship of drought frequency and
+duration to time scales (SPI).</em> 8th Conf. Applied Climatology, AMS,
+179–184. 34. Guttman, N. B. (1999). <em>Accepting the Standardized
+Precipitation Index: a calculation algorithm.</em> J. American Water
+Resources Assoc. 35(2), 311–322.
+https://doi.org/10.1111/j.1752-1688.1999.tb03592.x 35. Wilson, E. B.
+&amp; Hilferty, M. M. (1931). <em>The distribution of chi-square
+(cube-root normal approximation).</em> PNAS 17(12), 684–688.
+https://doi.org/10.1073/pnas.17.12.684</p>
+<p><strong>Vegetation condition / hotspots / photoperiod</strong> 36.
+Kogan, F. N. (1995). <em>Application of vegetation index and brightness
+temperature for drought detection (VCI).</em> Advances in Space Research
+15(11), 91–100. https://doi.org/10.1016/0273-1177(95)00079-T 37.
+Rembold, F. et al. (2019). <em>ASAP: a new global early-warning system
+to detect anomaly hot spots of agricultural production.</em>
+Agricultural Systems 168, 247–257.
+https://doi.org/10.1016/j.agsy.2018.07.002 38. Folliard, A. et
+al. (2004). <em>Modeling sorghum response to photoperiod: a
+threshold–hyperbolic approach.</em> Field Crops Research 89(1), 59–70.
+https://doi.org/10.1016/j.fcr.2004.01.006 39. Sanon, M. et al. (2014).
+<em>Photoperiod sensitivity of local millet and sorghum varieties in
+West Africa.</em> NJAS 68, 29–39.
+https://doi.org/10.1016/j.njas.2013.11.004</p>
+<p><strong>Onset false-start criterion (A6b)</strong> 40. Sivakumar, M.
+V. K. (1988). <em>Predicting rainy season potential from the onset of
+rains in the Sudanian and Sahelian zones of West Africa.</em> Agric.
+&amp; Forest Meteorology 42(4), 295–305.
+https://doi.org/10.1016/0168-1923(88)90039-1 — accumulation +
+no-dry-spell onset definition. 41. Stern, R. D., Dennett, M. D. &amp;
+Dale, I. C. (1982). <em>Analysing daily rainfall measurements to give
+agronomically useful results. I. Direct methods.</em> Experimental
+Agriculture 18(3), 223–236. https://doi.org/10.1017/S001447970001379X —
+onset &amp; dry-spell risk from daily rainfall.</p>
+<p><strong>Excess rain / waterlogging (B, wet-side)</strong> 42. Zaidi,
+P. H. et al. (2004). <em>Tolerance to excess moisture in maize:
+susceptible crop stages and identification of tolerant genotypes.</em>
+Field Crops Research 90(2–3), 189–202.
+https://doi.org/10.1016/j.fcr.2004.03.002 43. Ren, B. et al. (2014).
+<em>Effects of waterlogging on the yield and growth of summer maize
+under field conditions.</em> Canadian J. Plant Science 94(1), 23–31.
+https://doi.org/10.4141/cjps2013-175 44. Kaur, G. et al. (2020).
+<em>Impacts and management strategies for crop production in waterlogged
+or flooded soils: a review.</em> Agronomy Journal 112(3), 1475–1501.
+https://doi.org/10.1002/agj2.20093</p>
+<hr />
+<p><em>References 1–8, 12–13, 15, 17–20, 22–24, 26–28, 31–32, 37–39 are
+drawn from the project’s verified citation set; 9–11, 14, 16, 21, 25,
+29–30, 33–36 are the canonical method sources added here for the
+specific algorithm steps — confirm their DOIs/editions against your
+library before publication.</em></p>
+</body>
+</html>

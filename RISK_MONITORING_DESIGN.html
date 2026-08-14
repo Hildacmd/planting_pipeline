@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>In-Season Risk Monitoring — Design Spec</title>
+  <style>
+
+html {
+color: #1a1a1a;
+background-color: #fdfdfd;
+}
+body {
+margin: 0 auto;
+max-width: 36em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 12px;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+html {
+background-color: white;
+}
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+a {
+color: #1a1a1a;
+}
+a:visited {
+color: #1a1a1a;
+}
+img {
+max-width: 100%;
+}
+svg {
+height: auto;
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+font-size: 85%;
+margin: 0;
+hyphens: manual;
+}
+pre {
+margin: 1em 0;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+.sourceCode {
+background-color: transparent;
+overflow: visible;
+}
+hr {
+border: none;
+border-top: 1px solid #1a1a1a;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid #1a1a1a;
+border-bottom: 1px solid #1a1a1a;
+}
+th {
+border-top: 1px solid #1a1a1a;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">In-Season Risk Monitoring — Design Spec</h1>
+</header>
+<h1 id="in-season-risk-monitoring-design-spec-v1-frozen">In-Season Risk
+Monitoring — Design Spec (v1, frozen)</h1>
+<p><strong>Status:</strong> design frozen (numbers agreed) · <strong>not
+yet implemented.</strong> A separate module from the seasonal
+planting-window estimator; it re-runs each dekad through the maize
+cropping season. <strong>Region/crop:</strong> GHA / ICPAC ·
+<strong>MAIZE only for now</strong> (Kenya Long+Short rains, Ethiopia
+Meher); wheat and teff are a later extension, and sorghum/pearl millet
+need the photoperiod branch (§2a) first. <strong>Stage timing</strong>
+comes from the GDD Phenology Clock
+(<code>GDD_Phenology_Clock_Workflow.docx</code>, v2.1); this doc
+specifies the <em>risk weighting</em> applied on top of it.</p>
+<h2 id="concept">1. Concept</h2>
+<p>Continuous (dekadal) agricultural-risk monitoring in the
+<strong>ASAP</strong> style (JRC Anomaly hot Spots of Agricultural
+Production): per-pixel climatological anomalies, <strong>confirmed over
+time</strong> (not one-off), <strong>weighted by the phenological
+stage</strong> the pixel is in (an anomaly at silking hurts far more
+than at ripening), masked to <strong>maize area</strong>, and aggregated
+to admin units by the <strong>% of crop area affected</strong>.</p>
+<p>Stage is set by a <strong>Growing-Degree-Day (GDD) thermal
+clock</strong>, not the calendar.</p>
+<h2 id="gdd-phenology-clock-the-stage-timing-engine">2. GDD phenology
+clock — the stage-timing engine</h2>
+<p>The stage a field is in is produced by the <strong>GDD Phenology
+Clock</strong> (authoritative spec:
+<code>GDD_Phenology_Clock_Workflow.docx</code>, v2.1). The risk module
+does <strong>not</strong> re-derive stages; it consumes the clock’s
+per-field flowering/maturity dates and applies the Ky weights (§3) on
+top.</p>
+<p><strong>2a — Crop/cultivar split (Stage 2, decisive).</strong> Route
+each field to a <strong>thermal</strong> or <strong>photoperiod</strong>
+clock <em>before</em> accumulating. Maize (our current crop) and
+improved wheat are <strong>thermal</strong> — a fixed thermal-time
+target to flowering is valid. <strong>Landrace sorghum &amp; pearl
+millet are photoperiod-sensitive</strong>: they flower on shortening
+daylength near end-of-rains, ~independent of sowing date, so
+GDD-from-SOS predicts them weeks late. Scaling risk to Sudan/Eritrea
+millet <strong>requires the photoperiod branch</strong>
+(threshold–hyperbolic, daylength from lat×DOY); where cultivar is
+unknown in the semi-arid north, default to PP-sensitive.</p>
+<p><strong>2b — GDD accumulation (Stage 4a, thermal branch —
+maize).</strong></p>
+<pre><code>GDD_day = max(0, (Tmax + Tmin)/2 − Tbase)   # maize Tbase 8–10 °C, cap Tmax at Tcap (~30 °C)
+GDD_cum = Σ GDD_day from the SOS anchor (emergence); keep Tbase &amp; stage target on the SAME anchor</code></pre>
+<p><strong>2c — Temperature input (Stage 3, redesigned).</strong> Daily
+<strong>air</strong> Tmax/Tmin from <strong>AgERA5 / ERA5-Land</strong>
+(blend <strong>CHIRTS-daily</strong> in data-sparse zones), <strong>DEM
+lapse-corrected to 30 m</strong> — elevation drives the fine GDD signal.
+For Ethiopia use the <strong>Wakjira et al. 2023</strong> debiased daily
+2 m product. <strong>Never</strong> use land-surface temperature (LST)
+or 30 m Landsat thermal as the temperature itself (skin ≠ air; a single
+8–16 d snapshot cannot build a daily Tmax/Tmin series).</p>
+<p><strong>2d — Stage dates &amp; calibration (Stages 5–6).</strong>
+Roll SOS → flowering → maturity on thermal time. Flowering (the Ky 1.5
+window) is a <strong>calibrated date</strong>, not a fixed GDD fraction:
+the loop compares the predicted flowering to the <strong>observed
+EVI/NDVI peak</strong> per field and tunes Tbase / the thermal-time
+target (or Pcrit on the PP branch) per crop×zone — no ground truth
+required. A <strong>Sentinel-1 SAR</strong> backscatter turnaround gives
+an independent structural second check. The <strong>AEZ maturity
+class</strong> (early 1300 / medium 1500 / late 1700 °C·d) seeds
+<code>GDD_maturity</code> as the prior before calibration.</p>
+<h2 id="stage-markers-the-clock-predicts-and-the-ky-weighting">3. Stage
+markers the clock predicts, and the Ky weighting</h2>
+<p><strong>Scope: MAIZE only for now</strong> (thermal branch).
+Wheat/teff later; sorghum &amp; pearl millet need the photoperiod branch
+(§2a).</p>
+<p>The GDD clock (§2, <code>src/gdd_clock.py</code>) emits four
+<strong>stage-transition dekads</strong> per pixel, at these GDD
+fractions of the AEZ-seeded <code>GDD_maturity</code> (seed fractions;
+the flowering marker is recentred by the EVI-peak calibration, §2d):</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Marker (clock band)</th>
+<th>GDD fraction</th>
+<th>Maize event</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>peak_vegetative_dekad</code></td>
+<td>0.45</td>
+<td>VT tasseling — end of vegetative growth / canopy peak</td>
+</tr>
+<tr>
+<td><code>flowering_dekad</code></td>
+<td>0.55</td>
+<td>R1 silking — critical water/heat window</td>
+</tr>
+<tr>
+<td><code>grain_filling_dekad</code></td>
+<td>0.65</td>
+<td>R2/R3 — yield formation begins</td>
+</tr>
+<tr>
+<td><code>maturity_dekad</code></td>
+<td>1.00</td>
+<td>R6 physiological maturity — <strong>end of season</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The risk stage-weighting rides on the <strong>intervals</strong>
+between the markers (FAO-33 Ky), so an anomaly is weighted by whichever
+interval the pixel is in at that dekad:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Interval</th>
+<th>Growth phase</th>
+<th>Ky</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SOS → peak-vegetative</td>
+<td>Vegetative</td>
+<td><strong>0.40</strong></td>
+</tr>
+<tr>
+<td><strong>peak-vegetative → grain-filling</strong></td>
+<td><strong>Flowering / reproductive (critical)</strong></td>
+<td><strong>1.50</strong></td>
+</tr>
+<tr>
+<td>grain-filling → maturity</td>
+<td>Grain filling &amp; ripening</td>
+<td><strong>0.50</strong></td>
+</tr>
+<tr>
+<td>whole season</td>
+<td>—</td>
+<td>1.25</td>
+</tr>
+</tbody>
+</table>
+<p>A water/heat hit at silking therefore counts ~3–4× the same anomaly
+during vegetative growth or grain fill. <code>maturity_dekad</code> is
+the predicted <strong>end of season</strong>, closing the seasonal-risk
+accumulation.</p>
+<h2 id="hazards-frozen-v1">4. Hazards — FROZEN v1</h2>
+<p>All hazards are per-pixel anomalies vs a <strong>per-pixel historical
+climatology</strong>, require <strong>persistence (≥ 2 consecutive
+dekads)</strong>, and are <strong>stage-weighted by Ky</strong> before
+admin aggregation.</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Hazard</th>
+<th>Indicator (vs climatology)</th>
+<th>Data (baseline)</th>
+<th>Persistence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H1</td>
+<td><strong>Water / drought</strong></td>
+<td>(a) <strong>SPI-3</strong> ≤ −1 moderate / ≤ −1.5 severe; (b)
+crop-water deficit <code>1−ETa/ETm</code> ×Ky</td>
+<td>CHIRPS gamma-fit 1981– ; FAO-33/WRSI balance</td>
+<td>SPI-3 ≥ 2 consecutive dekads</td>
+</tr>
+<tr>
+<td>H2</td>
+<td><strong>Heat stress</strong></td>
+<td>days Tmax &gt; 35 °C in the flowering window, anomaly vs normal
+×Ky(flower)=1.5</td>
+<td>ERA5-Land ~30–45 yr</td>
+<td>within flowering, ≥ 2 dekads</td>
+</tr>
+<tr>
+<td>H3</td>
+<td><strong>Vegetation (confirmation)</strong></td>
+<td>NDRE/NDVI <strong>VCI</strong> z-score vs per-pixel multi-year
+mean</td>
+<td>MODIS/S2</td>
+<td>confirms a driver; not standalone</td>
+</tr>
+<tr>
+<td>H4</td>
+<td><strong>Onset / establishment failure</strong></td>
+<td>detected onset − LTN onset normal (delay &gt; 2 dekads, or no
+onset)</td>
+<td>CHIRPS + RS onset normals</td>
+<td>early-season, pre-GDD-clock</td>
+</tr>
+</tbody>
+</table>
+<h2 id="headline-outputs-frozen">5. Headline outputs — FROZEN</h2>
+<ol type="1">
+<li><strong>Crop Performance Index (CPI)</strong> — stage-weighted
+relative yield (FAO-33 water-limited closure):
+<code>CPI = 100 · [ 1 − Σ_stage Ky·(1 − ETa/ETm)_stage ]</code>, clamped
+0–100. Yield-relevant, stage-weighted sibling of WRSI (which is
+un-weighted water satisfaction).</li>
+<li><strong>Crop-failure %</strong> — % of maize area (CAF) where CPI
+(or WRSI) is in the failure class (&lt; 50). The ASAP headline number
+per admin unit.</li>
+<li><strong>Per-hazard risk maps</strong> (H1–H4) and a <strong>combined
+hotspot</strong> map (any hazard active).</li>
+</ol>
+<h2 id="asap-admin-closure-of-maize-area-affected">6. ASAP admin closure
+— % of maize area affected</h2>
+<p>For each admin unit and hazard/output, using <strong>CAF</strong>
+(crop area fraction) as the maize denominator:</p>
+<table>
+<thead>
+<tr>
+<th>% of maize area affected</th>
+<th>ASAP class</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>≥ 25 %</td>
+<td>Watch</td>
+</tr>
+<tr>
+<td>≥ 50 %</td>
+<td>Alert</td>
+</tr>
+<tr>
+<td>≥ 75 %</td>
+<td>Critical</td>
+</tr>
+</tbody>
+</table>
+<h2 id="temporal-products">7. Temporal products</h2>
+<ul>
+<li><strong>10-day (dekadal)</strong> — instantaneous stage-weighted
+risk each dekad (live frame).</li>
+<li><strong>Monthly</strong> — 3-dekad aggregate (bulletin
+cadence).</li>
+<li><strong>Seasonal</strong> — cumulative over planting→maturity; the
+seasonal CPI and crop-failure % are the end-of-season summary.</li>
+</ul>
+<h2 id="reuse-of-existing-pipeline-assets">8. Reuse of existing pipeline
+assets</h2>
+<p>Planting dekad ✓ · ERA5-Land T (ET₀/GDD) ✓ · AEZ maturity →
+GDD_maturity ✓ · FAO-33 Ky (sibling of the WRSI Kc curve) ✓ · WRSI
+ETa/ETm &amp; failure class ✓ · CHIRPS ~45 yr → SPI-3 · LTN onset normal
+(H4) · CAF (maize denominator).</p>
+<h2 id="references">9. References</h2>
+<ul>
+<li>Doorenbos, J. &amp; Kassam, A.H. (1979). <em>Yield response to
+water.</em> FAO Irrigation &amp; Drainage Paper 33. (Ky)</li>
+<li>Allen, R.G. et al. (1998). <em>Crop evapotranspiration.</em> FAO-56.
+(Kc, ET₀)</li>
+<li>McKee, T.B. et al. (1993). <em>The relationship of drought frequency
+and duration to time scales.</em> (SPI)</li>
+<li>Funk, C. et al. (2015). <em>CHIRPS.</em> Scientific Data
+2:150066.</li>
+<li>Muñoz-Sabater, J. et al. (2021). <em>ERA5-Land.</em> ESSD 13,
+4349–4383.</li>
+<li>Rembold, F. et al. (2019). <em>ASAP: a new global early warning
+system…</em> Agricultural Systems 168, 247–257. (25%-area hotspot
+method)</li>
+</ul>
+<hr />
+<p><em>Frozen [design date TBD]. Implementation is a follow-on module;
+not built yet.</em></p>
+</body>
+</html>

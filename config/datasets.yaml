@@ -1,0 +1,105 @@
+# =============================================================================
+# Data sources + access APIs for crop-specific dekadal planting-window estimation
+# GHA / ICPAC 11 countries | crops: maize, teff, wheat
+# Every ID below is the primary access handle; `api` names how you pull it.
+# =============================================================================
+
+project:
+  countries: [Ethiopia, Kenya, Uganda, Tanzania, Rwanda, Burundi,
+              South_Sudan, Sudan, Somalia, Eritrea, Djibouti]  # Djibouti excluded downstream
+  crops: [maize, teff, wheat]
+  dekads_per_year: 36          # 10-day compositing period
+  target_resolution_m: 10
+  years: [2019, 2020, 2021, 2022, 2023, 2024, 2025]
+
+# ---- OPTICAL: phenology + red-edge -----------------------------------------
+sentinel2:
+  gee_id: "COPERNICUS/S2_SR_HARMONIZED"
+  cloud_mask:
+    primary: "GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED"   # cs_cdf band, thr ~0.60
+    fallback: "COPERNICUS/S2_CLOUD_PROBABILITY"           # prob < 15%
+  bands_10m: [B2, B3, B4, B8]
+  bands_20m_rededge: [B5, B6, B7, B8A, B11, B12]          # resample 20->10 m nearest
+  indices: [NDVI, EVI2, NDRE1, NDRE2, ReNDVI, CIre]        # red-edge = early/robust onset
+  apis:
+    - Google Earth Engine (ee Python / JS)                 # main compute here
+    - Copernicus Data Space Ecosystem (CDSE) openEO        # https://openeo.dataspace.copernicus.eu
+    - CDSE Sentinel Hub Process/Statistical API            # https://sh.dataspace.copernicus.eu
+    - CDSE Catalogue STAC / OData                          # https://catalogue.dataspace.copernicus.eu
+
+# ---- SAR: cloud-proof onset / tillage-emergence signal ---------------------
+sentinel1:
+  gee_id: "COPERNICUS/S1_GRD"          # IW, GRD, VV+VH; use ASC or DESC consistently
+  derived: [VV, VH, VH_VV_ratio, RVI]  # RVI = 4*VH/(VV+VH)
+  preprocess: [thermal_noise_removed(GEE native), speckle_Lee, radiometric_terrain_flatten, to_dB]
+  role: "planting/tillage (VV drop + soil wet-up) & emergence (VH rise) when optical is cloudy"
+  apis:
+    - Google Earth Engine (ee)
+    - CDSE openEO / Sentinel Hub
+    - Alaska SAR Facility (ASF) HyP3  # https://hyp3-api.asf.alaska.edu (RTC on demand)
+
+# ---- FPAR / fAPAR (existing dataset you already run) ------------------------
+fpar:
+  gee_id: "MODIS/061/MCD15A3H"          # Fpar_500m, Lai_500m, 4-day, 500 m
+  alt_gee_id: "MODIS/061/MOD15A2H"      # 8-day
+  copernicus_fpar: "Copernicus Global Land Service FPAR 300 m"  # https://land.copernicus.eu/global
+  role: "canopy light-absorption phenology curve; independent SOS indicator, fused with VI+SAR"
+  apis:
+    - Google Earth Engine (ee)
+    - Copernicus Global Land Service (CGLS) VITO manifest / WMS-WCS  # https://land.copernicus.vgt.vito.be
+    - NASA AppEEARS (point/area extraction)                          # https://appeears.earthdatacloud.nasa.gov/api
+
+# ---- Long-Term-Normal (LTN) phenology (existing dataset) --------------------
+ltn_phenology:
+  source: "USGS FEWS NET eMODIS Phenology (SOS/EOS/PEAK climatology) OR your in-house LTN"
+  gee_alt: "MODIS/061/MCD12Q2"          # Land Cover Dynamics (Greenup, Peak, Senescence)
+  role: >
+    Climatological onset per pixel. Used three ways: (1) PRIOR window to constrain
+    current-year SOS search; (2) BASELINE for planting anomaly (early/late vs normal);
+    (3) BACKSTOP where current data are cloud/gap heavy.
+  apis:
+    - USGS EROS / FEWS NET Data Portal   # https://earlywarning.usgs.gov  /  https://fews.net/data
+    - Google Earth Engine (MCD12Q2)
+
+# ---- WRSI (existing) - two-way link ----------------------------------------
+wrsi:
+  tool: "GeoWRSI 3.x (USGS/FEWS NET) or GEE re-implementation"
+  inputs:
+    rainfall: "UCSB-CHG/CHIRPS/DAILY"    # GEE; 0.05deg daily
+    pet: "IDAHO_EPSCOR/GRIDMET (or Hargreaves from ERA5-Land 2m temp)"
+    soil_whc: "FAO/ISRIC SoilGrids WHC"
+    crop_coefficients: "FAO-33 Kc by crop (maize/teff/wheat)"
+  role: >
+    (a) WRSI onset = independent rainfall-based planting estimator to CROSS-VALIDATE the
+    remote-sensing SOS; (b) our new CROP-SPECIFIC planting dekad replaces the generic
+    onset currently fed to WRSI -> better water-balance skill.
+  apis:
+    - GeoWRSI desktop (downloadable)     # https://earlywarning.usgs.gov/fews/software-tools
+    - CHIRPS via GEE / Climate Hazards Center  # https://data.chc.ucsb.edu/products/CHIRPS-2.0
+
+# ---- Cropland / crop-specific mask -----------------------------------------
+crop_mask:
+  generic_cropland:
+    gee_id: "ESA/WorldCereal/2021/MODELS/v100"   # temporarycrops (extent) + maize class
+    note: "You already have a GENERIC crop mask; WorldCereal has maize but NO teff/wheat/millet class"
+  crop_specific_gap: "teff & wheat masks must be built (see millet/mask workstream); SOS runs INSIDE these"
+  apis:
+    - Google Earth Engine (ImageCollection)
+    - ESA WorldCereal openEO / portal            # https://esa-worldcereal.org
+
+# ---- Crop calendars (authoritative validation) -----------------------------
+crop_calendars:
+  local: "config/season_calendar.csv"            # crop-specific, this build (indicative)
+  authoritative:
+    - "FEWS NET crop calendars"                  # https://fews.net/  (per-country)
+    - "FAO GIEWS Country Briefs / crop calendar" # https://www.fao.org/giews/
+    - "GEOGLAM Crop Monitor for Early Warning"   # https://cropmonitor.org
+    - "FAO/IFPRI global crop calendar datasets"
+  role: "calibrate & validate detected planting dekads; seed season windows"
+
+# ---- Reference crop-type / ground-truth labels -----------------------------
+reference_labels:
+  - "EthCT2020 (Mendeley 10.17632/mfpvmk8cnm.1)"       # Ethiopia teff/wheat/maize points
+  - "Eisfelder et al. 2024 field data (Amhara/Benishangul/Gambela)"
+  - "HarvestStat Africa (subnational area/production/yield)"  # 10.5061/dryad.vq83bk42w
+  - "GEO-GLAM / JECAM sites where available"

@@ -1,0 +1,7 @@
+flowchart TD
+  P["Dekadal CHIRPS P"] --> R1{"P0 ≥ 25mm AND<br/>P1+P2 ≥ 20mm?"}
+  PET["Dekadal ET0 (Hargreaves)"] --> R2{"P0 / PET0 ≥ 0.5?"}
+  R1 -->|yes| AND(("AND"))
+  R2 -->|yes| AND
+  AND --> ONSET["Onset dekad"]
+  FC["6 days observed CHIRPS<br/>+ 4 days forecast"] -. near-real-time .-> P

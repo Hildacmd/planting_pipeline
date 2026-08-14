@@ -1,0 +1,423 @@
+<meta charset="utf-8">
+<title>Planting-Window Pipeline — Workflow</title>
+<style>
+  :root{
+    --ground:#f6f5f0; --surface:#fffffe; --ink:#1b241e; --ink-soft:#4c574f;
+    --line:#dde1d8; --accent:#2f7d4f; --accent-2:#b0702a; --code-bg:#eef0e9;
+    --diagram-bg:#ffffff; --diagram-shadow:rgba(30,45,35,.08);
+    --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --maxw:840px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ground:#12150f; --surface:#191d16; --ink:#e7eae0; --ink-soft:#a1ab9c;
+      --line:#2a3027; --accent:#61b183; --accent-2:#d69a56; --code-bg:#1e231c;
+      --diagram-bg:#f3f4ee; --diagram-shadow:rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="light"]{
+    --ground:#f6f5f0; --surface:#fffffe; --ink:#1b241e; --ink-soft:#4c574f;
+    --line:#dde1d8; --accent:#2f7d4f; --accent-2:#b0702a; --code-bg:#eef0e9;
+    --diagram-bg:#ffffff; --diagram-shadow:rgba(30,45,35,.08);
+  }
+  :root[data-theme="dark"]{
+    --ground:#12150f; --surface:#191d16; --ink:#e7eae0; --ink-soft:#a1ab9c;
+    --line:#2a3027; --accent:#61b183; --accent-2:#d69a56; --code-bg:#1e231c;
+    --diagram-bg:#f3f4ee; --diagram-shadow:rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);
+    line-height:1.62;margin:0;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:clamp(1.5rem,4vw,4rem) clamp(1.1rem,4vw,2rem)}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent}
+  a:hover{border-bottom-color:var(--accent)}
+  a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+
+  header.masthead{border-bottom:2px solid var(--ink);padding-bottom:1.6rem;margin-bottom:2.2rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 .9rem}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,5vw,2.9rem);line-height:1.08;
+    letter-spacing:-.01em;text-wrap:balance;margin:0 0 .7rem}
+  .lede{font-size:1.08rem;color:var(--ink-soft);max-width:64ch;margin:0}
+  .meta{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.3rem;
+    font-family:var(--mono);font-size:.76rem;color:var(--ink-soft)}
+  .meta b{color:var(--ink);font-weight:600}
+
+  nav.toc{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:1.1rem 1.3rem;margin:0 0 2.6rem}
+  nav.toc p{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ink-soft);margin:0 0 .7rem}
+  nav.toc ol{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.35rem .9rem;counter-reset:s}
+  nav.toc li{counter-increment:s;font-size:.92rem}
+  nav.toc li a::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);
+    font-size:.72rem;color:var(--accent);margin-right:.55rem}
+
+  section{margin:0 0 2.9rem;scroll-margin-top:1rem}
+  h2{font-family:var(--serif);font-weight:600;font-size:1.5rem;letter-spacing:-.005em;
+    margin:0 0 1rem;padding-left:.85rem;border-left:3px solid var(--accent);text-wrap:balance}
+  h2 .num{font-family:var(--mono);font-size:.8rem;color:var(--accent);margin-right:.5rem;vertical-align:.12em}
+  h3{font-family:var(--sans);font-weight:650;font-size:1.02rem;margin:1.8rem 0 .5rem;color:var(--ink)}
+  h3 .tag{font-family:var(--mono);font-size:.74rem;color:var(--accent-2);font-weight:500}
+  p{margin:.7rem 0;max-width:70ch}
+  strong{font-weight:650}
+  ul,ol{max-width:70ch;padding-left:1.25rem}li{margin:.28rem 0}
+
+  .scroll{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:520px}
+  th,td{text-align:left;padding:.55rem .8rem;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-soft);background:var(--code-bg);position:sticky;top:0}
+  tbody tr:last-child td{border-bottom:none}
+  td code,p code,li code{font-family:var(--mono);font-size:.83em;background:var(--code-bg);
+    padding:.1em .38em;border-radius:4px}
+
+  pre.code{font-family:var(--mono);font-size:.82rem;line-height:1.55;background:var(--code-bg);
+    border:1px solid var(--line);border-left:3px solid var(--accent-2);border-radius:8px;
+    padding:.9rem 1.05rem;overflow-x:auto;margin:1.1rem 0;color:var(--ink)}
+
+  .diagram{background:var(--diagram-bg);border:1px solid var(--line);border-radius:10px;
+    padding:1rem;margin:1.3rem 0;overflow-x:auto;box-shadow:0 1px 3px var(--diagram-shadow)}
+  .diagram pre.mermaid{margin:0;text-align:center;min-width:480px}
+  figcaption{font-family:var(--mono);font-size:.72rem;color:var(--ink-soft);text-align:center;
+    margin-top:.6rem;letter-spacing:.03em}
+
+  .callout{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:1rem 1.2rem;margin:1.3rem 0}
+  .callout .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--accent-2);display:block;margin-bottom:.35rem}
+
+  ol.refs{list-style:none;padding:0;counter-reset:r;max-width:none}
+  ol.refs h3{margin-top:1.5rem}
+  ol.refs li.ref{counter-increment:r;position:relative;padding-left:2.4rem;font-size:.88rem;
+    margin:.5rem 0;color:var(--ink-soft)}
+  ol.refs li.ref::before{content:"["counter(r)"]";position:absolute;left:0;font-family:var(--mono);
+    font-size:.76rem;color:var(--accent)}
+  ol.refs li.ref b{color:var(--ink);font-weight:600}
+
+  footer{border-top:1px solid var(--line);margin-top:3rem;padding-top:1.3rem;
+    font-family:var(--mono);font-size:.74rem;color:var(--ink-soft)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="masthead">
+  <p class="eyebrow">ICPAC · Agromet Pipeline · Technical Workflow</p>
+  <h1>Crop-Specific Dekadal Planting-Window Estimation</h1>
+  <p class="lede">Per-pixel planting dekad for maize, teff and wheat across the Greater Horn of
+  Africa — fusing Sentinel-2 red-edge phenology, Sentinel-1 SAR and FPAR, constrained by long-term
+  climatology, cross-checked against a FEWS rainfall onset, and closed with a full FAO-56 water balance.</p>
+  <div class="meta">
+    <span><b>Engine</b> Google Earth Engine + local Python</span>
+    <span><b>Reference runs</b> Kenya maize (Long + Short rains) · Ethiopia maize (Meher) 2024</span>
+    <span><b>Production scale</b> 250 m (10 m = single-AOI ceiling)</span>
+    <span><b>Countries</b> 11 (GHA / ICPAC)</span>
+    <span><b>Time step</b> dekad (10 days · 1–36/yr)</span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <p>Contents</p>
+  <ol>
+    <li><a href="#purpose">Purpose</a></li>
+    <li><a href="#arch">Architecture</a></li>
+    <li><a href="#inputs">Data inputs</a></li>
+    <li><a href="#stages">Workflow stages</a></li>
+    <li><a href="#enh">Enhancements</a></li>
+    <li><a href="#outputs">Outputs</a></li>
+    <li><a href="#design">Design decisions</a></li>
+    <li><a href="#caveats">Caveats</a></li>
+    <li><a href="#refs">References</a></li>
+  </ol>
+</nav>
+
+<section id="purpose">
+  <h2><span class="num">01</span>Purpose</h2>
+  <p>Estimate the <strong>per-pixel planting dekad</strong> (1–36 in a year) for maize, teff and wheat
+  inside <strong>crop-specific masks</strong>, by fusing <strong>Sentinel-2 red-edge phenology + FPAR +
+  Sentinel-1 SAR</strong>, constraining the search with <strong>long-term-normal (LTN) climatology</strong>,
+  cross-checking against a <strong>FEWS-style rainfall onset</strong>, running a <strong>full FAO-56/33
+  WRSI water balance</strong>, and aggregating to <strong>administrative units</strong> and
+  <strong>agro-ecological zones (AEZ)</strong>.</p>
+  <p>A <em>dekad</em> is the atomic time step: d1 = days 1–10, d2 = 11–20, d3 = 21–end-of-month;
+  36 dekads per year. Dekad labels are shown as <code>N · Mon-dN</code> (e.g. <code>9 · Mar-d3</code>).</p>
+</section>
+
+<section id="arch">
+  <h2><span class="num">02</span>High-level architecture</h2>
+  <figure class="diagram">
+    <pre class="mermaid">
+flowchart TD
+    S2["Sentinel-2 SR<br/>red-edge NDRE"] --> FUSE["Fusion → gap-free greenness G"]
+    S1["Sentinel-1 GRD<br/>VV/VH/RVI"] --> FUSE
+    FPAR["MODIS FPAR"] --> FUSE
+    FUSE --> SOS["SOS detection<br/>(LTN-gated)"]
+    PHENO["Phenology LTN<br/>MCD12Q2 ~24yr"] --> SOS
+    RAINLTN["Rainfall onset LTN<br/>CHIRPS ~45yr"] --> SOS
+    MASK["WorldCereal mask"] --> SOS
+    SOS --> PLANT["Planting dekad<br/>= SOS − offset"]
+    TEMPLTN["Temperature LTN"] --> PLANT
+    CHIRPS["CHIRPS"] --> ONSET["FEWS onset<br/>25/20mm + P/PET≥0.5"]
+    ERA5["ERA5-Land"] --> ONSET
+    ONSET -. cross-check .-> PLANT
+    PLANT --> WRSI["WRSI balance<br/>FAO-56/33"]
+    CHIRPS --> WRSI
+    SOIL["OpenLandMap soil"] --> WRSI
+    PLANT --> ZONAL["Zonal aggregation"]
+    WRSI --> ZONAL
+    ZONAL --> ADMIN["Admin 1/2/3 stats + skill"]
+    ZONAL --> AEZOUT["AEZ → maturity class"]
+    ADMIN --> OUT["GeoTIFF · CSV/WKT · PDF/PNG"]
+    AEZOUT --> OUT
+    </pre>
+    <figcaption>Fig 1 — End-to-end data flow: inputs → fusion → LTN-gated SOS → planting → WRSI → aggregation.</figcaption>
+  </figure>
+</section>
+
+<section id="inputs">
+  <h2><span class="num">03</span>Data inputs</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Layer</th><th>Dataset</th><th>Res</th><th>Role</th><th>Ref</th></tr></thead>
+    <tbody>
+      <tr><td>Optical red-edge</td><td><code>COPERNICUS/S2_SR_HARMONIZED</code></td><td>10–20 m</td><td>NDRE onset signal</td><td>[2][4]</td></tr>
+      <tr><td>Cloud mask</td><td><code>GOOGLE/CLOUD_SCORE_PLUS</code></td><td>10 m</td><td>clear-pixel gate</td><td>—</td></tr>
+      <tr><td>SAR</td><td><code>COPERNICUS/S1_GRD</code></td><td>10 m</td><td>cloud-proof gap-fill</td><td>[3]</td></tr>
+      <tr><td>FPAR</td><td><code>MODIS/061/MCD15A3H</code></td><td>500 m</td><td>greenness fusion</td><td>[12]</td></tr>
+      <tr><td>Phenology LTN</td><td><code>MODIS/061/MCD12Q2</code></td><td>500 m</td><td>SOS prior (~24 yr)</td><td>eMODIS pluggable</td></tr>
+      <tr><td>Rainfall</td><td><code>UCSB-CHG/CHIRPS/DAILY</code></td><td>~5.5 km</td><td>onset + WRSI</td><td>[8]</td></tr>
+      <tr><td>Temperature</td><td><code>ECMWF/ERA5_LAND</code></td><td>~11 km</td><td>ET₀ + thermal offset</td><td>[11]</td></tr>
+      <tr><td>Soil water</td><td><code>OpenLandMap 33 kPa</code></td><td>250 m</td><td>WHC for WRSI</td><td>—</td></tr>
+      <tr><td>Crop mask</td><td><code>ESA/WorldCereal/2021</code></td><td>10 m</td><td>crop-specific stratum</td><td>[1]</td></tr>
+      <tr><td>Forecast (opt.)</td><td>Open-Meteo / <code>NOAA/GFS0P25</code></td><td>~1–28 km</td><td>4-day forecast rain</td><td>—</td></tr>
+      <tr><td>AEZ</td><td>Jaetzold/Sombroek (local)</td><td>vector</td><td>maturity zonation</td><td>[17]</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="stages">
+  <h2><span class="num">04</span>Workflow stages</h2>
+
+  <h3>4.1 Optical &amp; SAR preprocessing <span class="tag">s2_preprocess.py · s1_preprocess.py</span></h3>
+  <p>Per dekad, a cloud-masked median composite of red-edge indices — <strong>NDRE1 = (B6 − B5)/(B6 + B5)</strong>,
+  chlorophyll-sensitive and less soil-noisy than NDVI on sparse early canopy. Sentinel-1 gives
+  <strong>RVI = 4·VH/(VV+VH)</strong> in terrain-flattened dB with a speckle filter. SAR is
+  <strong>mandatory</strong>: rainy-season onset coincides with peak cloud, so S1 carries the signal.</p>
+
+  <h3>4.2 Fusion — gap-free greenness <span class="tag">fusion_phenometrics.py · estarfm.py</span></h3>
+  <p><strong>Production method: cue fusion.</strong> Red-edge NDRE + FPAR are primary on clear dates;
+  SAR-derived greenness (RVI) fills the remaining cloud gaps. This is the greenness behind every
+  operational output.</p>
+  <pre class="code">opt_G = mean( unitScale(NDRE), unitScale(FPAR) )
+G     = opt_G  filled by SAR-derived greenness (RVI) where optical is missing</pre>
+  <p><strong>ubESTARFM was tested as an enhancement and shelved — a documented negative result for
+  onset.</strong> It blends fine/sparse Sentinel-2 with coarse/dense MODIS into a gap-free series, but at
+  matched 250 m resolution it does <em>not</em> beat cue fusion:</p>
+  <table>
+    <thead><tr><th>Fusion variant</th><th>Scale</th><th>Hit-rate</th><th>vs cue @ 250 m</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Cue fusion</strong></td><td>10 m</td><td><strong>92.7%</strong></td><td><em>reference ceiling</em></td></tr>
+      <tr><td><strong>Cue fusion</strong></td><td>250 m</td><td><strong>81.5%</strong></td><td>—</td></tr>
+      <tr><td>ubESTARFM (raw NDVI fill)</td><td>250 m</td><td>77.3%</td><td><strong>−4.3 pts</strong></td></tr>
+      <tr><td>ubESTARFM (NDVI→NDRE calibrated)</td><td>250 m</td><td>78.4%</td><td><strong>−3.1 pts</strong></td></tr>
+    </tbody>
+  </table>
+  <p><em>Why it loses:</em> MODIS has no red-edge, so ubESTARFM can only gap-fill with <strong>NDVI</strong>,
+  which rises earlier than NDRE on sparse early canopy and pulls SOS ~1 dekad early. Calibration recovered
+  only +1.2 pts and never breaks even. <strong>Resolution is the dominant lever</strong> — 10 m → 250 m
+  costs −11.2 pts, dwarfing any fusion choice — so <strong>250 m is the production scale</strong> for the
+  multi-country rollout and ubESTARFM stays off the planting path (retained in code for reproducibility).</p>
+  <figure class="diagram">
+    <pre class="mermaid">
+flowchart LR
+    F0["Fine S2 @ t0"] --> V["Local coeff V<br/>= cov(F,C)/var(C)"]
+    C0["Coarse MODIS @ t0"] --> V
+    V --> P["F(tp)=F(t0)+V·(C(tp)−C(t0))"]
+    Ctp["Coarse @ tp"] --> P
+    P --> UB["Unbiased: residual =<br/>C(tp) − coarsen(F_pred)"]
+    UB --> BLEND["Two-pair temporal blend"]
+    BLEND --> G["Gap-free fine G(tp)"]
+    </pre>
+    <figcaption>Fig 2 — ubESTARFM spatiotemporal fusion (tested &amp; shelved: −3 to −4 pts vs cue for onset).</figcaption>
+  </figure>
+
+  <h3>4.3 Long-Term-Normal priors — rainfall-led, greenness-confirmed <span class="tag">ltn.py</span></h3>
+  <figure class="diagram">
+    <pre class="mermaid">
+flowchart TD
+    RN["① CHIRPS onset normal<br/>25/20 mm (dense · every season)"] --> ANCHOR["Rainfall onset ANCHOR"]
+    PH["MODIS Greenup normal<br/>Greenup_1 long / Greenup_2 short"] -->|"confirm / refine where present"| ANCHOR
+    ANCHOR -->|"gate SOS ± ltn_pad, pass-through where absent"| SOSGATE["Constrained SOS search"]
+    TN["ERA5-Land 1991–2020<br/>mean-T normal"] --> OFF["Thermal emergence offset<br/>cooler → longer lag"]
+    OFF --> PLANTOFF["Planting = SOS − offset(T)"]
+    </pre>
+    <figcaption>Fig 3 — Rainfall onset up front (anchor), greenness confirms — one logic for both seasons.</figcaption>
+  </figure>
+  <p>The start of season is <strong>anchored by rainfall</strong> (the dense CHIRPS 25/20 mm onset normal,
+  present every season) and <strong>confirmed by greenness</strong> (the MODIS greenup normal, averaged in
+  only where present). The gate constrains SOS to ±<code>ltn_pad</code> dekads <em>only where a prior
+  exists</em> — elsewhere it passes through to the calendar window, so a sparse second-cycle phenology can
+  never mask a season out. The temperature LTN makes the emergence offset spatial.</p>
+  <div class="callout"><span class="k">Validation — season behaviour (measured)</span>
+  Where both signals are strong (<strong>long rains</strong>) the prior adds real skill:
+  <strong>+4.5 pts</strong> calendar hit-rate (91.4% → 95.9%). Where the signal is intrinsically weak
+  (<strong>short rains</strong>: sparse Greenup_2, noisy onset) the rainfall-led prior keeps the season
+  running — <strong>78% of pixels retained</strong> vs 0.02% under a naïve phenology gate — but does
+  <em>not</em> sharpen it (59.8% → 53.4%). The short rains are <strong>confirmation-limited</strong>: an
+  honest data limitation, not a code defect. Lean on the rainfall onset there.</div>
+
+  <h3>4.4 SOS detection &amp; planting date <span class="tag">fusion_phenometrics.py · planting_date.py</span></h3>
+  <div class="callout"><span class="k">Definition</span>
+  <strong>SOS</strong> = the earliest dekad where <code>G</code> crosses <code>baseline + 25%·amplitude</code>
+  <em>and</em> the dekad-to-dekad slope is positive (sustained green-up), within the calendar window
+  intersected with the LTN prior. The crop mask is applied once, at the SOS output.</div>
+  <pre class="code">planting_dekad = SOS_dekad − emergence_offset      # maize 2, wheat 1, teff 1 (dekads)</pre>
+  <p>The offset is the <strong>planting → detectable green-up</strong> lag (satellite, ~2 dekads for
+  maize), not the ~7-day physical emergence — a 10-day dekad cannot resolve 7 days. With the temperature
+  LTN on, the offset varies spatially.</p>
+
+  <h3>4.5 FEWS rainfall onset <span class="tag">wrsi_feedback.py</span></h3>
+  <figure class="diagram">
+    <pre class="mermaid">
+flowchart TD
+    P["Dekadal CHIRPS P"] --> R1{"P₀ ≥ 25mm AND<br/>P₁+P₂ ≥ 20mm?"}
+    PET["Dekadal ET₀ (Hargreaves)"] --> R2{"P₀ / PET₀ ≥ 0.5?"}
+    R1 -->|yes| AND(("AND"))
+    R2 -->|yes| AND
+    AND --> ONSET["Onset dekad"]
+    FC["6 days observed CHIRPS<br/>+ 4 days forecast"] -. near-real-time .-> P
+    </pre>
+    <figcaption>Fig 4 — FEWS onset: 25/20 mm rule + P/PET≥0.5 gate, with optional 6-obs/4-forecast dekad.</figcaption>
+  </figure>
+  <p>The <strong>25/20 mm rule</strong> (Senay &amp; Verdin 2003) plus a new <strong>P/PET ≥ 0.5</strong>
+  agroclimatic gate that suppresses spurious onsets in high-evaporative-demand zones. The
+  <strong>6-obs + 4-forecast</strong> dekad (Open-Meteo, free) completes the running dekad for near-real-time
+  timeliness; retrospective runs use full observed CHIRPS.</p>
+
+  <h3>4.6 WRSI water balance <span class="tag">wrsi_waterbalance.py · soil.py</span></h3>
+  <pre class="code">ET₀  = Hargreaves(ERA5-Land Tmin/Tmax, Ra(lat, DOY))
+WR   = Kc(days-since-planting) · ET₀
+Wb   = SW + P ;  AET = min(Wb, WR) ;  SW = min(Wb − AET, WHC)
+WRSI = 100 · ΣAET / ΣWR        # + deficit (mm) + FEWS class 1–5</pre>
+  <p>Full FAO-56/33 dekadal balance, <strong>started at each pixel's detected planting dekad</strong>.
+  Spatial WHC from OpenLandMap field capacity − wilting point over the crop root zone.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>WRSI</th><th>Class</th><th>Interpretation for maize</th></tr></thead>
+    <tbody>
+      <tr><td>≥ 95</td><td>5</td><td>No/very-mild deficit — optimal</td></tr>
+      <tr><td>80–95</td><td>4</td><td><strong>Good</strong> — minimal yield reduction</td></tr>
+      <tr><td>60–80</td><td>3</td><td>Mediocre</td></tr>
+      <tr><td>50–60</td><td>2</td><td>Poor</td></tr>
+      <tr><td>&lt; 50</td><td>1</td><td>Crop failure</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>"Good enough" for maize = WRSI ≥ 80</strong> (≥ 95 = no stress; &lt; 50 = failure). WRSI is a
+  whole-cycle verdict; at the <em>start</em> of season water adequacy is the onset rule (25/20 mm +
+  P/PET ≥ 0.5), not WRSI. A QGIS style (<code>wrsi_classes_*.qml</code>) ships these breaks.</p>
+  <div class="callout"><span class="k">AEZ × WRSI cross-validation</span>
+  Water satisfaction rises with maturity class exactly as agronomy predicts — the water balance
+  independently confirms the AEZ → maturity logic: <strong>early</strong> (dry lowland) WRSI 90.0 /
+  4.2% failure · <strong>medium</strong> 93.8 / 0.8% · <strong>late</strong> (humid highland) 97.1 / 0%.</div>
+
+  <h3>4.7 Zonal aggregation &amp; AEZ maturity <span class="tag">zonal_aggregate.py · aez_analysis.py</span></h3>
+  <figure class="diagram">
+    <pre class="mermaid">
+flowchart LR
+    AEZ["AEZ code<br/>e.g. UM4, LM5, LH2"] --> B["Belt (altitude)<br/>TA/UH/LH/UM/LM/IL/CL"]
+    AEZ --> Z["Moisture zone 0–7"]
+    B --> M{"Maturity class"}
+    Z --> M
+    M -->|"cool highland / zone≤2"| LATE["LATE · long-cycle<br/>H614/H629"]
+    M -->|"UM3-4 / LM3-4"| MED["MEDIUM<br/>H513/H516"]
+    M -->|"dry lowland zone≥5"| EARLY["EARLY · drought-escaping<br/>Katumani/DH04"]
+    </pre>
+    <figcaption>Fig 5 — AEZ code → length of growing period → indicative maize maturity class.</figcaption>
+  </figure>
+  <div class="callout"><span class="k">Key finding · Kenya maize, Long rains 2024</span>
+  Planting <em>timing</em> is nearly uniform across AEZ (~dekad 9, Mar-d3); the <em>maturity class</em> is
+  what varies by zone. The planting-dekad map shows timing; the AEZ map shows maturity — largely decoupled.</div>
+</section>
+
+<section id="enh">
+  <h2><span class="num">05</span>Enhancements added</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Enhancement</th><th>Files</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>Bug fixes (2-band mask, band-type homogeneity)</td><td><code>run.py</code>, <code>fusion_phenometrics.py</code></td><td>pipeline runs to completion</td></tr>
+      <tr><td>LTN constraints (phenology + rainfall + temperature)</td><td><code>ltn.py</code></td><td>tightens SOS to climatology; fixes short-rains early bias</td></tr>
+      <tr><td>P/PET ≥ 0.5 onset gate</td><td><code>wrsi_feedback.py</code></td><td>agroclimatic onset; fewer false starts in dry zones</td></tr>
+      <tr><td>6-obs + 4-forecast dekad</td><td><code>openmeteo_forecast.py</code>, <code>export_chirps6.py</code></td><td>near-real-time onset timeliness</td></tr>
+      <tr><td>ubESTARFM fusion <strong>(tested &amp; shelved)</strong></td><td><code>estarfm.py</code> · <code>UBESTARFM_FINDING.md</code></td><td>documented negative result: −3 to −4 pts vs cue for onset; off production path</td></tr>
+      <tr><td>Statistics + skill</td><td><code>skill_stats.py</code>, <code>skill_across_outputs.py</code></td><td>descriptive + validation + signal-strength + WRSI stats</td></tr>
+      <tr><td>AEZ maturity + influence</td><td><code>aez_analysis.py</code>, <code>aez_influence.py</code></td><td>maize variety-class zonation</td></tr>
+      <tr><td>WKT attribute tables</td><td><code>build_wkt_table.py</code>, <code>attributes_table.py</code></td><td>QGIS-ready CSVs with geometry + all attributes</td></tr>
+      <tr><td>Local rendering + notebook + GEE demo</td><td><code>render_maps_pdf.py</code>, <code>*.ipynb</code>, <code>*.js</code></td><td>reproducible, observable runs</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="outputs">
+  <h2><span class="num">06</span>Outputs</h2>
+  <ul>
+    <li><strong>Rasters (GeoTIFF):</strong> planting dekad; WRSI + deficit + performance class.</li>
+    <li><strong>Tables (CSV / CSV-with-WKT):</strong> admin-1/2/3 planting distribution + skill; AEZ maturity;
+    per-admin attribute table (NDRE / S1 / S2 / FPAR + LTN normals + SOS/planting).</li>
+    <li><strong>Cartography (PDF/PNG):</strong> planting-dekad maps, modal-dekad &amp; hit-rate choropleths,
+    skill graphs, AEZ-influence figure.</li>
+  </ul>
+</section>
+
+<section id="design">
+  <h2><span class="num">07</span>Key design decisions</h2>
+  <ul>
+    <li><strong>SOS ≠ planting</strong> — planting precedes detectable green-up by a crop-specific satellite lag.</li>
+    <li><strong>Red-edge (NDRE) over NDVI</strong> — chlorophyll-sensitive, less soil noise on sparse early canopy.</li>
+    <li><strong>SAR is mandatory</strong> — rainy-season onset = peak cloud; S1 carries the signal.</li>
+    <li><strong>LTN prior gates the search</strong> — rejects weeds / second-flush false starts.</li>
+    <li><strong>WRSI runs entirely in GEE</strong> — no GeoWRSI hand-off; planting dekad feeds the balance as SOS.</li>
+  </ul>
+</section>
+
+<section id="caveats">
+  <h2><span class="num">08</span>Caveats</h2>
+  <ul>
+    <li>Calendar windows in <code>season_calendar.csv</code> are indicative — calibrate against FEWS NET / FAO GIEWS / GEOGLAM.</li>
+    <li>Smallholder mixed pixels blur SOS; resolution is the dominant skill lever — ubESTARFM was tested and does <strong>not</strong> help onset, so reach for native-10 m S2 or Planet 3 m, not spatiotemporal fusion.</li>
+    <li>AEZ maturity mapping is a first-order Jaetzold convention — calibrate against Kenya Seed variety zonation.</li>
+    <li>Ward-level (admin-3) stats from downsampled mosaics are approximate; use native-resolution zonal stats for publication.</li>
+    <li>Full LTN + WRSI at 10 m is compute-heavy and did not sustain for two concurrent country exports (both 10 m runs failed after 2+ days) — <strong>250 m is the production scale</strong>; reserve 10 m for single-AOI reference runs on a paid project.</li>
+  </ul>
+</section>
+
+<section id="refs">
+  <h2><span class="num">09</span>References</h2>
+  <ol class="refs">
+    <h3>SOS · SAR–optical fusion</h3>
+    <li class="ref"><b>Van Tricht, K. et al. (2023).</b> WorldCereal. <i>Earth Syst. Sci. Data</i> 15, 5491–5515. doi:10.5194/essd-15-5491-2023</li>
+    <li class="ref"><b>Eisfelder, C. et al. (2024).</b> Cropland &amp; Crop Type with S1/S2 in GEE, Ethiopia. <i>Remote Sensing</i> 16(5):866. doi:10.3390/rs16050866</li>
+    <li class="ref"><b>(2025).</b> S1 SAR annual rice area &amp; long-term SOS dynamics. <i>Sci. Reports.</i> doi:10.1038/s41598-025-91655-z</li>
+    <li class="ref"><b>Vrieling, A. et al. (2019).</b> S1 &amp; S2 time series for meadow phenology. <i>Remote Sensing</i> 11(5):542. doi:10.3390/rs11050542</li>
+    <li class="ref"><b>(2026).</b> PlanetScope + S2 fusion for maize phenometrics. <i>GIScience &amp; Remote Sensing.</i> doi:10.1080/15481603.2026.2637207</li>
+    <h3>WRSI · water balance · onset</h3>
+    <li class="ref"><b>Verdin, J. &amp; Klaver, R. (2002).</b> Grid-cell crop water accounting for FEWS. <i>Hydrol. Processes</i> 16, 1617–1630. doi:10.1002/hyp.1025</li>
+    <li class="ref"><b>Senay, G.B. &amp; Verdin, J. (2003).</b> GIS crop water balance, Ethiopia. <i>Can. J. Remote Sensing</i> 29(6), 687–692. doi:10.5589/m03-039</li>
+    <li class="ref"><b>Funk, C. et al. (2015).</b> CHIRPS. <i>Scientific Data</i> 2:150066. doi:10.1038/sdata.2015.66</li>
+    <li class="ref"><b>Allen, R.G. et al. (1998).</b> FAO-56 Crop evapotranspiration. <i>FAO Irrigation &amp; Drainage Paper 56.</i></li>
+    <li class="ref"><b>Hargreaves, G.H. &amp; Samani, Z.A. (1985).</b> Reference ET from temperature. <i>Appl. Eng. Agric.</i> 1(2), 96–99. doi:10.13031/2013.26773</li>
+    <li class="ref"><b>Muñoz-Sabater, J. et al. (2021).</b> ERA5-Land. <i>Earth Syst. Sci. Data</i> 13, 4349–4383. doi:10.5194/essd-13-4349-2021</li>
+    <h3>FPAR · phenology · monitoring · fusion</h3>
+    <li class="ref"><b>Myneni, R. et al.</b> MODIS MCD15A3H FPAR/LAI C6.1. NASA LP DAAC. doi:10.5067/MODIS/MCD15A3H.061</li>
+    <li class="ref"><b>Becker-Reshef, I. et al. (2020).</b> GEOGLAM Crop Monitor for Early Warning. <i>RSE</i> 237:111553. doi:10.1016/j.rse.2019.111553</li>
+    <li class="ref"><b>Lee, D. et al. (2025).</b> HarvestStat Africa. <i>Scientific Data.</i> doi:10.1038/s41597-025-05001-z</li>
+    <li class="ref"><b>FEWS NET</b> crop calendars &amp; data portal. fews.net/data</li>
+    <li class="ref"><b>FAO GIEWS</b> Country Briefs. fao.org/giews</li>
+    <li class="ref"><b>Jaetzold, R. &amp; Schmidt, H.</b> Farm Management Handbook of Kenya (agro-ecological zones). Ministry of Agriculture, Kenya.</li>
+    <li class="ref"><b>Zhu, X. et al. (2010).</b> ESTARFM — enhanced spatial and temporal adaptive reflectance fusion. <i>RSE</i> 114(11), 2610–2623. doi:10.1016/j.rse.2010.05.032</li>
+  </ol>
+</section>
+
+<footer>
+  Reference implementation for a GEE environment · verify DOIs before formal publication ·
+  2023–2026 fusion papers surfaced via web search.
+</footer>
+</div>

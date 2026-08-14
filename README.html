@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Planting Pipeline — Overview &amp; Quick Start</title>
+  <style>
+
+html {
+color: #1a1a1a;
+background-color: #fdfdfd;
+}
+body {
+margin: 0 auto;
+max-width: 36em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 12px;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+html {
+background-color: white;
+}
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+a {
+color: #1a1a1a;
+}
+a:visited {
+color: #1a1a1a;
+}
+img {
+max-width: 100%;
+}
+svg {
+height: auto;
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+font-size: 85%;
+margin: 0;
+hyphens: manual;
+}
+pre {
+margin: 1em 0;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+.sourceCode {
+background-color: transparent;
+overflow: visible;
+}
+hr {
+border: none;
+border-top: 1px solid #1a1a1a;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid #1a1a1a;
+border-bottom: 1px solid #1a1a1a;
+}
+th {
+border-top: 1px solid #1a1a1a;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Planting Pipeline — Overview &amp; Quick Start</h1>
+</header>
+<h1 id="crop-specific-dekadal-planting-window-estimation-gha-icpac-11-countries">Crop-specific
+dekadal planting-window estimation — GHA / ICPAC (11 countries)</h1>
+<p>Estimates <strong>per-pixel planting dekad</strong> for
+<strong>maize, teff, wheat</strong> inside <strong>crop-specific
+masks</strong>, by fusing <strong>Sentinel-2 red-edge phenology + FPAR +
+Sentinel-1 SAR</strong>, constrained by your <strong>long-term-normal
+(LTN) phenology</strong>, cross-checked against <strong>WRSI rainfall
+onset</strong>, and aggregated to admin units —
+<strong>season-stratified</strong> per country using a crop-specific
+calendar.</p>
+<p>Countries: Ethiopia, Kenya, Uganda, Tanzania, Rwanda, Burundi, South
+Sudan, Sudan, Somalia, Eritrea (Djibouti excluded — negligible
+cropping).</p>
+<p><strong>Reference runs (maize 2024):</strong> Kenya Long rains +
+Short rains, and Ethiopia Meher (unimodal). <strong>Production scale is
+250 m</strong> — two concurrent 10 m country exports do not sustain on
+GEE, so 250 m is the operational scale for the multi-country rollout; 10
+m is the single-AOI reference ceiling.</p>
+<h2 id="where-this-fits-your-existing-stack">Where this fits your
+existing stack</h2>
+<p>You already run: <strong>generic crop mask, LTN phenology, FPAR,
+WRSI</strong>. This pipeline adds the two missing pieces —
+<strong>crop-specific masks</strong> and <strong>red-edge + SAR
+fusion</strong> — and turns the outputs into a <strong>crop-specific
+cropping calendar</strong> that then <em>feeds back</em> into WRSI as a
+better onset.</p>
+<pre><code> generic crop mask ─┐                         ┌─ LTN phenology (prior + anomaly baseline)
+ crop-specific mask ─┼─► [S2 red-edge + FPAR + S1 SAR fusion] ─► SOS ─► planting dekad ─┐
+   (maize/teff/wheat)│         (season-stratified, per crop)        (─offset)           │
+ FPAR (existing) ────┘                                                                  ▼
+ CHIRPS ─► WRSI onset  ──────────────► cross-validate ◄────────────────────► WRSI (better onset in)
+                                                     └─► zonal admin planting-window CSV + anomaly map</code></pre>
+<h2 id="pipeline-stages-code-map">Pipeline stages (code map)</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Stage</th>
+<th>File</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Config</td>
+<td><code>config/datasets.yaml</code>,
+<code>config/season_calendar.csv</code></td>
+<td>dataset IDs+APIs; crop-specific calendar</td>
+</tr>
+<tr>
+<td>Optical</td>
+<td><code>src/s2_preprocess.py</code></td>
+<td>dekadal cloud-masked NDRE/VI composites (10 m)</td>
+</tr>
+<tr>
+<td>SAR</td>
+<td><code>src/s1_preprocess.py</code></td>
+<td>dekadal VV/VH/ratio/RVI, terrain-flattened dB</td>
+</tr>
+<tr>
+<td>FPAR + Fusion</td>
+<td><code>src/fusion_phenometrics.py</code></td>
+<td>fused greenness, SAR gap-fill, LTN-gated SOS</td>
+</tr>
+<tr>
+<td>Planting</td>
+<td><code>src/planting_date.py</code></td>
+<td>SOS→planting offset, anomaly vs LTN, export</td>
+</tr>
+<tr>
+<td>WRSI onset</td>
+<td><code>src/wrsi_feedback.py</code></td>
+<td>CHIRPS 25/20 mm onset cross-check</td>
+</tr>
+<tr>
+<td>Soil WHC</td>
+<td><code>src/soil.py</code></td>
+<td>spatial water-holding capacity: SoilGrids texture → Saxton–Rawls FC
+&amp; WP over root zone</td>
+</tr>
+<tr>
+<td>WRSI balance</td>
+<td><code>src/wrsi_waterbalance.py</code></td>
+<td><strong>full FAO-56/33 WRSI in pure GEE</strong> (Hargreaves ET0 +
+Kc + soil-water balance)</td>
+</tr>
+<tr>
+<td>Zonal</td>
+<td><code>src/zonal_aggregate.py</code></td>
+<td>GAUL admin planting-window distributions</td>
+</tr>
+<tr>
+<td>Orchestrate</td>
+<td><code>run.py</code></td>
+<td>loop viable (country×crop×season) products</td>
+</tr>
+</tbody>
+</table>
+<h2 id="run">Run</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">earthengine</span> authenticate</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">EE_PROJECT</span><span class="op">=</span>your-gee-project</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># one product:</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run.py <span class="at">--year</span> 2024 <span class="at">--country</span> Ethiopia <span class="at">--crop</span> teff <span class="at">--mask-asset</span> users/you/teff_mask_2024</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># everything viable for a year:</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> run.py <span class="at">--year</span> 2024</span></code></pre></div>
+<p>Outputs (to Google Drive <code>planting_outputs/</code>):
+planting-dekad GeoTIFF per product + admin-1 CSV of modal/P10/P50/P90
+planting dekad. Djibouti auto-excluded (no viable rows).</p>
+<h2 id="data-sources-access-apis">Data sources + access APIs</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Source / ID</th>
+<th>API</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Optical red-edge</td>
+<td><code>COPERNICUS/S2_SR_HARMONIZED</code></td>
+<td>GEE; CDSE openEO / Sentinel Hub / STAC</td>
+</tr>
+<tr>
+<td>Cloud mask</td>
+<td><code>GOOGLE/CLOUD_SCORE_PLUS/...</code> (+
+S2_CLOUD_PROBABILITY)</td>
+<td>GEE</td>
+</tr>
+<tr>
+<td>SAR</td>
+<td><code>COPERNICUS/S1_GRD</code></td>
+<td>GEE; CDSE; ASF HyP3 (RTC)</td>
+</tr>
+<tr>
+<td>FPAR</td>
+<td><code>MODIS/061/MCD15A3H</code>; CGLS FPAR 300 m</td>
+<td>GEE; NASA AppEEARS; CGLS/VITO</td>
+</tr>
+<tr>
+<td>LTN phenology</td>
+<td>USGS/FEWS eMODIS phenology; <code>MODIS/061/MCD12Q2</code></td>
+<td>USGS EROS; FEWS NET Data Portal; GEE</td>
+</tr>
+<tr>
+<td>Rainfall (WRSI)</td>
+<td><code>UCSB-CHG/CHIRPS/DAILY</code></td>
+<td>GEE; Climate Hazards Center</td>
+</tr>
+<tr>
+<td>PET/soil (WRSI)</td>
+<td>GRIDMET / ERA5-Land; SoilGrids WHC</td>
+<td>GEE; ISRIC</td>
+</tr>
+<tr>
+<td>WRSI engine</td>
+<td>GeoWRSI 3.x</td>
+<td>USGS FEWS software</td>
+</tr>
+<tr>
+<td>Generic/maize mask</td>
+<td><code>ESA/WorldCereal/2021/MODELS/v100</code></td>
+<td>GEE; WorldCereal openEO</td>
+</tr>
+<tr>
+<td>Crop calendars</td>
+<td>FEWS NET; FAO GIEWS; GEOGLAM Crop Monitor</td>
+<td>portals / country briefs</td>
+</tr>
+<tr>
+<td>Reference labels</td>
+<td>EthCT2020; HarvestStat Africa</td>
+<td>Mendeley; Dryad/GitHub</td>
+</tr>
+</tbody>
+</table>
+<p>Full endpoints in <code>config/datasets.yaml</code>.</p>
+<h2 id="wrsi-now-runs-entirely-in-gee-no-geowrsi-hand-off">WRSI now runs
+entirely in GEE (no GeoWRSI hand-off)</h2>
+<p><code>src/wrsi_waterbalance.py</code> implements the full FAO-56/33
+dekadal water balance: - <strong>ET0</strong> by Hargreaves from
+<strong>ERA5-Land</strong> 2 m Tmin/Tmax (global — GRIDMET does
+<em>not</em> cover Africa), with extraterrestrial radiation Ra computed
+per dekad from latitude + day-of-year. - <strong>Kc curve</strong> per
+crop from <code>config/crop_coefficients.yaml</code> (FAO-56 stage
+lengths; teff is an approximate small-grain analogue — flagged). -
+<strong>Per-pixel soil-water balance</strong> that starts at each
+pixel’s <em>detected planting dekad</em>:
+<code>Wb = SW + P; AET = min(Wb, WR); SW = min(Wb−AET, WHC)</code>,
+wrapping into year+1 when the cycle crosses the year end.
+<code>WRSI = 100·ΣAET/ΣWR</code>; also outputs deficit (mm) and FEWS
+crop-performance class. - <strong>Spatial WHC</strong>
+(<code>src/soil.py</code>): plant-available water = (field capacity −
+wilting point) integrated over the crop root zone. <strong>Production
+(<code>whc_source: saxton_soilgrids</code>)</strong> derives
+<strong>both</strong> FC (θ₃₃) and WP (θ₁₅₀₀) from <strong>SoilGrids
+2.0</strong> sand/clay/SOC via the <strong>Saxton–Rawls (2006)</strong>
+pedotransfer — no proxy. Legacy <strong>OpenLandMap 33 kPa</strong> FC
+(with a 0.45·FC wilting-point proxy) stays available via
+<code>whc_source: openlandmap</code>. Root depths per crop in
+<code>crop_coefficients.yaml</code> (maize/wheat 1.0 m, teff 0.6 m);
+toggle with <code>soil.use_spatial_whc</code>. Static — materialize once
+with <code>run_export_whc.py</code> and set <code>soil.whc_asset</code>.
+- Validated numerically: WRSI = 100 well-watered, 0 total drought, drops
+correctly for peak-stage and chronic-deficit rainfall; Saxton WHC ≈
+109–131 mm across GHA (maize, 1 m root) and scales sandy→clay (88→231
+mm).</p>
+<h2 id="key-design-decisions">Key design decisions</h2>
+<ul>
+<li><strong>SOS ≠ planting</strong>: planting = SOS − crop emergence
+offset (maize 2, wheat 1, teff 1 dekads).</li>
+<li><strong>SAR is mandatory, not optional</strong>: rainy-season onset
+= peak cloud; S1 carries the signal.</li>
+<li><strong>Red-edge (NDRE) over NDVI</strong> for onset:
+chlorophyll-sensitive, less soil noise on sparse early canopy — better
+for teff/wheat.</li>
+<li><strong>Cue fusion is the production greenness; ubESTARFM was tested
+and shelved.</strong> ubESTARFM spatiotemporal fusion (S2×MODIS) is a
+<em>documented negative result</em> for onset — at matched 250 m it
+costs −3 to −4 pts vs cue fusion (MODIS has no red-edge, so its NDVI
+fill pulls SOS ~1 dekad early). See <code>UBESTARFM_FINDING.md</code>.
+<strong>Resolution is the dominant skill lever</strong> (10 m→250 m ≈
+−11 pts), so spend compute on resolution, not fusion. The code is
+retained (<code>src/estarfm.py</code>) but off the production path.</li>
+<li><strong>LTN prior gates the search</strong> to reject
+weeds/second-flush false starts.</li>
+<li><strong>Irrigated wheat (Sudan Gezira) is decoupled from
+rainfall</strong> — use scheme calendar + SAR, not CHIRPS onset.</li>
+<li><strong>Teff realism</strong>: only Ethiopia (and marginal Eritrea)
+— the teff product is Ethiopia-centric.</li>
+</ul>
+<h2 id="in-season-risk-monitoring-gdd-phenology-clock-maize">In-season
+risk monitoring &amp; GDD phenology clock (maize)</h2>
+<p>Beyond the seasonal planting window, an ASAP-style <strong>in-season
+monitoring</strong> layer, <strong>stage-weighted</strong> on a
+<strong>GDD phenology clock</strong>: - <strong>GDD clock</strong>
+(<code>src/gdd_clock.py</code>, <code>run_gdd.py</code>, thermal
+branch): in-GEE SOS anchor + ERA5-Land daily air-T (DEM lapse-corrected)
++ <strong>AEZ-seeded GDD_maturity</strong> → per-pixel
+<strong>peak-vegetative / flowering / grain-filling / maturity</strong>
+dekads. Fully pixel-specific. Spec:
+<code>GDD_Phenology_Clock_Workflow.docx</code>. - <strong>Risk
+layers</strong> (<code>src/spi.py</code>, <code>spi_admin.py</code>,
+<code>risk_app.html</code>): <strong>SPI-3</strong> drought (CHIRPS
+gamma, Wilson–Hilferty) + <strong>WRSI crop-failure %</strong>, masked
+to maize (CAF), ASAP <strong>25/50/75 %</strong> of crop area →
+Watch/Alert/Critical; FAO-33 <strong>Ky</strong> stage-weighting
+(silking ≈ 3–4× vegetative). Design + roadmap:
+<code>RISK_MONITORING_DESIGN.md</code>. Explore: <strong>2024 Maize Risk
+Monitor</strong> (<code>risk_app.html</code>).</p>
+<h2 id="caveats">Caveats</h2>
+<p>Reference implementation for a GEE environment; requires your auth +
+crop-specific mask assets. Planting windows in
+<code>season_calendar.csv</code> are <strong>indicative</strong> —
+calibrate against FEWS NET / FAO GIEWS / GEOGLAM before operational use.
+Smallholder mixed pixels blur SOS; resolution is the lever (reach for
+native-10 m S2 or Planet 3 m) — ubESTARFM was tested for this and does
+<em>not</em> help onset.</p>
+<p>See <code>REFERENCES.md</code> for the supporting literature.</p>
+</body>
+</html>

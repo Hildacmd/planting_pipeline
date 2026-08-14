@@ -1,0 +1,8 @@
+flowchart LR
+  F0["Fine S2 @ t0"] --> V["Local coeff V = cov(F,C)/var(C)"]
+  C0["Coarse MODIS @ t0"] --> V
+  V --> P["F(tp)=F(t0)+V·(C(tp)−C(t0))"]
+  Ctp["Coarse @ tp"] --> P
+  P --> UB["Unbiased: residual = C(tp) − coarsen(F_pred)"]
+  UB --> BLEND["Two-pair temporal blend"]
+  BLEND --> G["Gap-free fine G(tp)"]

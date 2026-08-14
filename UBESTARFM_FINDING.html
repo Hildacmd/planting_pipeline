@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ubESTARFM — Documented Negative Result</title>
+  <style>
+
+html {
+color: #1a1a1a;
+background-color: #fdfdfd;
+}
+body {
+margin: 0 auto;
+max-width: 36em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 12px;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+html {
+background-color: white;
+}
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+a {
+color: #1a1a1a;
+}
+a:visited {
+color: #1a1a1a;
+}
+img {
+max-width: 100%;
+}
+svg {
+height: auto;
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+font-size: 85%;
+margin: 0;
+hyphens: manual;
+}
+pre {
+margin: 1em 0;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+.sourceCode {
+background-color: transparent;
+overflow: visible;
+}
+hr {
+border: none;
+border-top: 1px solid #1a1a1a;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid #1a1a1a;
+border-bottom: 1px solid #1a1a1a;
+}
+th {
+border-top: 1px solid #1a1a1a;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">ubESTARFM — Documented Negative Result</h1>
+</header>
+<h1 id="ubestarfm-for-onset-detection-a-documented-negative-result">ubESTARFM
+for onset detection — a documented negative result</h1>
+<p><strong>Verdict: no net benefit. <code>cue</code> fusion (NDRE + FPAR
++ SAR) alone is the best onset estimator. ubESTARFM gap-fill is a small
+net negative (−3 to −4 pts) even after NDVI→NDRE calibration.</strong>
+This file records the experiment so the dead-end is <em>proven</em>, not
+re-litigated later.</p>
+<h2 id="what-was-tested">What was tested</h2>
+<p>Reference: Kenya maize, Long rains 2024. Skill = calendar hit-rate
+against the calculation-based planting window <strong>dekads
+8–12</strong> (Mar-d2 centre = dekad 10). Metrics computed locally from
+the exported planting rasters (pixels with dekad ∈ [1,36]).</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr>
+<th>Variant</th>
+<th>Fusion greenness</th>
+<th>Scale</th>
+<th>Hit-rate</th>
+<th>Bias</th>
+<th>MAE</th>
+<th>vs cue@250</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>cue @ 10 m</strong></td>
+<td>NDRE + FPAR + SAR</td>
+<td>10 m</td>
+<td><strong>92.7%</strong></td>
+<td>—</td>
+<td>—</td>
+<td>(reference ceiling)</td>
+</tr>
+<tr>
+<td><strong>cue @ 250 m</strong></td>
+<td>NDRE + FPAR + SAR</td>
+<td>250 m</td>
+<td><strong>81.5%</strong></td>
+<td>−1.88</td>
+<td>1.90</td>
+<td>—</td>
+</tr>
+<tr>
+<td>raw-merge @ 250 m</td>
+<td>NDRE+FPAR primary, <strong>raw-NDVI</strong> ubESTARFM gap-fill, SAR
+last</td>
+<td>250 m</td>
+<td>77.3%</td>
+<td>−1.93</td>
+<td>1.94</td>
+<td><strong>−4.3 pts</strong></td>
+</tr>
+<tr>
+<td>calibrated-merge @ 250 m</td>
+<td>NDRE+FPAR primary, <strong>NDVI→NDRE-calibrated</strong> ubESTARFM
+gap-fill, SAR last</td>
+<td>250 m</td>
+<td>78.4%</td>
+<td>−1.95</td>
+<td>1.97</td>
+<td><strong>−3.1 pts</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="what-the-numbers-say">What the numbers say</h2>
+<ol type="1">
+<li><strong>Resolution is the dominant lever, not fusion.</strong>
+Coarsening 10 m → 250 m costs <strong>−11.2 pts</strong> (92.7 → 81.5).
+Every fusion choice below that is a second-order effect.</li>
+<li><strong>ubESTARFM gap-fill hurts onset.</strong> At <em>matched</em>
+250 m resolution, adding the ubESTARFM NDVI fill costs <strong>−4.3
+pts</strong> vs cue alone. The extra gap-free density in cloudy dekads
+injects early greenness that red-edge would not see, nudging SOS ~1
+dekad early.</li>
+<li><strong>Calibration works, but not enough.</strong> Moment-matching
+the ubESTARFM NDVI into NDRE space recovers <strong>+1.2 pts</strong>
+(77.3 → 78.4) — the mechanism was right — but the merge is still
+<strong>−3.1 pts</strong> below cue. It never breaks even.</li>
+</ol>
+<h2 id="why-the-honest-reason">Why (the honest reason)</h2>
+<p>The pipeline’s whole premise is <strong>red-edge (NDRE) for clean
+early-canopy onset</strong>. MODIS has no red-edge, so ubESTARFM can
+only gap-fill with <strong>NDVI</strong>, which rises earlier and
+flatter for sparse early canopy. Denser coverage helps <em>area
+completeness</em> but hurts <em>onset precision</em>, and for onset,
+precision wins. Calibration shifts the NDVI baseline/amplitude toward
+NDRE but cannot reconstruct the red-edge’s sharp green-up timing from a
+broadband index.</p>
+<h2 id="decision">Decision</h2>
+<ul>
+<li><strong>Keep <code>cue</code> fusion as the production
+greenness</strong> (<code>--fusion cue</code>, the default).</li>
+<li><strong>Shelve <code>--fusion estarfm</code> for onset.</strong> The
+code (<code>src/estarfm.py</code>,
+<code>build_fused_greenness_enhanced</code>) is retained and functional
+for reproducibility / future use (e.g. a canopy-density or biomass
+product where NDVI density <em>is</em> the goal), but is
+<strong>not</strong> on the planting-window path.</li>
+<li>Resolution — not fusion — is where future skill gains live: run at
+the finest scale the compute budget allows (10 m ≫ 250 m).</li>
+</ul>
+<p><em>Experiment closed 2026-07. Fan-out to Short rains / Ethiopia
+Meher and a ubESTARFM WRSI were considered and dropped: they would only
+reproduce this same small-negative pattern.</em></p>
+</body>
+</html>

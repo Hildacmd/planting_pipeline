@@ -1,0 +1,8 @@
+flowchart LR
+  AEZ["AEZ code<br/>e.g. UM4, LM5, LH2"] --> B["Belt (altitude)<br/>TA/UH/LH/UM/LM/IL/CL"]
+  AEZ --> Z["Moisture zone 0–7"]
+  B --> M{"Maturity class"}
+  Z --> M
+  M -->|"cool highland / zone≤2"| LATE["LATE · long-cycle<br/>H614/H629"]
+  M -->|"UM3-4 / LM3-4"| MED["MEDIUM · H513/H516"]
+  M -->|"dry lowland zone≥5"| EARLY["EARLY · drought-escaping<br/>Katumani/DH04"]

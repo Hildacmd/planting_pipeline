@@ -1,0 +1,164 @@
+<meta charset="utf-8">
+<title>Planting-Window Pipeline — Documentation</title>
+<style>
+  :root{
+    --ground:#f4f6f1; --panel:#ffffff; --ink:#182019; --ink-soft:#5a655c;
+    --line:#dde3d8; --accent:#2f7d4f; --accent-soft:#eaf2ec; --shadow:rgba(24,40,28,.10);
+    --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --ground:#10130e; --panel:#181c15; --ink:#e7ebe1; --ink-soft:#9aa593;
+    --line:#2b3227; --accent:#63b487; --accent-soft:#1d2a20; --shadow:rgba(0,0,0,.45);
+  }}
+  :root[data-theme="light"]{--ground:#f4f6f1;--panel:#fff;--ink:#182019;--ink-soft:#5a655c;--line:#dde3d8;--accent:#2f7d4f;--accent-soft:#eaf2ec;--shadow:rgba(24,40,28,.10);}
+  :root[data-theme="dark"]{--ground:#10130e;--panel:#181c15;--ink:#e7ebe1;--ink-soft:#9aa593;--line:#2b3227;--accent:#63b487;--accent-soft:#1d2a20;--shadow:rgba(0,0,0,.45);}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:clamp(1rem,3vw,2.2rem)}
+  header{border-bottom:2px solid var(--ink);padding-bottom:1rem;margin-bottom:1.6rem}
+  .eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 .4rem}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(1.5rem,3.6vw,2.3rem);margin:0;letter-spacing:-.01em}
+  .lede{color:var(--ink-soft);font-size:.95rem;margin:.5rem 0 0;max-width:64ch}
+  h2{font-family:var(--mono);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);margin:2rem 0 .8rem;font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.8rem}
+  a.card{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;box-shadow:0 1px 3px var(--shadow);transition:border-color .12s,transform .12s}
+  a.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .ct{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem}
+  .badge{font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;padding:.12rem .4rem;border-radius:5px;background:var(--accent-soft);color:var(--accent);text-transform:uppercase;font-weight:600}
+  .name{font-family:var(--serif);font-size:1.08rem}
+  .desc{color:var(--ink-soft);font-size:.85rem;margin:.15rem 0 0}
+  .fn{font-family:var(--mono);font-size:.7rem;color:var(--ink-soft);margin-top:.4rem;opacity:.75}
+  .star{display:inline-block;font-size:.62rem;color:var(--accent);font-family:var(--mono);margin-left:.35rem;letter-spacing:.04em}
+  footer{margin-top:2.2rem;padding-top:1rem;border-top:1px solid var(--line);font-family:var(--mono);font-size:.7rem;color:var(--ink-soft)}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">ICPAC · Agromet · Documentation</p>
+  <h1>Crop-Specific Planting-Window Pipeline</h1>
+  <p class="lede">Front door to the full documentation set — methodology, findings, the interactive
+  explorer, notebooks, and deliverables. Maize across the Greater Horn of Africa; reference runs for
+  Kenya (Long + Short rains) and Ethiopia (Meher) at 250 m.</p>
+</header>
+
+<h2>Start here — interactive</h2>
+<div class="grid">
+  <a class="card" href="pw_app.html">
+    <div class="ct"><span class="badge">app</span><span class="name">Planting-Window Explorer</span></div>
+    <div class="desc">Interactive map — switch country/season, admin level (L1/L2/L3), and attribute (planting dekad, hit-rate, WRSI, crop area fraction…).</div>
+    <div class="fn">pw_app.html</div>
+  </a>
+  <a class="card" href="APP_STATISTICS_GUIDE.html">
+    <div class="ct"><span class="badge">html</span><span class="name">App Statistics Guide ★</span></div>
+    <div class="desc">What every number in the apps means — planting, LVPD, viability, skill, WRSI, SPI-3, phenology — with interpretation and the "no signal" note.</div>
+    <div class="fn">APP_STATISTICS_GUIDE.html · also .docx</div>
+  </a>
+  <a class="card" href="risk_app.html">
+    <div class="ct"><span class="badge">app</span><span class="name">2024 Risk Monitor</span></div>
+    <div class="desc">ASAP-style risk — crop-failure % and SPI-3 drought classed Watch / Alert / Critical, plus WRSI, deficit, CAF, and GDD-clock flowering & maturity dekads, per season and admin level.</div>
+    <div class="fn">risk_app.html</div>
+  </a>
+</div>
+
+<h2>Methodology</h2>
+<div class="grid">
+  <a class="card" href="workflow.html">
+    <div class="ct"><span class="badge">html</span><span class="name">Workflow<span class="star">rendered ★</span></span></div>
+    <div class="desc">Full pipeline methodology with rendered diagrams — the best read.</div>
+    <div class="fn">workflow.html · source: WORKFLOW.md</div>
+  </a>
+  <a class="card" href="Planting_Pipeline_Workflow.docx">
+    <div class="ct"><span class="badge">docx</span><span class="name">Workflow (Word)</span></div>
+    <div class="desc">Shareable / printable version, diagrams embedded. Opens in Word.</div>
+    <div class="fn">Planting_Pipeline_Workflow.docx</div>
+  </a>
+  <a class="card" href="README.html">
+    <div class="ct"><span class="badge">html</span><span class="name">Overview & Quick Start</span></div>
+    <div class="desc">What the pipeline is, code map, how to run it.</div>
+    <div class="fn">README.html · source: README.md</div>
+  </a>
+  <a class="card" href="REFERENCES.html">
+    <div class="ct"><span class="badge">html</span><span class="name">References</span></div>
+    <div class="desc">Supporting literature and dataset citations.</div>
+    <div class="fn">REFERENCES.html · source: REFERENCES.md</div>
+  </a>
+</div>
+
+<h2>Findings & design</h2>
+<div class="grid">
+  <a class="card" href="UBESTARFM_FINDING.html">
+    <div class="ct"><span class="badge">html</span><span class="name">ubESTARFM — Negative Result</span></div>
+    <div class="desc">Why cue fusion is production and ubESTARFM was shelved: the 3-way comparison (−3 to −4 pts) and the reason.</div>
+    <div class="fn">UBESTARFM_FINDING.html · source .md</div>
+  </a>
+  <a class="card" href="ALGORITHMS_AND_REFERENCES.html">
+    <div class="ct"><span class="badge">html</span><span class="name">Algorithms &amp; References</span></div>
+    <div class="desc">Step-by-step algorithms for planting-window estimation and GDD stage-weighted risk monitoring, each tied to its supporting citation (39 refs).</div>
+    <div class="fn">ALGORITHMS_AND_REFERENCES.html · source .md</div>
+  </a>
+  <a class="card" href="WORKFLOW_SHORTRAINS.html">
+    <div class="ct"><span class="badge">html</span><span class="name">Short-Rains Workflow ★</span></div>
+    <div class="desc">Rainfall-anchored short-rains method (44-yr CHIRPS onset) — 397× coverage gain over green-up, with dry-zone flagging. Short-rains only.</div>
+    <div class="fn">WORKFLOW_SHORTRAINS.html</div>
+  </a>
+  <a class="card" href="RISK_MONITORING_METHODOLOGY.html">
+    <div class="ct"><span class="badge">html</span><span class="name">Risk-Monitoring Methodology ★</span></div>
+    <div class="desc">Full in-season risk pipeline illustrated — the metrics picked (WRSI/WSI/failure/SPI-3/VCI/heat), ASAP rule, stage weighting, all algorithms &amp; formulas. Also .docx.</div>
+    <div class="fn">RISK_MONITORING_METHODOLOGY.html</div>
+  </a>
+  <a class="card" href="CPI_METHODOLOGY.html">
+    <div class="ct"><span class="badge">html</span><span class="name">CPI Methodology ★</span></div>
+    <div class="desc">Crop Performance Index illustrated — multi-stress multiplicative stacking (water×heat×veg), yield &amp; production, formulas, parameters, calibration caveats. Also .docx.</div>
+    <div class="fn">CPI_METHODOLOGY.html</div>
+  </a>
+  <a class="card" href="YIELD_ESTIMATION_METHODOLOGY.html">
+    <div class="ct"><span class="badge">html</span><span class="name">Yield-Estimation Methodology ★</span></div>
+    <div class="desc">Maize yield &amp; production — CPI × potential yield (yield-gap framing), area-scaling, calibration loop, illustrated with algorithms, formulas &amp; citations. Also .docx.</div>
+    <div class="fn">YIELD_ESTIMATION_METHODOLOGY.html</div>
+  </a>
+  <a class="card" href="WATERLOGGING_METHODOLOGY.html">
+    <div class="ct"><span class="badge">html</span><span class="name">Waterlogging / Excess-Rain Methodology ★</span></div>
+    <div class="desc">The wet-side hazard WRSI can't see — two complementary metrics: SPI-3 wet anomaly (validated) &amp; AquaCrop aeration-stress soil-water model (modelled). Algorithms, stage-weighting basis, formulas &amp; citations. Also .docx.</div>
+    <div class="fn">WATERLOGGING_METHODOLOGY.html</div>
+  </a>
+
+  <a class="card" href="RISK_MONITORING_DESIGN.html">
+    <div class="ct"><span class="badge">html</span><span class="name">Risk Monitoring — Design</span></div>
+    <div class="desc">Frozen v1 spec: GDD stage-weighting, FAO-33 Ky, SPI-3, ASAP 25%-of-area, CPI &amp; crop-failure %.</div>
+    <div class="fn">RISK_MONITORING_DESIGN.html · source .md</div>
+  </a>
+</div>
+
+<h2>Notebooks</h2>
+<div class="grid">
+  <a class="card" href="planting_pipeline_kenya.ipynb">
+    <div class="ct"><span class="badge">ipynb</span><span class="name">Kenya pipeline notebook</span></div>
+    <div class="desc">End-to-end reproducible run in JupyterLab. Opens in Jupyter.</div>
+    <div class="fn">planting_pipeline_kenya.ipynb</div>
+  </a>
+  <a class="card" href="run_in_colab.ipynb">
+    <div class="ct"><span class="badge">ipynb</span><span class="name">Colab notebook</span></div>
+    <div class="desc">Google Colab version of the run.</div>
+    <div class="fn">run_in_colab.ipynb</div>
+  </a>
+</div>
+
+<h2>Deliverables & code</h2>
+<div class="grid">
+  <a class="card" href="Kenya_Longrains_2024_DELIVERABLES_2026-07-30/">
+    <div class="ct"><span class="badge">folder</span><span class="name">Kenya Long-rains deliverables</span></div>
+    <div class="desc">Finished skill maps, WRSI maps, AEZ, QGIS WKT and graphs (L1/L2/L3).</div>
+    <div class="fn">Kenya_Longrains_2024_DELIVERABLES_2026-07-30/</div>
+  </a>
+  <a class="card" href="src/">
+    <div class="ct"><span class="badge">folder</span><span class="name">Source modules</span></div>
+    <div class="desc">The Python modules referenced throughout the methodology.</div>
+    <div class="fn">src/</div>
+  </a>
+</div>
+
+<footer>Documentation index · cue fusion (production) · ubESTARFM shelved · 250 m multi-country ·
+open this file (index.html) to navigate the whole set. Markdown sources sit alongside each rendered page.</footer>
+</div>

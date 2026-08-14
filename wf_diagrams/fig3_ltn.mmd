@@ -1,0 +1,6 @@
+flowchart TD
+  RN["1. CHIRPS onset normal<br/>25/20 mm (dense, every season)"] --> ANCHOR["Rainfall onset ANCHOR"]
+  PH["MODIS Greenup normal<br/>Greenup_1 long / Greenup_2 short"] -->|"confirm / refine where present"| ANCHOR
+  ANCHOR -->|"gate SOS +/- ltn_pad, pass-through where absent"| SOSGATE["Constrained SOS search"]
+  TN["ERA5-Land 1991-2020<br/>mean-T normal"] --> OFF["Thermal emergence offset<br/>cooler = longer lag"]
+  OFF --> PLANTOFF["Planting = SOS - offset(T)"]

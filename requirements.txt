@@ -1,0 +1,9 @@
+earthengine-api>=1.4.0
+google-cloud-storage>=2.16
+pyyaml>=6.0
+pandas>=2.0
+# optional local phenometrics / validation
+numpy>=1.26
+scipy>=1.11
+# openEO alternative backend (CDSE) if not using GEE
+openeo>=0.31
