@@ -21,10 +21,10 @@ var ASSETS = {
   oe_ke_long  : P + 'onsetexcess_Kenya_Longrains_2024',  //  4 bands (OE_MAIN)
   oe_et_meher : P + 'onsetexcess_Ethiopia_Meher_2024',   //  4 bands (OE_MAIN)
   oe_ke_short : P + 'onsetexcess_Kenya_Shortrains_2024', //  2 bands (OE_SHORT)
-  // fused canopy condition (run_fcci.py TO_ASSET=1 to create these):
-  // fcci_ke_long : P + 'fcci_Kenya_Longrains_2024',     //  1 band 0-100
-  // fcci_et_meher: P + 'fcci_Ethiopia_Meher_2024',
-  // fcci_ke_short: P + 'fcci_Kenya_Shortrains_2024'
+  // fused canopy condition (FCCI) — 1 band 0-100, peak fused greenness
+  fcci_ke_long : P + 'fcci_Kenya_Longrains_2024',
+  fcci_et_meher: P + 'fcci_Ethiopia_Meher_2024',
+  fcci_ke_short: P + 'fcci_Kenya_Shortrains_2024'
 };
 
 // ---- 2. Band order as EXPORTED (do not reorder) ---------------------------------------
