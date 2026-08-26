@@ -33,7 +33,8 @@ PLANT = {"modal_dekad": "md", "mean_dekad": "mean", "p10": "p10", "p50": "p50", 
          "wsi_veg": "wsv", "wsi_flo": "wsf", "wsi_grf": "wsg", "failflo_pct": "failflo",
          "cpi": "cpi", "yield_tha": "yld", "total_yield_t": "tyld",
          "s_water": "sw", "s_heat": "sh", "s_veg": "sv",
-         "false_start_pct": "fstart", "waterlog_idx": "wlog", "waterlog_pct": "wlogp", "spi_wet_pct": "spiwet"}
+         "false_start_pct": "fstart", "waterlog_idx": "wlog", "waterlog_pct": "wlogp", "spi_wet_pct": "spiwet",
+         "obs_plant_dk": "obs", "plant_err": "perr", "fcci": "fcci"}
 WRSI = {"mean_WRSI": "wrsi", "mean_deficit_mm": "def", "fail_pct": "fail"}
 
 

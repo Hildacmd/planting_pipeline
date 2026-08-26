@@ -27,11 +27,17 @@ def build_s1_dekadal(ee, aoi, year, orbit="DESCENDING", dekads=range(1,37)):
                   .copyProperties(img, ["system:time_start"]))
 
     s1 = s1.map(refine)
+    BANDS = ["VV", "VH", "VH_VV", "RVI"]
+    # fully-masked 4-band fallback so a dekad with NO S1 scene still yields the RVI band (masked),
+    # instead of a band-less image that breaks downstream select("RVI").
+    empty = ee.Image.constant([0, 0, 0, 0]).rename(BANDS).updateMask(ee.Image.constant(0))
     out = []
     for dk in dekads:
         start = ee.Date(dekad_to_start_date(year, dk).isoformat())
         end   = start.advance(10, "day")
-        comp  = (s1.filterDate(start, end).mean()
+        col   = s1.filterDate(start, end)
+        comp  = (ee.Image(ee.Algorithms.If(col.size().gt(0), col.mean(), empty))
+                   .select(BANDS)
                    .set({"dekad": dk, "year": year, "system:time_start": start.millis()}))
         out.append(comp)
     return ee.ImageCollection(out)

@@ -81,3 +81,17 @@ def detect_sos(ee, g_ic, crop_mask, sos_start, sos_end, ltn_sos=None,
     cand_ic = ee.ImageCollection(ee.List.sequence(0, win.size().subtract(1)).map(flag))
     sos = cand_ic.min().rename("SOS_dekad")     # earliest qualifying dekad
     return sos.updateMask(crop_mask)
+
+
+def fused_condition(ee, g_ic, crop_mask, sos_start, sos_end, lgp=12):
+    """Within-season Fused Canopy Condition Index (FCCI, 0-100) = 100 * PEAK fused greenness G over
+    the season window (green-up through senescence), masked to the crop. G is an ABSOLUTE proxy
+    (fixed unitScale of NDRE/FPAR/RVI), so peak-G is comparable across pixels WITHOUT a multi-year
+    baseline — the archive-length problem is avoided. High = vigorous canopy; low = poor / failed.
+    A 10-20 m, cloud-proof (SAR-filled) vegetation cross-check on the water-balance WRSI.
+    Caveat: where the peak dekad was cloud-filled by SAR, the value is the SAR proxy (less exact)."""
+    end = min(int(sos_end) + int(lgp), 36)                       # season dekads (no year-wrap; peak is in-year)
+    dks = ee.List.sequence(int(sos_start), end)
+    sub = g_ic.filter(ee.Filter.inList("dekad", dks))
+    gpeak = sub.select("G").max()                                # peak greenness over the season
+    return gpeak.multiply(100).updateMask(crop_mask).clamp(0, 100).rename("FCCI")

@@ -178,3 +178,10 @@ credentials.json
 /wkt_csv/wrsi_Kenya_maize_Longrains_2024_L2_admin_WKT.csv
 /wkt_csv/wrsi_Kenya_maize_Longrains_2024_L3_admin_WKT.csv
 /wkt_csv/wrsi_Kenya_maize_Longrains_2024_points_WKT.csv
+
+# ---- session additions: Documentation_ALL duplicates (canonical copies live at repo root) ----
+/Documentation_ALL_2026-08-09/*.kmz
+/Documentation_ALL_2026-08-09/PLANTING_VALIDATION_2024.*
+/Documentation_ALL_2026-08-09/planting_validation_*
+/Documentation_ALL_2026-08-09/pw_app.html
+/Documentation_ALL_2026-08-09/risk_app.html

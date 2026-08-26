@@ -16,9 +16,15 @@ var ASSETS = {
   cpi_et_meher: P + 'cpi_Ethiopia_Meher_2024',           // 11 bands
   cpi_ke_short: P + 'cpi_Kenya_maize_Shortrains_2024',   //  5 bands (see CPI_SHORT)
   stage_short : P + 'stagemonitor_Kenya_maize_Shortrains_2024', // 6 bands (STAGE)
-  whc         : P + 'whc_saxton_soilgrids_gha_250m'      //  1 band  — ALREADY an asset
-  // planting_ke_long : P + 'planting_Kenya_maize_Longrains_2024',   // optional (1 band, dekad)
-  // spi3_ke_short    : P + 'spi3_Kenya_Shortrains_2024',            // optional (1 band)
+  whc         : P + 'whc_saxton_soilgrids_gha_250m',     //  1 band  — ALREADY an asset
+  // excess / waterlogging diagnostics (onset false-start + aeration waterlogging + SPI-3 wet)
+  oe_ke_long  : P + 'onsetexcess_Kenya_Longrains_2024',  //  4 bands (OE_MAIN)
+  oe_et_meher : P + 'onsetexcess_Ethiopia_Meher_2024',   //  4 bands (OE_MAIN)
+  oe_ke_short : P + 'onsetexcess_Kenya_Shortrains_2024', //  2 bands (OE_SHORT)
+  // fused canopy condition (run_fcci.py TO_ASSET=1 to create these):
+  // fcci_ke_long : P + 'fcci_Kenya_Longrains_2024',     //  1 band 0-100
+  // fcci_et_meher: P + 'fcci_Ethiopia_Meher_2024',
+  // fcci_ke_short: P + 'fcci_Kenya_Shortrains_2024'
 };
 
 // ---- 2. Band order as EXPORTED (do not reorder) ---------------------------------------
@@ -26,6 +32,8 @@ var CPI_MAIN  = ['wrsi_veg','wrsi_flo','wrsi_grf','wsi_veg','wsi_flo','wsi_grf',
                  'CPI','yield_tha_x100','S_water','S_heat','S_veg'];
 var CPI_SHORT = ['CPI','yield_tha_x100','S_water','S_heat','S_veg'];
 var STAGE     = ['wrsi_veg','wrsi_flo','wrsi_grf','wsi_veg','wsi_flo','wsi_grf'];
+var OE_MAIN   = ['false_start','waterlog_idx','spi3_wet','onset_acc_mm'];
+var OE_SHORT  = ['waterlog_idx','spi3_wet'];
 
 // ---- 3. Palettes ----------------------------------------------------------------------
 var RdYlGn = ['a50026','d73027','f46d43','fdae61','fee08b','ffffbf',
@@ -44,7 +52,11 @@ var VIS = {
   str  : {min:0,   max:60,  palette:STRESS},   // S_water/heat/veg (%, capped ~60)
   whc  : {min:25,  max:180, palette:WHCPAL},   // mm
   spi  : {min:-2,  max:2,   palette:SPIPAL},   // SPI-3
-  dekad: {min:1,   max:36,  palette:DEKAD}
+  dekad: {min:1,   max:36,  palette:DEKAD},
+  wlog : {min:0,   max:40,  palette:WHCPAL},   // aeration waterlogging index (modelled, uncal.)
+  wet  : {min:0,   max:1,   palette:WHCPAL},   // SPI-3 wet mask (0/1)
+  fstart:{min:0,   max:1,   palette:STRESS},   // false-start 0/1
+  fcci : {min:0,   max:100, palette:RdYlGn}    // fused canopy condition 0-100
 };
 
 // ---- 4. Loader: load asset, rename to schema, mask to the valid (maize) footprint ------
@@ -88,6 +100,22 @@ if (ASSETS.stage_short){
   push(stg.select('wrsi_grf'), 'wrsi', 'Short rains · WRSI @grain-fill', false);
   push(stg.select('wsi_flo'),  'wsi',  'Short rains · WSI @flowering',   false);
 }
+
+// -- excess / waterlogging diagnostics (onset false-start + aeration + SPI-3 wet) --
+[['oe_ke_long','Kenya Long rains',OE_MAIN], ['oe_et_meher','Ethiopia Meher',OE_MAIN],
+ ['oe_ke_short','Kenya Short rains',OE_SHORT]].forEach(function(s){
+  var id = ASSETS[s[0]]; if(!id) return;
+  var im = ee.Image(id).rename(s[2]), foot = im.select('waterlog_idx').gte(0);   // any valid pixel
+  push(im.select('waterlog_idx').updateMask(foot), 'wlog', s[1]+' · Soil waterlogging (modelled)', false);
+  push(im.select('spi3_wet').updateMask(foot),     'wet',  s[1]+' · SPI-3 wet (0/1)',              false);
+  if (s[2].indexOf('false_start')>=0)
+    push(im.select('false_start').updateMask(foot),'fstart',s[1]+' · False-start (5+7)',           false);
+});
+
+// -- fused canopy condition (uncomment the fcci_* asset ids above once run_fcci.py TO_ASSET=1 has run) --
+[['fcci_ke_long','Kenya Long rains'], ['fcci_et_meher','Ethiopia Meher'], ['fcci_ke_short','Kenya Short rains']]
+ .forEach(function(s){ var id=ASSETS[s[0]]; if(!id) return;
+   push(ee.Image(id).rename('FCCI').selfMask(), 'fcci', s[1]+' · Canopy condition (fused 10-20 m)', false); });
 
 // -- static soil WHC (already an asset) --
 if (ASSETS.whc){
