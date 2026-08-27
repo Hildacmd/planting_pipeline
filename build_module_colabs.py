@@ -196,6 +196,55 @@ else:
     display(tbl.reset_index(drop=True))
 '''
 
+PLANTING_WARD = r'''# ============================================================
+#  County → Ward drill-down + ward-level validation   (2024 MAM, Kenya)
+#  ward validation metrics · nested county→ward JSON · per-county grouped bar
+# ============================================================
+import os, json, numpy as np, pandas as pd, matplotlib.pyplot as plt
+WARD_CSV = 'planting_validation_MAM_ward_2024.csv'      # ships in the pipeline folder (on Drive)
+if not os.path.exists(WARD_CSV):
+    print('Ward CSV not found at', os.path.abspath(WARD_CSV), '— upload it with the pipeline folder.')
+else:
+    w = pd.read_csv(WARD_CSV).dropna(subset=['obs_dk','modal_dekad'])
+    w['County'] = w['County'].astype(str).str.upper().str.strip()
+    w['err'] = w['modal_dekad'] - w['obs_dk']              # estimated − observed (dekads)
+    fw = w['Farmers (n)'].fillna(0).clip(lower=0)
+
+    # ward-level validation, weighted by number of farmers surveyed
+    bias = (w['err']*fw).sum()/max(fw.sum(),1); mae = (w['err'].abs()*fw).sum()/max(fw.sum(),1)
+    within2 = (w['err'].abs() <= 2).mean()*100
+    print(f"── Ward-level farmer validation · {len(w)} wards · {w['County'].nunique()} counties ──")
+    print(f"  farmer-weighted bias {bias:+.2f} dk · MAE {mae:.2f} dk · wards within \xb12 dekads: {within2:.0f}%")
+
+    # nested county -> ward JSON  {County: {Ward: {obs, est, err, farmers, n_px}}}
+    nested = {}
+    for _, r in w.iterrows():
+        farmers = int(r['Farmers (n)']) if pd.notna(r['Farmers (n)']) else 0
+        nested.setdefault(r['County'].title(), {})[str(r['Ward']).title()] = dict(
+            obs=int(r['obs_dk']), est=int(r['modal_dekad']), err=int(r['err']),
+            farmers=farmers, n_px=int(r['n_px']) if pd.notna(r.get('n_px')) else 0)
+    with open('planting_ward_MAM_2024.json','w') as f: json.dump(nested, f, indent=1)
+    print(f"  wrote planting_ward_MAM_2024.json ({len(nested)} counties, {len(w)} wards)")
+
+    # ---- drill-down: pick a county -> observed vs estimated per ward --------
+    COUNTY_PICK = 'BUNGOMA'                                # <-- change to any county
+    sub = w[w['County'] == COUNTY_PICK.upper().strip()].sort_values('obs_dk')
+    if not len(sub):
+        print('No wards for', COUNTY_PICK, '· try one of:', ', '.join(sorted(w['County'].unique())))
+    else:
+        x = np.arange(len(sub)); bwid = 0.4
+        fig, ax = plt.subplots(figsize=(max(6, 0.42*len(sub)), 4))
+        ax.bar(x-bwid/2, sub['obs_dk'],      bwid, label='observed (farmers)', color='#3b7a57')
+        ax.bar(x+bwid/2, sub['modal_dekad'], bwid, label='estimated',          color='#a50026')
+        ax.set_xticks(x); ax.set_xticklabels(sub['Ward'].str.title(), rotation=60, ha='right', fontsize=7)
+        ax.set_ylabel('planting dekad'); ax.legend(fontsize=8)
+        ax.set_title(f'{COUNTY_PICK.title()} — planting dekad by ward (2024 MAM)')
+        plt.tight_layout(); plt.show()
+        show = sub[['Ward','obs_dk','modal_dekad','err','Farmers (n)']].rename(
+            columns={'obs_dk':'Observed','modal_dekad':'Estimated','err':'Error (est−obs)','Farmers (n)':'Farmers'})
+        display(show.reset_index(drop=True))
+'''
+
 NOTEBOOKS = {}
 
 # ---------- 01 · Planting window ----------
@@ -218,6 +267,9 @@ NOTEBOOKS["01_planting_window"] = setup(
        "(bias, MAE, ±2-dekad hit-rate). Runs only for **Kenya · Long rains**; uses your live estimate where "
        "`aoi_run` covers enough counties, otherwise the shipped validation CSV."),
     co(PLANTING_VALIDATION),
+    md("## County → ward drill-down\nWard-level (2024 MAM) validation, a nested **county→ward JSON**, and a per-county "
+       "observed-vs-estimated bar. Change `COUNTY_PICK` to drill into any county."),
+    co(PLANTING_WARD),
     md("*Higher dekad = later planting. Export with `ee.batch.Export.image.toDrive(...)`; see `run.py` for batch runs.*"),
 ]
 
