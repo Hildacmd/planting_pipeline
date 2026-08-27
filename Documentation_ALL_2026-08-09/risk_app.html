@@ -168,6 +168,31 @@ function render(){
   buildLegend();updateSummary();drawStats();if(selected!=null){if(!units[selected])selected=null;else showDetail(selected);}
 }
 function fmtV(v){const A=LAYERS[attr];return A.cat?v.toFixed(0)+'%':(A.dek?dekadLabel(v):A.fmt(v));}
+function drawRegionProfile(a){
+  var el=document.getElementById('profileChart'); if(!el) return;
+  var series=[{name:'WRSI',color:'#1a9850',pts:[[a.wrv,a.pkv],[a.wrf,a.flo],[a.wrg,a.grf]]},
+              {name:'WSI', color:'#a50026',pts:[[a.wsv,a.pkv],[a.wsf,a.flo],[a.wsg,a.grf]]}]
+    .map(function(s){return {name:s.name,color:s.color,pts:s.pts.filter(function(p){return p[0]!=null&&p[1]!=null;})};})
+    .filter(function(s){return s.pts.length;});
+  if(!series.length){el.setAttribute('viewBox','0 0 300 28');el.innerHTML='<text x="6" y="16" font-size="10" fill="'+cssv('--ink-soft')+'">no stage-resolved data for this unit</text>';return;}
+  var dks=[]; series.forEach(function(s){s.pts.forEach(function(p){dks.push(p[1]);});});
+  if(a.pkv!=null)dks.push(a.pkv); if(a.mat!=null)dks.push(a.mat);
+  var dlo=Math.min.apply(null,dks)-0.5, dhi=Math.max.apply(null,dks)+0.5;
+  var W=300,H=190,ml=48,mr=52,mt=12,mb=28;
+  function X(v){return ml+Math.max(0,Math.min(100,v))/100*(W-ml-mr);}
+  function Y(d){return mt+(d-dlo)/((dhi-dlo)||1)*(H-mt-mb);}          // earlier dekads at top
+  var s='';
+  s+='<line x1="'+ml+'" y1="'+mt+'" x2="'+ml+'" y2="'+(H-mb)+'" stroke="'+cssv('--line')+'"/>';
+  s+='<line x1="'+ml+'" y1="'+(H-mb)+'" x2="'+(W-mr)+'" y2="'+(H-mb)+'" stroke="'+cssv('--line')+'"/>';
+  [0,50,100].forEach(function(v){s+='<text x="'+X(v)+'" y="'+(H-mb+12)+'" font-size="8.5" text-anchor="middle" fill="'+cssv('--ink-soft')+'">'+v+'</text>';});
+  s+='<text x="'+((ml+W-mr)/2)+'" y="'+(H-6)+'" font-size="8.5" text-anchor="middle" fill="'+cssv('--ink-soft')+'">value (0–100)</text>';
+  [['pkv'],['flo'],['grf'],['mat']].forEach(function(g){var d=a[g[0]]; if(d!=null)s+='<text x="'+(ml-5)+'" y="'+(Y(d)+3)+'" font-size="8.5" text-anchor="end" fill="'+cssv('--ink-soft')+'">'+dekadLabel(d)+'</text>';});
+  series.forEach(function(se){var pts=se.pts.slice().sort(function(a,b){return a[1]-b[1];});
+    s+='<polyline fill="none" stroke="'+se.color+'" stroke-width="1.8" points="'+pts.map(function(p){return X(p[0])+','+Y(p[1]);}).join(' ')+'"/>';
+    pts.forEach(function(p){s+='<circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="3" fill="'+se.color+'"/>';});});
+  series.forEach(function(se,i){s+='<rect x="'+(W-mr+5)+'" y="'+(mt+i*16)+'" width="10" height="10" rx="2" fill="'+se.color+'"/><text x="'+(W-mr+18)+'" y="'+(mt+i*16+9)+'" font-size="9">'+se.name+'</text>';});
+  el.setAttribute('viewBox','0 0 '+W+' '+H);el.innerHTML=s;
+}
 function statColor(v,lo,hi){const A=LAYERS[attr];if(A.cat){const c=asapClass(v);return c<0?cssv('--nodata'):cssv(ASAP[c].c);}return A.stops?ramp(A.stops,(v-lo)/((hi-lo)||1)):cssv('--accent');}
 function drawStats(){
   const A=LAYERS[attr],units=prod.levels[level].units;
@@ -277,7 +302,9 @@ function showDetail(i){
     ['Total production',a.tyld!=null?(a.tyld>=1000?(a.tyld/1000).toFixed(1)+' kt':a.tyld.toFixed(0)+' t'):'—'],
     ['Stress  water/heat/veg',(a.sw!=null?a.sw.toFixed(0):'–')+' / '+(a.sh!=null?a.sh.toFixed(0):'–')+' / '+(a.sv!=null?a.sv.toFixed(0):'–')+'%'],
     ['Maize pixels',a.n!=null?a.n.toLocaleString():'—']];
-  body.innerHTML=`<div class="unitname">${u.n} ${pill}</div><div class="parent">${parent}</div><div class="kv">`+rows.map(r=>`<span class="k">${r[0]}</span><span class="v">${r[1]}</span>`).join('')+'</div>';
+  body.innerHTML=`<div class="unitname">${u.n} ${pill}</div><div class="parent">${parent}</div><div class="kv">`+rows.map(r=>`<span class="k">${r[0]}</span><span class="v">${r[1]}</span>`).join('')+'</div>'
+    +'<div class="statlab" style="margin-top:.8rem">Growing-season profile · dekad (y) × value (x)</div><svg id="profileChart" role="img" aria-label="growing-season profile"></svg>';
+  drawRegionProfile(a);
 }
 svg.addEventListener('pointermove',e=>{const p=e.target.closest('path');if(!p){tip.style.opacity=0;return;}const u=prod.levels[level].units[+p.dataset.i];const c=asapClass(u.a[attr]);tip.textContent=LAYERS[attr].cat?`${u.n} · ${c<0?'no signal':ASAP[c].k+' ('+u.a[attr].toFixed(0)+'%)'}`:`${u.n} · ${u.a[attr]==null?'no data':LAYERS[attr].fmt(u.a[attr])}`;tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px';tip.style.opacity=1;});
 svg.addEventListener('pointerleave',()=>tip.style.opacity=0);
