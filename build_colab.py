@@ -29,7 +29,7 @@ md("## Section 0 — Setup")
 
 co(r"""
 # 0.1  Install dependencies (Colab). ~2-3 min the first time.
-!pip -q install earthengine-api folium pandas geopandas 2>/dev/null
+!pip -q install earthengine-api geemap pandas geopandas 2>/dev/null
 print("installed.")
 """)
 
@@ -70,15 +70,19 @@ aoi = ZA.gaul_admin(ee, [GAUL_NAME[COUNTRY]], level=0).geometry()
 AOI_TEST  = ee.Geometry.Rectangle([34.4, -1.2, 37.8, 1.2])
 aoi_run   = AOI_TEST
 
-# --- robust map display: raw folium + Earth Engine tile URLs (no geemap map -> avoids the xyz_to_folium bug) ---
-import folium
-def ee_layer(fmap, image, vis, name):
-    mid = ee.Image(image).getMapId(vis)
-    folium.TileLayer(mid["tile_fetcher"].url_format, attr="Google Earth Engine",
-                     name=name, overlay=True, control=True).add_to(fmap)
+# --- GEE-native map (geemap): built-in EE Layers panel (toggle + opacity), same control as the Code Editor ---
+import geemap
+try:
+    from google.colab import output; output.enable_custom_widget_manager()   # needed for interactive geemap in Colab
+except Exception:
+    pass
 def new_map(zoom=7):
-    c = aoi_run.centroid(1).coordinates().getInfo()          # [lon, lat]
-    return folium.Map(location=[c[1], c[0]], zoom_start=zoom, tiles="CartoDB positron")
+    m = geemap.Map(add_google_map=False, basemap="SATELLITE")   # keyless Google tiles (avoids the old CARTO/xyz_to_folium bug)
+    m.centerObject(aoi_run, zoom)
+    return m
+def ee_layer(m, image, vis, name, shown=True, opacity=1.0):
+    m.addLayer(ee.Image(image), vis, name, shown, opacity)      # appears in the Layers panel
+    return m
 print(f"{COUNTRY} · {SEASON} · {YEAR}  ·  S1 orbit {S1_ORBIT}")
 """)
 
@@ -123,7 +127,7 @@ print("valid maize pixels:",
 M = new_map()
 ee_layer(M, planting.clip(aoi_run), {"min": ss, "max": se+3, "palette": ["440154","3b528b","21908d","5dc863","fde725"]},
          f"Planting dekad — {SEASON}")
-folium.LayerControl().add_to(M); M
+M   # geemap Layers panel (toggle + opacity) — no separate layer control needed
 """)
 
 md(r"""
@@ -145,7 +149,7 @@ cpi_img, yld = CPI.cpi(ee, Sw, Sh, Sv, ym=6.0)
 M = new_map()
 ee_layer(M, cpi_img.updateMask(mask).clip(aoi_run), {"min":0,"max":100,"palette":["a50026","fee08b","1a9850"]}, "CPI (GEE)")
 ee_layer(M, staged["wrsi_flo"].updateMask(mask).clip(aoi_run), {"min":40,"max":100,"palette":["a50026","fee08b","1a9850"]}, "WRSI @flowering (GEE)")
-folium.LayerControl().add_to(M); M
+M   # geemap Layers panel (toggle + opacity) — no separate layer control needed
 """)
 
 co(r"""
@@ -161,7 +165,7 @@ ee_layer(M, wet.updateMask(mask).clip(aoi_run), {"min":0,"max":1,"palette":["fff
 if SEASON != "Short rains":                                          # FCCI = peak fused greenness (green-up seasons)
     fcci = FZ.fused_condition(ee, g, mask, ss, se, lgp=lgp)
     ee_layer(M, fcci.clip(aoi_run), {"min":0,"max":100,"palette":["a50026","fee08b","1a9850"]}, "Canopy condition (fused 10-20 m)")
-folium.LayerControl().add_to(M); M
+M   # geemap Layers panel (toggle + opacity) — no separate layer control needed
 """)
 
 co(r"""
@@ -171,7 +175,7 @@ end_m = 5 if SEASON=='Long rains' else (9 if SEASON=='Meher' else 12)
 spi3 = SPI.spi3(ee, aoi_run, YEAR, end_month=end_m)
 M = new_map()
 ee_layer(M, spi3.updateMask(mask).clip(aoi_run), {"min":-2,"max":2,"palette":["a50026","fee08b","ffffff","abd9e9","4575b4"]}, "SPI-3 (drought −/+ wet)")
-folium.LayerControl().add_to(M); M
+M   # geemap Layers panel (toggle + opacity) — no separate layer control needed
 """)
 
 md(r"""
@@ -187,7 +191,7 @@ yield_tha = cpi_img.divide(100).multiply(YM).rename("yield_tha")
 PIXEL_HA  = 6.25                                # 250 m pixel
 M = new_map()
 ee_layer(M, yield_tha.updateMask(mask).clip(aoi_run), {"min":0,"max":6,"palette":["ffffcc","78c679","006837"]}, "Yield t/ha (GEE)")
-folium.LayerControl().add_to(M)
+display(M)   # geemap Layers panel (toggle + opacity) — no separate layer control needed
 
 # total production over the AOI
 tot = yield_tha.updateMask(mask).multiply(PIXEL_HA).reduceRegion(ee.Reducer.sum(), aoi_run, 250, maxPixels=int(1e13))

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate four clean, GEE-only Colab notebooks (no xclim), one per module:
   01_planting_window · 02_risk_monitoring · 03_cpi_yield · 04_flooding_waterlogging
-Each shares a compact setup (auth, Drive import of src/, folium map helper) and runs its module.
+Each shares a compact setup (auth, Drive import of src/, geemap GEE-native map helper) and runs its module.
 Run:  python build_module_colabs.py
 """
 import nbformat as nbf
@@ -14,25 +14,31 @@ def setup(title, blurb):
         md(f"# {title}\n{blurb}\n\n**Where to start:** put the `planting_pipeline` folder on your Google Drive, "
            "run the cells top-to-bottom, and approve the Drive-mount and Earth-Engine sign-in prompts."),
         md("## Setup"),
-        co("!pip -q install earthengine-api folium pandas geopandas 2>/dev/null\nprint('installed.')"),
+        co("!pip -q install earthengine-api geemap pandas geopandas 2>/dev/null\nprint('installed.')"),
         co('import ee\nPROJECT="ee-manzikye"\ntry:\n    ee.Initialize(project=PROJECT)\nexcept Exception:\n'
            '    ee.Authenticate(); ee.Initialize(project=PROJECT)\nprint("EE ready:", ee.String("ok").getInfo())'),
         co('from google.colab import drive; drive.mount("/content/drive")\nimport sys, os\n'
            'PIPE_DIR="/content/drive/MyDrive/planting_pipeline"   # adjust if needed\n'
            'assert os.path.isdir(PIPE_DIR), f"Upload planting_pipeline to Drive; not at {PIPE_DIR}"\n'
            'sys.path.insert(0, PIPE_DIR); os.chdir(PIPE_DIR)\nprint("pipeline on path:", PIPE_DIR)'),
-        co('# --- config + robust folium map (EE tile URLs; no geemap) ---\n'
+        co('# --- config + GEE-native map (geemap: built-in EE Layers panel, toggle + opacity) ---\n'
            'COUNTRY="Kenya"      # "Kenya" | "Ethiopia"\nSEASON ="Long rains" # "Long rains" | "Short rains" | "Meher"\n'
            'YEAR=2024\nS1_ORBIT="ASCENDING"   # S1B gone (2022) -> ASCENDING has coverage over Kenya\n'
            'from run import GAUL_NAME\nfrom src import zonal_aggregate as ZA\n'
            'aoi = ZA.gaul_admin(ee, [GAUL_NAME[COUNTRY]], level=0).geometry()\n'
            'aoi_run = ee.Geometry.Rectangle([34.4,-1.2,37.8,1.2])   # fast test box; use `aoi` for whole country\n'
-           'import folium\n'
-           'def ee_layer(fmap,image,vis,name):\n'
-           '    m=ee.Image(image).getMapId(vis)\n'
-           '    folium.TileLayer(m["tile_fetcher"].url_format,attr="Google Earth Engine",name=name,overlay=True,control=True).add_to(fmap)\n'
+           'import geemap\n'
+           'try:\n'
+           '    from google.colab import output; output.enable_custom_widget_manager()  # needed for interactive geemap in Colab\n'
+           'except Exception:\n'
+           '    pass\n'
            'def new_map(zoom=7):\n'
-           '    c=aoi_run.centroid(1).coordinates().getInfo(); return folium.Map(location=[c[1],c[0]],zoom_start=zoom,tiles="CartoDB positron")\n'
+           '    m = geemap.Map(add_google_map=False, basemap="SATELLITE")  # keyless Google tiles; native EE layer control\n'
+           '    m.centerObject(aoi_run, zoom)\n'
+           '    return m\n'
+           'def ee_layer(m, image, vis, name, shown=True, opacity=1.0):\n'
+           '    m.addLayer(ee.Image(image), vis, name, shown, opacity)  # appears in the Layers panel (toggle + opacity)\n'
+           '    return m\n'
            'print(f"{COUNTRY} · {SEASON} · {YEAR} · S1 {S1_ORBIT}")'),
     ]
 
@@ -69,7 +75,7 @@ NOTEBOOKS["01_planting_window"] = setup(
        "    ok=WR.dryspell_false_start(ee,aoi_run,planting,YEAR,dk_lo=ss,dk_hi=se+2); planting=planting.updateMask(ok)\n"
        "print('valid maize pixels:', planting.reduceRegion(ee.Reducer.count(),aoi_run,250,maxPixels=int(1e13)).get('planting_dekad').getInfo())"),
     co("M=new_map()\nee_layer(M, planting.clip(aoi_run), {'min':ss,'max':se+3,'palette':['440154','3b528b','21908d','5dc863','fde725']}, f'Planting dekad — {SEASON}')\n"
-       "folium.LayerControl().add_to(M); M"),
+       "M   # geemap renders its own GEE-native Layers panel (toggle + opacity slider) — no extra layer control needed"),
     md("*Higher dekad = later planting. Export with `ee.batch.Export.image.toDrive(...)`; see `run.py` for batch runs.*"),
 ]
 
@@ -96,7 +102,7 @@ NOTEBOOKS["02_risk_monitoring"] = setup(
        "ee_layer(M, failflo.updateMask(mask).clip(aoi_run), {'min':0,'max':1,'palette':['ffffff','a50026']}, 'Crop-failure @ flowering')\n"
        "ee_layer(M, spi3.updateMask(mask).clip(aoi_run), {'min':-2,'max':2,'palette':['a50026','fee08b','ffffff','abd9e9','4575b4']}, 'SPI-3 (drought/wet)')\n"
        "ee_layer(M, fcci.clip(aoi_run), {'min':0,'max':100,'palette':['a50026','fee08b','1a9850']}, 'Canopy condition (fused, FCCI)')\n"
-       "folium.LayerControl().add_to(M); M"),
+       "M   # geemap renders its own GEE-native Layers panel (toggle + opacity slider) — no extra layer control needed"),
     md("*WRSI < 50 = crop failure · SPI-3 ≤ −1 = drought · FCCI = 10–20 m cloud-proof canopy-vigour cross-check. Admin roll-up: `cpi_admin.py`, `spi_admin.py`, `fcci_admin.py`.*"),
 ]
 
@@ -119,7 +125,7 @@ NOTEBOOKS["03_cpi_yield"] = setup(
     co("M=new_map()\n"
        "ee_layer(M, cpi_img.updateMask(mask).clip(aoi_run), {'min':0,'max':100,'palette':['a50026','fee08b','1a9850']}, 'CPI (0-100)')\n"
        "ee_layer(M, yld.updateMask(mask).clip(aoi_run), {'min':0,'max':6,'palette':['ffffcc','78c679','006837']}, 'Yield (t/ha)')\n"
-       "folium.LayerControl().add_to(M); M"),
+       "M   # geemap renders its own GEE-native Layers panel (toggle + opacity slider) — no extra layer control needed"),
     md("*Ym is a **reference** potential — calibrate against observed yields (KALRO / HarvestStat). See `CPI_METHODOLOGY`, `YIELD_ESTIMATION_METHODOLOGY`.*"),
 ]
 
@@ -138,7 +144,7 @@ NOTEBOOKS["04_flooding_waterlogging"] = setup(
     co("M=new_map()\n"
        "ee_layer(M, wet.updateMask(mask).clip(aoi_run), {'min':0,'max':1,'palette':['ffffff','3690c0']}, 'SPI-3 very wet (excess, validated)')\n"
        "ee_layer(M, wl.updateMask(mask).clip(aoi_run), {'min':0,'max':40,'palette':['f7fbff','6baed6','08306b']}, 'Soil waterlogging (modelled, uncal.)')\n"
-       "folium.LayerControl().add_to(M); M"),
+       "M   # geemap renders its own GEE-native Layers panel (toggle + opacity slider) — no extra layer control needed"),
     md("*SPI-3 wet = **surface/seasonal** anomaly (validated); aeration = **root-zone** soil saturation (modelled, needs calibration) — "
        "two different hazards. See `WATERLOGGING_METHODOLOGY`.*"),
 ]
