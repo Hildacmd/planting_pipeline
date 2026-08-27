@@ -61,6 +61,72 @@ PLANTING_CORE = (
 )
 MED = "mz=kc['maize']; d_veg=mz['L_ini']+mz['L_dev']; d_flo=d_veg+mz['L_mid']; lgp=mz['LGP_dekads']"
 
+PLANTING_STATS = r'''# ============================================================
+#  Planting-window STATISTICS  (run after the map cell)
+#  distribution graph · calendar-agreement skill · per-admin table & ranked bar
+# ============================================================
+import numpy as np, pandas as pd, matplotlib.pyplot as plt
+PIXEL_HA = 6.25                                   # area of one 250 m pixel
+lab = utils.dekad_label                           # e.g. 9 -> "9\xb7Mar"
+
+# ---- 1. AOI-wide planting-dekad distribution (area per dekad) --------------
+hist = (planting.reduceRegion(ee.Reducer.frequencyHistogram(), aoi_run, 250,
+        maxPixels=int(1e13)).get('planting_dekad').getInfo() or {})
+H   = {int(round(float(k))): v for k, v in hist.items()}
+dks = list(range(min(H) if H else ss, (max(H) if H else se+3) + 1))
+cnt = np.array([H.get(d, 0) for d in dks], float)
+area = cnt * PIXEL_HA
+tot  = cnt.sum()
+def wq(q):                                        # area-weighted quantile dekad
+    c = np.cumsum(cnt); return int(np.array(dks)[np.searchsorted(c, tot*q)]) if tot else None
+mode_dk = int(dks[int(np.argmax(cnt))]) if tot else None
+mean_dk = float((cnt*np.array(dks)).sum()/tot) if tot else float('nan')
+
+print(f"── {COUNTRY} \xb7 {SEASON} {YEAR} \xb7 planting-window statistics ──")
+print(f"  maize area planted : {area.sum():,.0f} ha  ({int(tot):,} pixels)")
+if tot:
+    print(f"  modal dekad        : {lab(mode_dk)}")
+    print(f"  median (p50) / mean: {lab(wq(0.5))}  /  {mean_dk:.1f}")
+    print(f"  central 80% window : {lab(wq(0.1))}  →  {lab(wq(0.9))}   (spread {wq(0.9)-wq(0.1)} dekads)")
+    inwin = area[[ss <= d <= se for d in dks]].sum()
+    print(f"  SKILL — within FEWS/FAO calendar [{lab(ss)}–{lab(se)}]: {inwin/area.sum()*100:.0f}% of area")
+
+# ---- 2. distribution bar chart (green = in calendar window, amber = outside)
+fig, ax = plt.subplots(figsize=(8.4, 3.4))
+ax.bar([lab(d) for d in dks], area/1000,
+       color=['#3b7a57' if ss <= d <= se else '#c9a227' for d in dks])
+ax.set_ylabel('maize area (000 ha)'); ax.set_xlabel('planting dekad')
+ax.set_title(f'Planting-window distribution — {COUNTRY} {SEASON} {YEAR}')
+ax.tick_params(axis='x', rotation=45)
+for t in ax.get_xticklabels(): t.set_ha('right')
+plt.tight_layout(); plt.show()
+
+# ---- 3. per-admin planting window (GAUL level-1) --------------------------
+admin = ZA.gaul_admin(ee, [GAUL_NAME[COUNTRY]], level=1).filterBounds(aoi_run)
+feats = ZA.zonal_planting_stats(ee, planting, admin, scale=250).getInfo()['features']
+rows = []
+for f in feats:
+    p = f['properties']; n = p.get('pd_count') or 0
+    if n < 20: continue                           # drop near-empty units
+    g = lambda k: lab(p[k]) if p.get(k) is not None else '—'
+    rows.append(dict(Admin=p.get('ADM1_NAME','?'), _med=p.get('pd_p50'),
+                     Modal=g('pd_mode'), Median=g('pd_p50'),
+                     Early_p10=g('pd_p10'), Late_p90=g('pd_p90'),
+                     Area_ha=round(n*PIXEL_HA)))
+df = pd.DataFrame(rows).sort_values('_med').reset_index(drop=True)
+display(df.drop(columns='_med'))
+
+# ranked bar: median planting dekad by admin (earliest at top)
+if len(df):
+    fig, ax = plt.subplots(figsize=(7.5, max(2.4, 0.34*len(df))))
+    ax.barh(df['Admin'], df['_med'], color='#3b528b'); ax.invert_yaxis()
+    ax.set_xlabel('median planting dekad')
+    for y, m in enumerate(df['_med']):
+        if m is not None: ax.text(m, y, ' '+lab(int(m)), va='center', fontsize=8)
+    ax.set_title(f'Median planting dekad by admin — {COUNTRY} {SEASON}')
+    plt.tight_layout(); plt.show()
+'''
+
 NOTEBOOKS = {}
 
 # ---------- 01 · Planting window ----------
@@ -76,6 +142,9 @@ NOTEBOOKS["01_planting_window"] = setup(
        "print('valid maize pixels:', planting.reduceRegion(ee.Reducer.count(),aoi_run,250,maxPixels=int(1e13)).get('planting_dekad').getInfo())"),
     co("M=new_map()\nee_layer(M, planting.clip(aoi_run), {'min':ss,'max':se+3,'palette':['440154','3b528b','21908d','5dc863','fde725']}, f'Planting dekad — {SEASON}')\n"
        "M   # geemap renders its own GEE-native Layers panel (toggle + opacity slider) — no extra layer control needed"),
+    md("## Planting-window statistics\nDistribution of the estimated planting dekad over maize area, an agreement "
+       "(**skill**) score against the FEWS/FAO calendar window, and a per-admin table + ranked bar."),
+    co(PLANTING_STATS),
     md("*Higher dekad = later planting. Export with `ee.batch.Export.image.toDrive(...)`; see `run.py` for batch runs.*"),
 ]
 
