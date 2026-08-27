@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate the Google Colab notebook for the three modules (planting / risk / yield) with an
-xclim climate-index track. Run: python build_colab.py  ->  planting_pipeline_colab.ipynb"""
+GEE-only. Run: python build_colab.py  ->  planting_pipeline_colab.ipynb"""
 import nbformat as nbf
 
 nb = nbf.v4.new_notebook()
@@ -10,27 +10,26 @@ def md(s): cells.append(nbf.v4.new_markdown_cell(s.strip("\n")))
 def co(s): cells.append(nbf.v4.new_code_cell(s.strip("\n")))
 
 md(r"""
-# Crop-Specific Maize Monitoring — Colab (GEE × xclim)
+# Crop-Specific Maize Monitoring — Colab (Google Earth Engine)
 **Three modules:** ① Planting window · ② Risk maps · ③ Yield forecast — for the Greater Horn of Africa.
 
 **Architecture (hybrid).** Google Earth Engine is the **spatial engine** (Sentinel-2/1 phenology,
-SoilGrids, 250 m aggregation). **xclim** computes the **climate indices** (GDD, SPI-3, dry spells, heat)
-from ERA5 + CHIRPS pulled into `xarray` at native climate resolution (~5–28 km). xclim is a *computation*
-library (CF-compliant, tested) — the data comes from **public cloud** (ARCO-ERA5 zarr, no key) and GEE.
+SoilGrids, 250 m aggregation), all in the Earth Engine Python API. Each module reuses your existing `src/` code.
+For separate, single-purpose notebooks see `01_planting_window` / `02_risk_monitoring` / `03_cpi_yield` / `04_flooding_waterlogging`.
 
 ### Where to start
 1. **Put the `planting_pipeline` folder on your Google Drive** (so this notebook can `import src`).
 2. Run the cells **top to bottom**. Section 0 authenticates GEE and mounts Drive.
 3. Set your **AOI / season / year** in the config cell, then run each module.
 
-> The GEE cells reuse your existing `src/` code. The xclim cells are self-contained.
+> All cells reuse your existing `src/` code from Drive.
 """)
 
 md("## Section 0 — Setup")
 
 co(r"""
 # 0.1  Install dependencies (Colab). ~2-3 min the first time.
-!pip -q install earthengine-api geemap xee xclim xarray zarr gcsfs netCDF4 pandas geopandas 2>/dev/null
+!pip -q install earthengine-api folium pandas geopandas 2>/dev/null
 print("installed.")
 """)
 
@@ -128,10 +127,9 @@ folium.LayerControl().add_to(M); M
 """)
 
 md(r"""
-## Section 2 — Risk-maps module  *(GEE spatial × xclim climate indices)*
-GEE builds the spatial risk layers (WRSI / crop-failure / CPI / excess). **xclim** independently
-computes the climate indices (GDD, SPI-3, dry spells) from public-cloud ERA5 + CHIRPS — a tested
-cross-check on the hand-rolled GEE versions.
+## Section 2 — Risk-maps module  *(GEE)*
+GEE builds the spatial risk layers — staged **WRSI / WSI / crop-failure**, **CPI**, the
+**excess / waterlogging** metrics, **fused canopy condition (FCCI)**, and **SPI-3** drought — masked to maize.
 """)
 
 co(r"""
@@ -167,45 +165,13 @@ folium.LayerControl().add_to(M); M
 """)
 
 co(r"""
-# 2.2  xclim climate track A — GDD from public-cloud ERA5 (ARCO-ERA5 zarr on GCS, no API key)
-#      NOTE: ARCO-ERA5 is ERA5 (~0.25 deg / 28 km), coarser than ERA5-Land (~9 km) — fine for a climate index.
-import xarray as xr, numpy as np, xclim
-from xclim.indicators.atmos import growing_degree_days
-
-ARCO = "gs://gcp-public-data-arco-era5/ar/1959-2022-full_37-1h-0p25deg-chunk-1.zarr-v2"
-bb = aoi_run.bounds().coordinates().get(0).getInfo()          # AOI bounds -> lat/lon slice
-lons = [p[0] for p in bb]; lats = [p[1] for p in bb]
-lo0, lo1, la0, la1 = min(lons), max(lons), min(lats), max(lats)
-
-ds = xr.open_zarr(ARCO, chunks={"time": 48}, storage_options={"token": "anon"})
-t2m = (ds["2m_temperature"]
-       .sel(time=slice(f"{YEAR}-01-01", f"{YEAR}-12-31"))
-       .sel(latitude=slice(la1, la0), longitude=slice(lo0 % 360, lo1 % 360)))   # ERA5 lat descending, lon 0-360
-tas = (t2m.resample(time="1D").mean() - 273.15)               # daily mean, K -> degC
-tas.attrs["units"] = "degC"; tas = tas.rename("tas")
-gdd = growing_degree_days(tas=tas, thresh="10 degC", freq="YS").compute()       # xclim GDD (base 10 C)
-print("xclim GDD (base 10C), area mean for", YEAR, ":", float(gdd.mean().values), "degree-days")
-gdd.mean(dim="time").plot(cmap="YlOrRd"); import matplotlib.pyplot as plt; plt.title("xclim GDD — ERA5"); plt.show()
-""")
-
-co(r"""
-# 2.3  xclim climate track B — SPI-3 and max consecutive dry days from CHIRPS (pulled from GEE via xee)
-import xee
-from xclim.indices import standardized_precipitation_index, maximum_consecutive_dry_days
-chirps_ic = (ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY")
-             .filterDate(f"{YEAR-2}-01-01", f"{YEAR}-12-31").filterBounds(aoi_run).select("precipitation"))
-dsp = xr.open_dataset(chirps_ic, engine="ee", geometry=aoi_run, scale=0.05)      # ~5.5 km CHIRPS -> xarray
-pr = dsp["precipitation"].transpose("time", "lat", "lon")
-pr.attrs["units"] = "mm/d"; pr = pr.rename("pr")
-
-# max consecutive dry days (daily; per month)
-mcdd = maximum_consecutive_dry_days(pr, thresh="1 mm/day", freq="MS").compute()
-# SPI-3 (3-month window) vs the record's own calibration
-pr_mon = pr.resample(time="MS").sum(); pr_mon.attrs["units"] = "mm"
-spi3 = standardized_precipitation_index(pr_mon, freq="MS", window=3, dist="gamma", method="APP").compute()
-print("xclim SPI-3 last month, area mean:", float(spi3.isel(time=-1).mean().values))
-spi3.isel(time=-1).plot(cmap="BrBG", vmin=-2, vmax=2); import matplotlib.pyplot as plt; plt.title("xclim SPI-3 (CHIRPS)"); plt.show()
-# (compare to the pipeline's pure-GEE SPI-3 in src/spi.py — same definition, different engine)
+# 2.2  SPI-3 meteorological drought (pure GEE, src/spi.py) — the drought layer
+from src import spi as SPI
+end_m = 5 if SEASON=='Long rains' else (9 if SEASON=='Meher' else 12)
+spi3 = SPI.spi3(ee, aoi_run, YEAR, end_month=end_m)
+M = new_map()
+ee_layer(M, spi3.updateMask(mask).clip(aoi_run), {"min":-2,"max":2,"palette":["a50026","fee08b","ffffff","abd9e9","4575b4"]}, "SPI-3 (drought −/+ wet)")
+folium.LayerControl().add_to(M); M
 """)
 
 md(r"""
@@ -231,10 +197,10 @@ M
 
 md(r"""
 ## Section 4 — Notes, caveats, next steps
-- **xclim vs GEE indices:** SPI-3 and GDD here (xclim, native ERA5/CHIRPS) are a *cross-check* on the
+- **Indices:** SPI-3, GDD, WRSI are computed pure-GEE (`src/spi.py`, `src/gdd_clock.py`, `src/wrsi_waterbalance.py`); this line is
   pipeline's pure-GEE versions (`src/spi.py`, `src/gdd_clock.py`). They use the same definitions but a
   different engine/resolution — expect close, not identical, values.
-- **Resolution:** ARCO-ERA5 is ~28 km (vs ERA5-Land ~9 km); CHIRPS ~5.5 km. Fine for climate indices,
+- **Resolution:** CHIRPS ~5.5 km and ERA5-Land ~9-11 km climate content on the 250 m grid — admin-scale,
   coarse for the 250 m grid — the GEE spatial layers stay authoritative for mapping.
 - **Excess / waterlogging:** the aeration model (`src/excess.py`) is soil-water-based and *uncalibrated*;
   cross-check with the SPI-3-wet anomaly. See `WATERLOGGING_METHODOLOGY`.
