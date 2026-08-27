@@ -106,7 +106,7 @@
     </div>
     <div class="statgrid" style="margin-top:1.1rem">
       <div><div class="statlab">Compare across seasons (national)</div><svg id="seasonChart" role="img" aria-label="season comparison"></svg></div>
-      <div><div class="statlab">ASAP class breakdown</div><svg id="donutChart" role="img" aria-label="ASAP class donut"></svg></div>
+      <div><div class="statlab" id="donutLab">ASAP class breakdown</div><svg id="donutChart" role="img" aria-label="class / band donut"></svg></div>
     </div>
   </div>
 
@@ -127,16 +127,18 @@ function rangeFor(a){const A=LAYERS[a];if(!A.dek)return[A.min,A.max];let lo=99,h
 // ASAP crop-failure classes from fail% (share of maize area in WRSI failure)
 const ASAP=[{k:'None',min:0,c:'--none'},{k:'Watch',min:25,c:'--watch'},{k:'Alert',min:50,c:'--alert'},{k:'Critical',min:75,c:'--crit'}];
 function asapClass(f){if(f==null||isNaN(f))return -1;let idx=0;for(let i=0;i<ASAP.length;i++)if(f>=ASAP[i].min)idx=i;return idx;}
+const PERFB=[{k:'Poor',c:'#a50026'},{k:'Moderate',c:'#f46d43'},{k:'Good',c:'#a6d96a'},{k:'Excellent',c:'#1a9850'}];
+function perfBand(v,cut){if(v==null||isNaN(v))return -1;return v<cut[0]?0:v<cut[1]?1:v<cut[2]?2:3;}
 
 const LAYERS={
   fail:{label:'Crop-failure risk (ASAP)',cat:true,unit:'crop-failure',note:'% of maize area in whole-season WRSI crop-failure (<50)'},
   failflo:{label:'Crop-failure @ flowering (ASAP)',cat:true,unit:'flowering-stage failure',note:'% of maize area with running WRSI < 50 at flowering — the critical stage'},
   spidry:{label:'Drought risk — SPI-3 (ASAP)',cat:true,unit:'SPI-3 drought',note:'% of maize area in SPI-3 drought (≤ −1)'},
   spi:{label:'Mean SPI-3 (rainfall anomaly)',min:-2,max:2,stops:['#a50026','#f46d43','#fee08b','#ffffff','#abd9e9','#4575b4'],fmt:v=>(v>=0?'+':'')+v.toFixed(2),note:'3-month standardized precipitation index vs 1981–2020 (− dry / + wet)'},
-  cpi:{label:'Crop Performance Index',min:0,max:100,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0),note:'multi-stress relative yield 0–100 = (1−water)(1−heat)(1−veg), stage-weighted'},
-  fcci:{label:'Canopy condition (fused, 10–20 m)',min:0,max:100,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0),note:'peak fused greenness (NDRE+FPAR+SAR) 0–100, within-season & cloud-proof — a vegetation cross-check on WRSI (higher = more vigorous canopy)'},
-  yld:{label:'Estimated yield (t/ha)',min:0,max:5,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(1)+' t/ha',note:'CPI × reference potential (Ym≈4.5 t/ha) — calibrate to observed yields'},
-  wrsi:{label:'Water satisfaction (WRSI)',min:40,max:100,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0),note:'FAO-56 WRSI (≥80 good, <50 failure)'},
+  cpi:{label:'Crop Performance Index',perf:[40,60,80],min:0,max:100,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0),note:'multi-stress relative yield 0–100 = (1−water)(1−heat)(1−veg), stage-weighted'},
+  fcci:{label:'Canopy condition (fused, 10–20 m)',perf:[40,60,80],min:0,max:100,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0),note:'peak fused greenness (NDRE+FPAR+SAR) 0–100, within-season & cloud-proof — a vegetation cross-check on WRSI (higher = more vigorous canopy)'},
+  yld:{label:'Estimated yield (t/ha)',perf:[2,3,4],min:0,max:5,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(1)+' t/ha',note:'CPI × reference potential (Ym≈4.5 t/ha) — calibrate to observed yields'},
+  wrsi:{label:'Water satisfaction (WRSI)',perf:[50,65,80],min:40,max:100,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0),note:'FAO-56 WRSI (≥80 good, <50 failure)'},
   def:{label:'Water deficit (mm)',min:0,max:200,stops:['#ffffcc','#fd8d3c','#800026'],fmt:v=>v.toFixed(0)+' mm',note:'season cumulative water deficit'},
   caf:{label:'Crop area fraction',min:0,max:0.3,stops:['#f7fcf5','#a1d99b','#238b45','#00441b'],fmt:v=>(v*100).toFixed(1)+'%',note:'share of unit that is maize (ASAP denominator)'},
   viab:{label:'Planting viability % (LVPD)',min:0,max:100,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0)+'%',note:'% of maize area passing the LVPD gate (early-variety WRSI ≥ 50); low = too-late/too-dry'},
@@ -239,15 +241,21 @@ function drawSeason(){
   el.setAttribute('viewBox',`0 0 ${W} ${H}`);el.innerHTML=rows.length?s:`<text x="8" y="20" font-size="11" fill="${cssv('--ink-soft')}">this layer isn't in the other seasons</text>`;
 }
 function drawDonut(){
-  const el=document.getElementById('donutChart');
-  if(!LAYERS[attr].cat){el.setAttribute('viewBox','0 0 300 66');el.innerHTML=`<text x="6" y="24" font-size="11" fill="${cssv('--ink-soft')}">ASAP classes apply to the categorical</text><text x="6" y="42" font-size="11" fill="${cssv('--ink-soft')}">risk layers (crop-failure, drought, waterlogging…).</text>`;return;}
-  const units=prod.levels[level].units,counts=[0,0,0,0];let nd=0;
-  for(const u of units){const c=asapClass(u.a[attr]);if(c<0)nd++;else counts[c]++;}
-  const tot=counts.reduce((a,b)=>a+b,0),W=300,H=180,cx=88,cy=92,r=58,sw=24;let ang=-Math.PI/2,s='';
-  if(tot)counts.forEach((c,i)=>{if(!c)return;let a1=ang+c/tot*2*Math.PI;s+=`<path d="${arc(cx,cy,r,ang,c===tot?a1-1e-3:a1)}" fill="none" stroke="${cssv(ASAP[i].c)}" stroke-width="${sw}"/>`;ang=a1;});
+  const el=document.getElementById('donutChart'),A=LAYERS[attr],lab=document.getElementById('donutLab');
+  let bands,cls,cap='';
+  if(lab)lab.textContent=A.perf?'Performance band breakdown':'ASAP class breakdown';
+  if(A.cat){bands=ASAP.map(x=>({k:x.k,c:cssv(x.c)}));cls=asapClass;}
+  else if(A.perf){bands=PERFB;cls=v=>perfBand(v,A.perf);
+    const c=A.perf;cap=`bands · &lt;${c[0]} · ${c[0]}–${c[1]} · ${c[1]}–${c[2]} · ≥${c[2]}`;}
+  else{el.setAttribute('viewBox','0 0 300 66');el.innerHTML=`<text x="6" y="24" font-size="11" fill="${cssv('--ink-soft')}">Severity bands apply to categorical risk layers</text><text x="6" y="42" font-size="11" fill="${cssv('--ink-soft')}">and performance layers (CPI, yield, WRSI, FCCI).</text>`;return;}
+  const units=prod.levels[level].units,counts=bands.map(()=>0);let nd=0;
+  for(const u of units){const c=cls(u.a[attr]);if(c<0)nd++;else counts[c]++;}
+  const tot=counts.reduce((a,b)=>a+b,0),W=300,H=180,cx=88,cy=88,r=58,sw=24;let ang=-Math.PI/2,s='';
+  if(tot)counts.forEach((c,i)=>{if(!c)return;let a1=ang+c/tot*2*Math.PI;s+=`<path d="${arc(cx,cy,r,ang,c===tot?a1-1e-3:a1)}" fill="none" stroke="${bands[i].c}" stroke-width="${sw}"/>`;ang=a1;});
   s+=`<text x="${cx}" y="${cy-1}" text-anchor="middle" font-size="21" font-weight="600">${tot}</text><text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="9" fill="${cssv('--ink-soft')}">units</text>`;
-  ASAP.forEach((c,i)=>{const y=34+i*22;s+=`<rect x="176" y="${y}" width="12" height="12" rx="2" fill="${cssv(c.c)}"/><text x="194" y="${y+11}" font-size="11">${c.k} — ${counts[i]}</text>`;});
-  if(nd)s+=`<text x="176" y="${34+4*22+10}" font-size="10" fill="${cssv('--ink-soft')}">no signal — ${nd}</text>`;
+  bands.forEach((c,i)=>{const y=30+i*22;s+=`<rect x="176" y="${y}" width="12" height="12" rx="2" fill="${c.c}"/><text x="194" y="${y+11}" font-size="11">${c.k} — ${counts[i]}</text>`;});
+  if(nd)s+=`<text x="176" y="${30+bands.length*22+10}" font-size="10" fill="${cssv('--ink-soft')}">no signal — ${nd}</text>`;
+  if(cap)s+=`<text x="8" y="172" font-size="9.5" fill="${cssv('--ink-soft')}">${cap}</text>`;
   el.setAttribute('viewBox',`0 0 ${W} ${H}`);el.innerHTML=s;
 }
 function drawHist(vals){
