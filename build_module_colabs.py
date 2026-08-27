@@ -104,27 +104,96 @@ plt.tight_layout(); plt.show()
 # ---- 3. per-admin planting window (GAUL level-1) --------------------------
 admin = ZA.gaul_admin(ee, [GAUL_NAME[COUNTRY]], level=1).filterBounds(aoi_run)
 feats = ZA.zonal_planting_stats(ee, planting, admin, scale=250).getInfo()['features']
+def _key(props, suffix):                          # reduceRegions may or may not prefix with the band name 'pd'
+    return next((k for k in props if k == suffix or k.endswith('_'+suffix)), None)
 rows = []
-for f in feats:
-    p = f['properties']; n = p.get('pd_count') or 0
-    if n < 20: continue                           # drop near-empty units
-    g = lambda k: lab(p[k]) if p.get(k) is not None else '—'
-    rows.append(dict(Admin=p.get('ADM1_NAME','?'), _med=p.get('pd_p50'),
-                     Modal=g('pd_mode'), Median=g('pd_p50'),
-                     Early_p10=g('pd_p10'), Late_p90=g('pd_p90'),
-                     Area_ha=round(n*PIXEL_HA)))
-df = pd.DataFrame(rows).sort_values('_med').reset_index(drop=True)
-display(df.drop(columns='_med'))
+if feats:
+    pk = feats[0]['properties']
+    kC, kMo, k10, k50, k90 = (_key(pk,'count'), _key(pk,'mode'), _key(pk,'p10'), _key(pk,'p50'), _key(pk,'p90'))
+    for f in feats:
+        p = f['properties']; n = (p.get(kC) or 0) if kC else 0
+        if n < 20: continue                       # drop near-empty units
+        gg = lambda k: lab(p[k]) if (k and p.get(k) is not None) else '—'
+        rows.append(dict(Admin=p.get('ADM1_NAME','?'), _med=(p.get(k50) if k50 else None),
+                         Modal=gg(kMo), Median=gg(k50), Early_p10=gg(k10), Late_p90=gg(k90),
+                         Area_ha=round(n*PIXEL_HA)))
+if not rows:
+    print('  (no admin unit has >=20 maize pixels in aoi_run — set aoi_run = aoi in the config cell for the whole country)')
+else:
+    df = pd.DataFrame(rows).sort_values('_med', na_position='last').reset_index(drop=True)
+    display(df.drop(columns='_med'))
+    d2 = df.dropna(subset=['_med'])
+    if len(d2):
+        fig, ax = plt.subplots(figsize=(7.5, max(2.4, 0.34*len(d2))))
+        ax.barh(d2['Admin'], d2['_med'], color='#3b528b'); ax.invert_yaxis()
+        ax.set_xlabel('median planting dekad')
+        for y, m in zip(range(len(d2)), d2['_med']):
+            ax.text(m, y, ' '+lab(int(m)), va='center', fontsize=8)
+        ax.set_title(f'Median planting dekad by admin — {COUNTRY} {SEASON}')
+        plt.tight_layout(); plt.show()
+'''
 
-# ranked bar: median planting dekad by admin (earliest at top)
-if len(df):
-    fig, ax = plt.subplots(figsize=(7.5, max(2.4, 0.34*len(df))))
-    ax.barh(df['Admin'], df['_med'], color='#3b528b'); ax.invert_yaxis()
-    ax.set_xlabel('median planting dekad')
-    for y, m in enumerate(df['_med']):
-        if m is not None: ax.text(m, y, ' '+lab(int(m)), va='center', fontsize=8)
-    ax.set_title(f'Median planting dekad by admin — {COUNTRY} {SEASON}')
+PLANTING_VALIDATION = r'''# ============================================================
+#  Farmer validation — 2024 MAM (Kenya long rains) planting dates
+#  estimated vs observed farmer planting per county; bias / MAE / hit-rate
+#  prefers a LIVE check of the estimate you just computed; falls back to the shipped CSV
+# ============================================================
+import os, numpy as np, pandas as pd, matplotlib.pyplot as plt
+VAL_CSV = 'planting_validation_MAM_2024.csv'      # ships in the pipeline folder (on Drive)
+if not (COUNTRY == 'Kenya' and 'ong' in SEASON):
+    print('Farmer validation is for Kenya \xb7 Long rains (2024 MAM) only — skipping for', COUNTRY, SEASON)
+elif not os.path.exists(VAL_CSV):
+    print('Validation CSV not found at', os.path.abspath(VAL_CSV), '— upload it with the pipeline folder.')
+else:
+    obs = pd.read_csv(VAL_CSV)
+    obs['County'] = obs['County'].astype(str).str.upper().str.strip()
+
+    # LIVE: median estimated dekad per county from the planting image you just computed
+    def _key(props, suffix): return next((k for k in props if k == suffix or k.endswith('_'+suffix)), None)
+    adm = ZA.gaul_admin(ee, ['Kenya'], level=1).filterBounds(aoi_run)
+    fe  = ZA.zonal_planting_stats(ee, planting, adm, scale=250).getInfo()['features']
+    est = []
+    if fe:
+        kC, k50 = _key(fe[0]['properties'],'count'), _key(fe[0]['properties'],'p50')
+        for f in fe:
+            p = f['properties']; n = (p.get(kC) or 0) if kC else 0
+            if n >= 20 and k50 and p.get(k50) is not None:
+                est.append((str(p.get('ADM1_NAME','')).upper().strip(), float(p[k50])))
+    est = pd.DataFrame(est, columns=['County','est_dk'])
+    m = obs.merge(est, on='County', how='inner')
+    if len(m) >= 5:
+        src = f'LIVE — this run, {len(m)} counties in aoi_run'
+    else:                                          # test box: too few counties -> use the shipped estimate
+        m = obs.assign(est_dk=obs['modal_dekad']); src = f'shipped CSV estimate, {len(m)} counties'
+    m = m.dropna(subset=['obs_dk','est_dk'])
+    err = m['est_dk'] - m['obs_dk']                # estimated − observed (dekads)
+    bias, mae, within2 = err.mean(), err.abs().mean(), (err.abs() <= 2).mean()*100
+    hit = m['hit_rate'].mean()*100 if 'hit_rate' in m else float('nan')
+    print(f"── Kenya \xb7 MAM 2024 farmer validation ({src}) ──")
+    print(f"  bias (est−obs) : {bias:+.2f} dekads    MAE : {mae:.2f} dekads")
+    print(f"  counties within \xb12 dekads : {within2:.0f}%    mean pixel hit-rate : {hit:.0f}%")
+
+    # scatter: observed vs estimated, 1:1 line + ±2 dekad band
+    lo = int(min(m['obs_dk'].min(), m['est_dk'].min())) - 1
+    hi = int(max(m['obs_dk'].max(), m['est_dk'].max())) + 1
+    fig, ax = plt.subplots(figsize=(4.7, 4.7))
+    ax.fill_between([lo,hi], [lo-2,hi-2], [lo+2,hi+2], color='#3b7a57', alpha=0.12, label='\xb12 dekads')
+    ax.plot([lo,hi], [lo,hi], 'k--', lw=1, label='1:1')
+    ax.scatter(m['obs_dk'], m['est_dk'], s=30, color='#a50026', edgecolor='w', zorder=3)
+    ax.set_xlim(lo,hi); ax.set_ylim(lo,hi); ax.set_aspect('equal')
+    ax.set_xlabel('observed farmer planting (dekad)'); ax.set_ylabel('estimated planting (dekad)')
+    ax.set_title('MAM 2024 · estimate vs farmers'); ax.legend(fontsize=8, loc='upper left')
+    for _, r in m.iterrows():
+        ax.annotate(r['County'].title(), (r['obs_dk'], r['est_dk']), fontsize=6, alpha=0.6,
+                    xytext=(2,2), textcoords='offset points')
     plt.tight_layout(); plt.show()
+
+    # worst-agreement counties
+    worst = m.assign(err=err).reindex(err.abs().sort_values(ascending=False).index).head(8)
+    cols = [c for c in ['County','obs_dk','est_dk','err','hit_rate'] if c in worst.columns]
+    tbl = worst[cols].copy()
+    tbl.columns = ['County','Observed dk','Estimated dk','Error (est−obs)'] + (['Hit-rate'] if 'hit_rate' in cols else [])
+    display(tbl.reset_index(drop=True))
 '''
 
 NOTEBOOKS = {}
@@ -145,6 +214,10 @@ NOTEBOOKS["01_planting_window"] = setup(
     md("## Planting-window statistics\nDistribution of the estimated planting dekad over maize area, an agreement "
        "(**skill**) score against the FEWS/FAO calendar window, and a per-admin table + ranked bar."),
     co(PLANTING_STATS),
+    md("## Farmer validation — 2024 MAM\nCompares the estimated planting dekad with **farmer-reported** planting per Kenyan county "
+       "(bias, MAE, ±2-dekad hit-rate). Runs only for **Kenya · Long rains**; uses your live estimate where "
+       "`aoi_run` covers enough counties, otherwise the shipped validation CSV."),
+    co(PLANTING_VALIDATION),
     md("*Higher dekad = later planting. Export with `ee.batch.Export.image.toDrive(...)`; see `run.py` for batch runs.*"),
 ]
 
