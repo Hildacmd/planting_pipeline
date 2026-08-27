@@ -226,23 +226,34 @@ else:
     with open('planting_ward_MAM_2024.json','w') as f: json.dump(nested, f, indent=1)
     print(f"  wrote planting_ward_MAM_2024.json ({len(nested)} counties, {len(w)} wards)")
 
-    # ---- drill-down: pick a county -> observed vs estimated per ward --------
-    COUNTY_PICK = 'BUNGOMA'                                # <-- change to any county
-    sub = w[w['County'] == COUNTY_PICK.upper().strip()].sort_values('obs_dk')
-    if not len(sub):
-        print('No wards for', COUNTY_PICK, '· try one of:', ', '.join(sorted(w['County'].unique())))
-    else:
+    # ---- interactive drill-down: choose a county from the dropdown ---------
+    def draw_county(county):
+        sub = w[w['County'] == county].sort_values('obs_dk')
+        if not len(sub):
+            print('No wards for', county); return
         x = np.arange(len(sub)); bwid = 0.4
         fig, ax = plt.subplots(figsize=(max(6, 0.42*len(sub)), 4))
         ax.bar(x-bwid/2, sub['obs_dk'],      bwid, label='observed (farmers)', color='#3b7a57')
         ax.bar(x+bwid/2, sub['modal_dekad'], bwid, label='estimated',          color='#a50026')
         ax.set_xticks(x); ax.set_xticklabels(sub['Ward'].str.title(), rotation=60, ha='right', fontsize=7)
         ax.set_ylabel('planting dekad'); ax.legend(fontsize=8)
-        ax.set_title(f'{COUNTY_PICK.title()} — planting dekad by ward (2024 MAM)')
+        fwc = sub['Farmers (n)'].fillna(0)
+        b = (sub['err']*fwc).sum()/max(fwc.sum(),1)
+        ax.set_title(f"{county.title()} — planting by ward (2024 MAM) · bias {b:+.1f} dk · {len(sub)} wards")
         plt.tight_layout(); plt.show()
         show = sub[['Ward','obs_dk','modal_dekad','err','Farmers (n)']].rename(
             columns={'obs_dk':'Observed','modal_dekad':'Estimated','err':'Error (est−obs)','Farmers (n)':'Farmers'})
         display(show.reset_index(drop=True))
+    opts = [(c.title(), c) for c in sorted(w['County'].unique())]
+    try:
+        import ipywidgets as widgets
+        try:
+            from google.colab import output as _o; _o.enable_custom_widget_manager()   # Colab: enable interactive widgets
+        except Exception: pass
+        widgets.interact(draw_county, county=widgets.Dropdown(options=opts, value='BUNGOMA', description='County:'))
+    except Exception as e:                                  # no ipywidgets -> static fallback
+        print('(interactive dropdown unavailable:', e, ') — showing BUNGOMA; call draw_county("KISUMU") to change')
+        draw_county('BUNGOMA')
 '''
 
 NOTEBOOKS = {}
