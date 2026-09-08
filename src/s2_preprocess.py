@@ -23,7 +23,8 @@ def build_s2_dekadal(ee, aoi, year, dekads=range(1,37), cs_thresh=0.60):
 
     s2 = (ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
             .filterBounds(aoi)
-            .filterDate(f"{year}-01-01", f"{year+1}-01-05"))
+            .filterDate(f"{year}-01-01",
+                        dekad_to_start_date(year, max(dekads) + 2).isoformat()))   # covers dekads >36
     csp = ee.ImageCollection("GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED")
     s2 = s2.linkCollection(csp, ["cs_cdf"])
 

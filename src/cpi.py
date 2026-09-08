@@ -13,7 +13,47 @@ KY = {"veg": 0.4, "flo": 1.5, "grf": 0.5}   # FAO-33 stage yield-response factor
 HEAT_TCAP = 33.0                            # °C: dekad-mean Tmax above which maize flowering is hurt
 HEAT_K = 0.06                               # yield loss per heat-degree-dekad at flowering (capped)
 VEG_W = 0.4                                 # vegetation-condition weight (VCI is a confirmation)
-YM_THA = 4.5                                # reference water-unlimited yield, short-duration maize (t/ha)
+YM_THA = 4.5                                # legacy uncalibrated default, short-duration maize (t/ha)
+
+# HarvestStat-calibrated attainable ceiling Ym per (country, season). Least-squares fit on 70% of
+# admin-1 units and validated on the held-out 30% against HarvestStat Africa v1.2 maize yield (2024):
+#   Kenya Long rains   Ym 2.6  (held-out MAE 0.58 t/ha, bias +0.02, r 0.64)
+#   Kenya Short rains  Ym 2.1  (held-out MAE 0.93; level only, no ranking skill r~0)
+#   Ethiopia Meher     Ym 4.6  (held-out MAE 0.11, bias +0.10; small n, model 2024 vs obs 2021)
+# Country/seasons not listed fall back to the uncalibrated defaults below.
+YM_CAL = {                              # calibrate_ym_all.py, HarvestStat FEWS-unit fit (70/30):
+    ("Kenya", "Long rains"):  2.59,     #   n=42, test-MAE 0.55
+    ("Kenya", "Short rains"): 2.02,     #   n=40, test-MAE 0.63 (level only, r~0; clean-named asset)
+    ("Ethiopia", "Meher"):    4.42,     #   n=8 (2021), test-MAE 0.41
+}
+YM_MAIN_DEFAULT = 6.0                        # uncalibrated fallback, medium/long maize (t/ha)
+YM_SHORT_DEFAULT = 4.5                       # uncalibrated fallback, short-duration maize (t/ha)
+
+def ym_for(country, season):
+    """Calibrated attainable yield ceiling (t/ha) for a (country, season); falls back to the
+    uncalibrated season default where no HarvestStat calibration exists yet."""
+    if (country, season) in YM_CAL:
+        return YM_CAL[(country, season)]
+    return YM_SHORT_DEFAULT if "short" in str(season).lower() else YM_MAIN_DEFAULT
+
+
+# AEZ-aware ceiling: cool highland maize has a HIGHER attainable Ym than lowland/midland (its yield
+# edge is potential, not water). Kenya Long rains, HarvestStat 70/30 A/B: a per-zone Ym (highland
+# 3.7 / rest 2.3 t/ha) beats a single Ym — held-out MAE 0.57 -> 0.47 — whereas a zone-aware growing
+# period (180 d highland) made it WORSE (0.57 -> 0.66). So the highland lever is Ym, not the season.
+YM_HIGHLAND = {("Kenya", "Long rains"): (3.2, 2.1)}   # (highland >= 1800 m, rest); FEWS-unit fit, MAE 0.40
+HIGHLAND_ELEV_M = 1800
+
+def ym_img_for(ee, aoi, country, season, dem="USGS/SRTMGL1_003"):
+    """Per-pixel attainable ceiling Ym (t/ha), AEZ-aware where calibrated: highland pixels
+    (elevation >= 1800 m) carry a higher ceiling. Returns a constant image = ym_for() elsewhere.
+    Usable directly as the `ym` argument to cpi() (which multiplies element-wise)."""
+    hl = YM_HIGHLAND.get((country, season))
+    if hl is None:
+        return ee.Image.constant(ym_for(country, season)).rename("Ym")
+    ym_hi, ym_lo = hl
+    highland = ee.Image(dem).select(0).gte(HIGHLAND_ELEV_M)
+    return ee.Image.constant(ym_lo).where(highland, ym_hi).rename("Ym")
 
 
 def s_water(ee, staged):
@@ -38,16 +78,33 @@ def _tmax_dekadal(ee, aoi, year):
     return ee.ImageCollection(out)
 
 
-def s_heat(ee, aoi, year, planting_dk, d_veg, d_flo, sos_start, sos_end):
-    """Heat-stress fraction 0–1 — heat-degree-dekads above HEAT_TCAP during the FLOWERING stage."""
+def s_heat(ee, aoi, year, planting_dk, d_veg, d_flo, sos_start, sos_end, d_flo_max=None,
+           tcap=None, k=None):
+    """Heat-stress fraction 0–1 — heat-degree-dekads above HEAT_TCAP during the FLOWERING stage.
+
+    `d_veg`/`d_flo` may be SCALARS (fixed config stages, previous behaviour) or ee.Images (per-pixel
+    stage boundaries stretched to a data-derived cycle — see wrsi_waterbalance.stage_bounds). When
+    they are images the Python loop still needs a scalar upper bound: pass `d_flo_max`, the maximum
+    flowering-end dekad over the AOI, otherwise the window would be truncated for late pixels."""
+    # tcap/k override the module constants so the threshold can be A/B tested. HEAT_TCAP is a
+    # DEKAD-MEAN Tmax; measured dekad-mean flowering Tmax peaks at 22.9 / 25.9 / 29.3 C across
+    # Kenya's three season regimes, so the shipped 33 C cannot fire in two of them.
+    TC = HEAT_TCAP if tcap is None else float(tcap)
+    KK = HEAT_K if k is None else float(k)
     tmax = _tmax_dekadal(ee, aoi, year)
     heat = ee.Image.constant(0.0)
-    for gd in range(max(1, sos_start), sos_end + d_flo + 2):
+    is_img = hasattr(d_flo, "bandNames")
+    if is_img and d_flo_max is None:
+        raise ValueError("s_heat: d_flo is an image — pass d_flo_max (scalar AOI max) for the loop bound")
+    hi = int(d_flo_max) if is_img else d_flo
+    dv = d_veg if hasattr(d_veg, "bandNames") else ee.Image.constant(d_veg)
+    df = d_flo if is_img else ee.Image.constant(d_flo)
+    for gd in range(max(1, sos_start), sos_end + hi + 2):
         dsp = ee.Image.constant(gd).subtract(planting_dk)
-        flo = dsp.gte(d_veg).And(dsp.lt(d_flo))                      # flowering window
+        flo = dsp.gte(dv).And(dsp.lt(df))                            # flowering window
         tg = ee.Image(tmax.filter(ee.Filter.eq("gd", gd)).first())
-        heat = heat.add(tg.subtract(HEAT_TCAP).max(0).multiply(flo))
-    return heat.multiply(HEAT_K).clamp(0, 1).rename("S_heat")
+        heat = heat.add(tg.subtract(TC).max(0).multiply(flo))
+    return heat.multiply(KK).clamp(0, 1).rename("S_heat")
 
 
 # vegetation index for S_veg. 'ndvi' -> VCI (min-max, Kogan 1995); 'fpar' -> standardized FPAR

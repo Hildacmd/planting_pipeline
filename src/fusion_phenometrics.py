@@ -25,7 +25,7 @@ def _zscore_ic(ee, ic, band):
 def add_fpar_dekadal(ee, aoi, year, dekads=range(1,37)):
     from .utils import dekad_to_start_date
     fp = (ee.ImageCollection("MODIS/061/MCD15A3H").filterBounds(aoi)
-            .filterDate(f"{year}-01-01", f"{year+1}-01-05").select("Fpar"))
+            .filterDate(f"{year}-01-01", dekad_to_start_date(year, max(dekads) + 2).isoformat()).select("Fpar"))
     out=[]
     for dk in dekads:
         start=ee.Date(dekad_to_start_date(year,dk).isoformat()); end=start.advance(10,"day")

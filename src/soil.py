@@ -139,11 +139,29 @@ def build_whc_saxton_mm(ee, root_depth_cm=100, min_whc_mm=25,
 
 def get_whc(ee, aoi, soil_cfg, root_depth_cm=100):
     """Single entry point. Precedence: a materialized `whc_asset` > `whc_source` builder.
-    root_depth_cm should come from the crop's FAO-56 rooting depth."""
+    root_depth_cm should come from the crop's FAO-56 rooting depth.
+
+    The cached asset is a STATIC raster integrated to one fixed rooting depth, so it is only valid
+    for that depth. It is used when the requested depth matches `whc_asset_root_depth_cm`
+    (default 100); any other depth falls through to the builder, which integrates the SoilGrids
+    layers to the depth actually asked for. Before this check the asset was returned unconditionally
+    and root_depth_cm was silently ignored, which made every rooting-depth sensitivity a no-op.
+    WHC is not linear in depth — SoilGrids texture varies by layer — so the asset cannot be rescaled."""
     aid = (soil_cfg.get("whc_asset") or "").strip()
-    if aid:
-        return ee.Image(aid).rename("WHC_mm")
+    asset_depth = int(soil_cfg.get("whc_asset_root_depth_cm", 100))
     mn = soil_cfg.get("min_whc_mm", 25)
+    if aid and int(root_depth_cm) == asset_depth:
+        # The cached raster only covers its export footprint (GHA east of ~32.3 E). Countries west of
+        # that edge (Rwanda, Burundi, W. Uganda/Tanzania, W. South Sudan) fall in the gap and the whole
+        # water balance collapses (S_water/WSI/CPI empty). Fill any gap with a live SoilGrids build so
+        # the fast cached path is used where it exists and SoilGrids covers the rest.
+        cached = ee.Image(aid).rename("WHC_mm")
+        fill = build_whc_saxton_mm(ee, root_depth_cm=root_depth_cm, min_whc_mm=mn)
+        # sameFootprint=False so the fill also extends BEYOND the cached asset's export footprint
+        return cached.unmask(fill, sameFootprint=False).rename("WHC_mm")
+    if aid:
+        print(f"  [soil] whc_asset built at {asset_depth} cm but {int(root_depth_cm)} cm requested "
+              f"-> computing WHC from SoilGrids instead of the cached asset")
     if soil_cfg.get("whc_source", "saxton_soilgrids") == "saxton_soilgrids":
         return build_whc_saxton_mm(ee, root_depth_cm=root_depth_cm, min_whc_mm=mn)
     return build_whc_mm(ee, root_depth_cm=root_depth_cm,

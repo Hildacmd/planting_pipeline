@@ -6,7 +6,7 @@ def build_s1_dekadal(ee, aoi, year, orbit="DESCENDING", dekads=range(1,37)):
 
     s1 = (ee.ImageCollection("COPERNICUS/S1_GRD")
             .filterBounds(aoi)
-            .filterDate(f"{year}-01-01", f"{year+1}-01-05")
+            .filterDate(f"{year}-01-01", dekad_to_start_date(year, max(dekads) + 2).isoformat())
             .filter(ee.Filter.eq("instrumentMode", "IW"))
             .filter(ee.Filter.listContains("transmitterReceiverPolarisation", "VV"))
             .filter(ee.Filter.listContains("transmitterReceiverPolarisation", "VH"))

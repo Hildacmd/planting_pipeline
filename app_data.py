@@ -22,6 +22,36 @@ PRODUCTS = [
      "base": "planting_Ethiopia_maize_Meher_2024_250m", "wbase": "wrsi_Ethiopia_maize_Meher_2024_250m",
      "win": [10, 15], "levelnames": {1: "Region", 2: "Zone", 3: "Woreda"}, "scale": "250 m"},
 ]
+
+# ---- new-country 2024 products (reduce_newcountries.py -> newc_*_skill_WKT.csv) --------------------
+# CPI/yield/stress + planting distribution + WRSI stages from the cpiX_ rich assets. Validation
+# (hit/bias/mae) columns are absent (no ground reference outside Kenya) -> app leaves that panel blank.
+# id, country, season-label, base token (matches cpiX_ id), win dekads, admin level names, note.
+_NEW = [
+    ("ug_1st",  "Uganda", "1st rains 2024",  "Uganda_1strains",  [7, 14],  ("Sub-region", "District")),
+    ("ug_2nd",  "Uganda", "2nd rains 2024",  "Uganda_2ndrains",  [23, 29], ("Sub-region", "District")),
+    ("rw_a",    "Rwanda", "Season A 2024",   "Rwanda_SeasonA",   [27, 32], ("Province", "District")),
+    ("rw_b",    "Rwanda", "Season B 2024",   "Rwanda_SeasonB",   [5, 10],  ("Province", "District")),
+    ("bi_a",    "Burundi", "Season A 2024",  "Burundi_SeasonA",  [27, 32], ("Province", "Commune")),
+    ("bi_b",    "Burundi", "Season B 2024",  "Burundi_SeasonB",  [5, 10],  ("Province", "Commune")),
+    ("tz_mas",  "Tanzania", "Masika 2024",   "Tanzania_Masika",  [8, 14],  ("Region", "District")),
+    ("tz_msi",  "Tanzania", "Msimu 2024",    "Tanzania_Msimu",   [34, 40], ("Region", "District")),
+    ("tz_vul",  "Tanzania", "Vuli 2024",     "Tanzania_Vuli",    [29, 34], ("Region", "District")),
+    ("ss_main", "South Sudan", "Main 2024",  "SouthSudan_Main",  [11, 19], ("State", "County")),
+    ("so_gu",   "Somalia", "Gu 2024",        "Somalia_Gu",       [11, 16], ("Region", "District")),
+    ("so_deyr", "Somalia", "Deyr 2024",      "Somalia_Deyr",     [29, 34], ("Region", "District")),
+    ("et_belg", "Ethiopia", "Belg 2024",     "Ethiopia_Belg",    [7, 12],  ("Region", "Zone")),
+]
+_RAIN = {"Uganda_2ndrains", "Rwanda_SeasonA", "Rwanda_SeasonB", "Burundi_SeasonA", "Burundi_SeasonB",
+         "Tanzania_Vuli", "Somalia_Deyr", "Ethiopia_Belg"}   # Season A moved to rainfall (cloudy highlands)
+for _id, _c, _s, _tok, _win, _ln in _NEW:
+    PRODUCTS.append({
+        "id": _id, "country": _c, "season": _s, "crop": "maize",
+        "base": f"newc_{_tok}_2024", "wbase": f"newc_{_tok}_2024_wrsi",  # wbase absent -> null WRSI merge
+        "win": _win, "levelnames": {1: _ln[0], 2: _ln[1]}, "scale": "250 m",
+        "note": ("rainfall-anchored onset" if _tok in _RAIN else "green-up cue-fusion onset")
+                + " · yield on fallback Ym (no HarvestStat match yet)",
+    })
 KEYS = {1: ["name"], 2: ["county", "name"], 3: ["county", "constituency", "name"]}
 SIMPLIFY = {1: 0.008, 2: 0.006, 3: 0.004}
 PLANT = {"modal_dekad": "md", "mean_dekad": "mean", "p10": "p10", "p50": "p50", "p90": "p90",
@@ -75,8 +105,9 @@ def build_product(cfg):
         for _, r in m.iterrows():
             a = {v: (round(float(r[k]), 3) if k in r and pd.notna(r[k]) else None)
                  for k, v in {**PLANT, **WRSI}.items()}
-            units.append({"n": r["name"], "p": r.get("county", ""),
-                          "c": r.get("constituency", "") if lvl == 3 else "",
+            sv = lambda k: (str(r[k]) if k in r and pd.notna(r[k]) else "")   # NaN/empty -> "" (valid JSON)
+            units.append({"n": sv("name"), "p": sv("county"),
+                          "c": sv("constituency") if lvl == 3 else "",
                           "a": a, "g": coords(r.geometry, SIMPLIFY[lvl])})
         prod["levels"][str(lvl)] = {"label": cfg["levelnames"][lvl], "units": units}
         print(f"  {cfg['id']} L{lvl} {cfg['levelnames'][lvl]}: {len(units)} units")
@@ -88,6 +119,6 @@ for cfg in PRODUCTS:
     print(f"== {cfg['country']} · {cfg['season']} ({cfg['scale']}) ==")
     data["products"].append(build_product(cfg))
 
-js = json.dumps(data, separators=(",", ":"))
+js = json.dumps(data, separators=(",", ":"), allow_nan=False)   # NaN is invalid JSON -> fail loudly
 open("app_data.json", "w").write(js)
 print(f"\napp_data.json — {len(js)/1e6:.2f} MB · {len(data['products'])} products")

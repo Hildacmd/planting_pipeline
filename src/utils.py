@@ -11,6 +11,9 @@ def date_to_dekad(d: dt.date) -> int:
     return (d.month - 1) * 3 + dk
 
 def dekad_to_start_date(year: int, dekad: int) -> dt.date:
+    # dekads > 36 wrap into the next year (cross-year seasons, e.g. Tanzania Msimu Dec->Feb)
+    while dekad > 36:
+        dekad -= 36; year += 1
     month = (dekad - 1) // 3 + 1
     k = (dekad - 1) % 3
     day = [1, 11, 21][k]
