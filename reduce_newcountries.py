@@ -37,9 +37,17 @@ GADM3 = {"Uganda": "UGA", "Rwanda": "RWA", "Burundi": "BDI", "Somalia": "SOM",
          "Tanzania": "TZA", "Ethiopia": "ETH", "Kenya": "KEN", "SouthSudan": "SSD"}
 GAUL_NAME = {}   # all countries have a local GADM gpkg now
 SIMPLIFY = {1: 0.006, 2: 0.004}
+# FAO-56 stage durations (dekads) to place phenology stage dekads from modal planting.
+STAGES = {"greenup": dict(ini=3, dev=4, mid=3, late=2),   # standard maize (LGP 12)
+          "rainfall": dict(ini=2, dev=3, mid=2, late=2)}  # short-duration EARLY maize (LGP 9)
+RAIN_TOK = {"Uganda_2ndrains", "Rwanda_SeasonA", "Rwanda_SeasonB", "Burundi_SeasonA", "Burundi_SeasonB",
+            "Tanzania_Vuli", "Somalia_Deyr", "Ethiopia_Belg"}   # rainfall-anchored onset (EARLY maize)
 OUT_COLS = ["name", "county", "constituency", "geometry_wkt", "cpi", "yield_tha", "total_yield_t",
             "s_water", "s_heat", "s_veg", "wrsi_veg", "wrsi_flo", "wrsi_grf",
-            "wsi_veg", "wsi_flo", "wsi_grf", "modal_dekad", "mean_dekad", "p10", "p50", "p90", "n_px"]
+            "wsi_veg", "wsi_flo", "wsi_grf", "modal_dekad", "mean_dekad", "p10", "p50", "p90", "n_px",
+            # derived from the rich stack (data already on GEE) — fill the app's risk/ASAP panels:
+            "crop_area_frac", "mean_WRSI", "fail_pct", "failflo_pct",
+            "pkv_dekad", "flo_dekad", "grf_dekad", "mat_dekad"]
 
 
 def admin_gdf(ctok, lvl):
@@ -65,8 +73,13 @@ def admin_gdf(ctok, lvl):
     return g[["_id", "name", "county", "constituency", "geometry"]]
 
 
+def _maize_mask(ee):
+    from run import crop_mask_image
+    return crop_mask_image(ee, "maize", "maize", None)   # WorldCereal maize is global/country-independent
+
+
 def reduce_stats(img, fc):
-    """reduceRegions for value/yield/planting, keyed by '_id'. Returns {id: props}."""
+    """reduceRegions for value/yield/planting + derived ASAP/risk metrics, keyed by '_id'."""
     plant = img.select("planting_dekad"); yld = img.select("yield_tha_x100"); vals = img.select(VAL_BANDS)
     out = {}
     for r in vals.reduceRegions(fc, ee.Reducer.median(), scale=250, tileScale=4).getInfo()["features"]:
@@ -82,6 +95,20 @@ def reduce_stats(img, fc):
         out.setdefault(pr["_id"], {}).update(
             {"mode": pr.get("mode"), "p10": pr.get("p10"), "p50": pr.get("p50"),
              "p90": pr.get("p90"), "pmean": pr.get("mean")})
+    # derived (means of 0/1 or 0-100 images): crop-area fraction over the WHOLE admin (mask unmasked
+    # to 0), and over MAIZE pixels only: seasonal-min-WRSI crop-failure, flowering failure, mean WRSI.
+    wstack = img.select(["wrsi_veg", "wrsi_flo", "wrsi_grf"])
+    smin = wstack.reduce(ee.Reducer.min())
+    derived = ee.Image.cat([
+        _maize_mask(ee).unmask(0).rename("caf"),                 # fraction of admin that is maize
+        smin.lt(50).rename("failp"),                             # fraction of MAIZE with seasonal WRSI<50
+        img.select("wrsi_flo").lt(50).rename("failflop"),        # fraction of MAIZE failing at flowering
+        wstack.reduce(ee.Reducer.mean()).rename("wrsimean")])    # mean seasonal WRSI over maize
+    for r in derived.reduceRegions(fc, ee.Reducer.mean(), scale=250, tileScale=4).getInfo()["features"]:
+        pr = r["properties"]
+        out.setdefault(pr["_id"], {}).update(
+            {"caf": pr.get("caf"), "failp": pr.get("failp"), "failflop": pr.get("failflop"),
+             "wrsimean": pr.get("wrsimean")})
     return out
 
 
@@ -119,6 +146,20 @@ def process(product):
                         "p90": round(s["p90"]) if s.get("p90") is not None else None, "n_px": int(npx)})
             for b, col in COLMAP.items():
                 row[col] = round(s[b], 1) if s.get(b) is not None else None
+            # derived ASAP/risk metrics
+            row["crop_area_frac"] = round(s["caf"], 3) if s.get("caf") is not None else None
+            row["mean_WRSI"] = round(s["wrsimean"], 1) if s.get("wrsimean") is not None else None
+            row["fail_pct"] = round(s["failp"] * 100, 1) if s.get("failp") is not None else None
+            row["failflo_pct"] = round(s["failflop"] * 100, 1) if s.get("failflop") is not None else None
+            # phenology stage dekads from modal planting + FAO-56 stage durations (wrap 1..36)
+            md = row["modal_dekad"]
+            if md is not None:
+                st = STAGES["rainfall" if product in RAIN_TOK else "greenup"]
+                wrap = lambda d: (int(round(d)) - 1) % 36 + 1
+                row["pkv_dekad"] = wrap(md + st["ini"] + st["dev"])                       # peak vegetative
+                row["flo_dekad"] = wrap(md + st["ini"] + st["dev"] + max(1, st["mid"] // 2))  # flowering
+                row["grf_dekad"] = wrap(md + st["ini"] + st["dev"] + st["mid"])           # grain fill
+                row["mat_dekad"] = wrap(md + st["ini"] + st["dev"] + st["mid"] + st["late"])  # maturity
             rows.append(row)
         out = f"newc_{product}_2024_L{lvl}_skill_WKT.csv"
         with open(out, "w", newline="") as f:

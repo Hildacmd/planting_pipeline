@@ -100,7 +100,8 @@ def build_product(cfg):
         except (FileNotFoundError, KeyError):
             m = pl.copy()
             for k in WRSI:
-                m[k] = None
+                if k not in m.columns:          # keep WRSI cols the skill CSV already carries (new countries)
+                    m[k] = None
         units = []
         for _, r in m.iterrows():
             a = {v: (round(float(r[k]), 3) if k in r and pd.notna(r[k]) else None)
