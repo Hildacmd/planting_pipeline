@@ -15,9 +15,13 @@ PRODUCTS = [
      "win": [8, 12], "levelnames": {1: "County", 2: "Constituency", 3: "Ward"}, "scale": "10 m"},
     {"id": "ke_short", "country": "Kenya", "season": "Short rains 2024", "crop": "maize",
      "base": "planting_Kenya_maize_Shortrains_2024_rainfed", "wbase": "wrsi_Kenya_maize_Shortrains_2024_250m",
-     "win": [28, 32], "levelnames": {1: "County", 2: "Constituency", 3: "Ward"},
+     "win": [24, 33], "levelnames": {1: "County", 2: "Constituency", 3: "Ward"},
      "scale": "250 m grid · rainfall-anchored (~5.5 km content)",
-     "note": "rainfall-anchored (44-yr CHIRPS onset) — full coverage; green-up too sparse to lead here"},
+     "note": "PROVISIONAL regime-aware onset: western/Rift bimodal counties use the early Aug-d3–Oct-d2 "
+             "window (they plant Aug–Sep), eastern/coastal keep Oct–Nov; unimodal Rift grain-basket "
+             "counties (Trans Nzoia, Uasin Gishu, Kericho, West Pokot, Bomet) stay late. Held-out "
+             "validation significant only at the boundary; ~39% of mapped western short-rains area may "
+             "be the standing long-rains crop — see KENYA_SEASON_REGIMES.md sec 7"},
     {"id": "et_meher", "country": "Ethiopia", "season": "Meher 2024", "crop": "maize",
      "base": "planting_Ethiopia_maize_Meher_2024_250m", "wbase": "wrsi_Ethiopia_maize_Meher_2024_250m",
      "win": [10, 15], "levelnames": {1: "Region", 2: "Zone", 3: "Woreda"}, "scale": "250 m"},
