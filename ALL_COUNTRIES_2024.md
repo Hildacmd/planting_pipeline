@@ -25,6 +25,8 @@ gaps that were found and how each was filled. It complements the per-module meth
 
 ---
 
+> **Update, 22 September 2026 — yield ceilings recalibrated.** The Yₘ values in this record are those the 2024 run was built with. `src/cpi.py` now carries typical-year ceilings fitted to multi-year HarvestStat yields for seven country-seasons (Kenya 2.34 / 1.44, Ethiopia 4.14, Rwanda 2.61, Burundi 1.88, Somalia 1.02, Uganda 2.34 provisional); see `yield_calibration_2024/YIELD_CALIBRATION_2024.md`.
+
 ## 2. The run — products generated
 
 Sixteen maize products landed for 2024. Onset method and yield-ceiling (Yₘ) source are per season.

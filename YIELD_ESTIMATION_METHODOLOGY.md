@@ -68,17 +68,27 @@ not distinguish which season a pixel is planted, so **short-rains total producti
 (much of that maize is long-rains only). **Yield (t/ha) is the reliable figure**; production is
 indicative until a season-specific cropped-area layer is used.
 
-## 6. Calibration & validation (essential before operational use)
+## 6. Calibration & validation
 
-The estimates are **physically-grounded but uncalibrated**. Calibration regresses estimated vs
-**observed** yields and tunes the free parameters:
-```
-minimise  Σ (Ya_est − Ya_obs)²   over  { Ym(zone,variety), Ky, HEAT_K, VEG_W }
-observed sources:  KALRO / county agriculture returns · FAO GIEWS · HarvestStat Africa
-                   [Lee et al. 2025] · national statistics (KNBS, CSA Ethiopia)
-```
-Validate with cross-validation and report bias/RMSE per admin level. The **CPI pattern and relative
-yields are robust**; calibration fixes the **absolute scale**.
+**Status (September 2026): the attainable-yield ceiling Ym has been calibrated to HarvestStat for six of the eight
+countries with a 2024 maize run.** Full method, per-country results, figures and open issues are in
+`yield_calibration_2024/YIELD_CALIBRATION_2024.md` (.docx). Summary:
+
+| Country · season | Ym (t/ha) | Held-out MAE (t/ha), calibrated vs default | Status |
+|---|---|---|---|
+| Kenya · Long rains | 2.34 | 0.68 vs 2.26 | level and pattern |
+| Kenya · Short rains | 1.44 | 0.39 vs 1.94 | level, weak pattern |
+| Ethiopia · Meher | 4.14 | 0.71 vs 1.38 | level and pattern |
+| Rwanda · Season A | 2.61 | 0.37 vs 2.75 | level only |
+| Burundi · Season A | 1.88 | 0.71 vs 3.57 | level only |
+| Somalia · Gu | 1.02 | 0.24 vs 1.58 | level only |
+| Uganda · 1st rains | 2.34 | 1.24 vs 2.90 | provisional (statistics end 2009) |
+| Tanzania, South Sudan | 6.0 (default) | — | uncalibrated: no HarvestStat maize yields |
+
+The fit is `Ym = Σ(y·c) / Σc²` with `c = CPI/100` (least squares through the origin), tested on 30 % held-out
+units over 200 random splits, against the **typical year** (median of the available HarvestStat years). These values are in `src/cpi.py` (`YM_CAL`) and used by every pipeline run from September 2026. Ky, HEAT_K and VEG_W are **not** tuned yet. The **CPI pattern and relative
+yields are robust**; calibration fixes the **absolute scale** — and only Kenya long rains and Ethiopia Meher
+also reproduce the pattern between units.
 
 ## 7. Where this sits among yield methods
 
@@ -90,12 +100,12 @@ yields are robust**; calibration fixes the **absolute scale**.
 | **This work — hybrid** | FAO-33 water balance + AquaCrop multiplicative stress stacking + RS condition (VCI), scaled to Ym | transparent, calibratable, admin-scale |
 
 ## 8. Caveats
-- **Ym reference, not measured** — absolute yields need calibration (§6).
+- **Ym calibrated for six countries (§6)**; Tanzania and South Sudan still use the uncalibrated default and are likely several times too high.
 - **Total production = upper bound** for the short rains (annual mask, §5).
 - **Resolution:** ~5.5–11 km climate content on the 250 m grid — an **admin-scale** estimate, not field-level.
 - **Parameters (Ky, HEAT_K, VEG_W) first-pass** — refine against trials.
 
-## 9. Measured (2024, L1 medians; Ym = 4.5 short / 6 main; spatial SoilGrids/Saxton WHC)
+## 9. Measured before calibration (2024, L1 medians; Ym = 4.5 short / 6 main; spatial SoilGrids/Saxton WHC) — superseded by §6
 | Season | Yield (t/ha) |
 |---|---|
 | Kenya Long rains | 4.2 |

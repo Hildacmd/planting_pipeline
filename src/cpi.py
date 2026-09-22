@@ -15,16 +15,27 @@ HEAT_K = 0.06                               # yield loss per heat-degree-dekad a
 VEG_W = 0.4                                 # vegetation-condition weight (VCI is a confirmation)
 YM_THA = 4.5                                # legacy uncalibrated default, short-duration maize (t/ha)
 
-# HarvestStat-calibrated attainable ceiling Ym per (country, season). Least-squares fit on 70% of
-# admin-1 units and validated on the held-out 30% against HarvestStat Africa v1.2 maize yield (2024):
-#   Kenya Long rains   Ym 2.6  (held-out MAE 0.58 t/ha, bias +0.02, r 0.64)
-#   Kenya Short rains  Ym 2.1  (held-out MAE 0.93; level only, no ranking skill r~0)
-#   Ethiopia Meher     Ym 4.6  (held-out MAE 0.11, bias +0.10; small n, model 2024 vs obs 2021)
-# Country/seasons not listed fall back to the uncalibrated defaults below.
-YM_CAL = {                              # calibrate_ym_all.py, HarvestStat FEWS-unit fit (70/30):
-    ("Kenya", "Long rains"):  2.59,     #   n=42, test-MAE 0.55
-    ("Kenya", "Short rains"): 2.02,     #   n=40, test-MAE 0.63 (level only, r~0; clean-named asset)
-    ("Ethiopia", "Meher"):    4.42,     #   n=8 (2021), test-MAE 0.41
+# HarvestStat-calibrated attainable ceiling Ym per (country, season) - TYPICAL-YEAR fit (Sep 2026).
+# calibrate_ym_local.py: 2024 admin CPI aggregated onto HarvestStat units (maize-area overlap weights);
+# target = median yield over the available years; least squares through the origin, 70/30 x 200 held-out
+# test. Report: yield_calibration_2024/YIELD_CALIBRATION_2024.md. Held-out MAE t/ha (calibrated vs default), r:
+#   Kenya Long rains    2.34  2015-24, n45   0.68 vs 2.26   r 0.57   level + pattern
+#   Kenya Short rains   1.44  2016-24, n44   0.39 vs 1.94   r 0.36   level, weak pattern
+#   Ethiopia Meher      4.14  2012-21, n76   0.71 vs 1.38   r 0.64   level + pattern
+#   Rwanda Season A     2.61  2010-17, n30   0.37 vs 2.75   r -0.07  level only
+#   Burundi Season A    1.88  2012-16, n16   0.71 vs 3.57   r 0.28   level only
+#   Somalia Gu          1.02  2015-24, n18   0.24 vs 1.58   r 0.34   level only
+#   Uganda 1st rains    2.34  2008-09, n74   1.24 vs 2.90   r -0.14  PROVISIONAL (statistics end 2009)
+# Superseded 2024-season values: Kenya Long 2.59 (+ highland 3.2/2.1), Short 2.02; Ethiopia Meher 4.42.
+# Tanzania and South Sudan have no HarvestStat maize yields: they fall back to the uncalibrated defaults.
+YM_CAL = {
+    ("Kenya", "Long rains"):   2.34,
+    ("Kenya", "Short rains"):  1.44,
+    ("Ethiopia", "Meher"):     4.14,
+    ("Rwanda", "Season A"):    2.61,
+    ("Burundi", "Season A"):   1.88,
+    ("Somalia", "Gu"):         1.02,
+    ("Uganda", "1st rains"):   2.34,     # provisional
 }
 YM_MAIN_DEFAULT = 6.0                        # uncalibrated fallback, medium/long maize (t/ha)
 YM_SHORT_DEFAULT = 4.5                       # uncalibrated fallback, short-duration maize (t/ha)
@@ -41,7 +52,9 @@ def ym_for(country, season):
 # edge is potential, not water). Kenya Long rains, HarvestStat 70/30 A/B: a per-zone Ym (highland
 # 3.7 / rest 2.3 t/ha) beats a single Ym — held-out MAE 0.57 -> 0.47 — whereas a zone-aware growing
 # period (180 d highland) made it WORSE (0.57 -> 0.66). So the highland lever is Ym, not the season.
-YM_HIGHLAND = {("Kenya", "Long rains"): (3.2, 2.1)}   # (highland >= 1800 m, rest); FEWS-unit fit, MAE 0.40
+# The highland split was fitted to 2024 county yields alone (3.2 / 2.1 t/ha, MAE 0.40 against 2024). It is OFF
+# under the typical-year calibration, which uses one ceiling per (country, season); re-enable to reproduce 2024.
+YM_HIGHLAND = {}   # e.g. {("Kenya", "Long rains"): (3.2, 2.1)}  (highland >= 1800 m, rest)
 HIGHLAND_ELEV_M = 1800
 
 def ym_img_for(ee, aoi, country, season, dem="USGS/SRTMGL1_003"):
