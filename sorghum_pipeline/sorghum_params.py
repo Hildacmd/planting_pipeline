@@ -63,7 +63,14 @@ SORGHUM_EMERGENCE_OFFSET = 2
 #   Uganda First     70 units 2009        Burundi A/B/C   9/13/11 units 2012-2016
 #   Uganda Second    70 units 2008        South Sudan     2 units 1975-2010
 # Tanzania and Eritrea have NO HarvestStat sorghum yields and cannot be calibrated.
-YM_CAL_SORGHUM = {}
+YM_CAL_SORGHUM = {
+    ("Ethiopia", "Meher"): 2.60,   # n64 2012-2021  MAE 0.43 vs 0.52  r 0.21  level only
+    ("Kenya", "Long rains"): 1.41,   # n27 2015-2016  MAE 0.27 vs 1.16  r 0.54  level and pattern
+    ("Uganda", "1st rains"): 1.31,   # n47 2009-2009  MAE 0.67 vs 1.45  r -0.02  level only
+    ("Somalia", "Gu"): 0.41,   # n12 2015-2024  MAE 0.16 vs 1.52  r 0.36  level, weak pattern
+    ("Somalia", "Deyr"): 0.87,   # n12 2015-2024  MAE 0.21 vs 0.26  r -0.04  level only
+    ("Sudan", "Kharif"): 0.80,   # n16 2015-2023  MAE 0.27 vs 1.08  r -0.14  level only
+}
 SORGHUM_YM_DEFAULT = 3.0        # rainfed grain sorghum potential, uncalibrated
 SORGHUM_YM_SHORT_DEFAULT = 2.0  # short-duration second-season sorghum, uncalibrated
 

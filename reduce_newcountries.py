@@ -35,7 +35,19 @@ def gdf_to_ee(g):
         feats.append(ee.Feature(ee.Geometry(r["geometry"].__geo_interface__), {"_id": int(r["_id"])}))
     return ee.FeatureCollection(feats)
 
-_ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+def _positional(argv):
+    """Product tokens only: drop each --flag AND the value that follows it."""
+    out, skip = [], False
+    for a in argv:
+        if skip:
+            skip = False; continue
+        if a.startswith("--"):
+            skip = True; continue
+        out.append(a)
+    return out
+
+
+_ARGS = _positional(sys.argv[1:])
 
 
 def _opt(name, default):
@@ -59,7 +71,9 @@ COLMAP = {"CPI": "cpi", "S_water": "s_water", "S_heat": "s_heat", "S_veg": "s_ve
           "wrsi_veg": "wrsi_veg", "wrsi_flo": "wrsi_flo", "wrsi_grf": "wrsi_grf",
           "wsi_veg": "wsi_veg", "wsi_flo": "wsi_flo", "wsi_grf": "wsi_grf"}
 GADM3 = {"Uganda": "UGA", "Rwanda": "RWA", "Burundi": "BDI", "Somalia": "SOM",
-         "Tanzania": "TZA", "Ethiopia": "ETH", "Kenya": "KEN", "SouthSudan": "SSD"}
+         "Tanzania": "TZA", "Ethiopia": "ETH", "Kenya": "KEN", "SouthSudan": "SSD",
+         # added for the sorghum products, which reach two countries maize never did
+         "South_Sudan": "SSD", "Sudan": "SDN", "Eritrea": "ERI", "Djibouti": "DJI"}
 GAUL_NAME = {}   # all countries have a local GADM gpkg now
 SIMPLIFY = {1: 0.006, 2: 0.004}
 # FAO-56 stage durations (dekads) to place phenology stage dekads from modal planting.
@@ -137,8 +151,24 @@ def reduce_stats(img, fc):
     return out
 
 
+def country_token(product):
+    """Country prefix of a product token.
+
+    Splitting on the first underscore is not enough: the maize products use `SouthSudan_Main`
+    while the sorghum ones use `South_Sudan_Main`, and `"South_Sudan_Main".split("_")[0]` is
+    "South", which matches nothing. Try the longest prefix that names a country, with and without
+    the underscore."""
+    parts = product.split("_")
+    for n in range(len(parts), 0, -1):
+        cand = "_".join(parts[:n])
+        for key in (cand, cand.replace("_", "")):
+            if key in GADM3 or key in GAUL_NAME:
+                return key
+    return parts[0]
+
+
 def process(product):
-    ctok = product.split("_")[0]
+    ctok = country_token(product)
     asset = f"{PROJ}/{ASSET_PREFIX}_{product}_2024"
     try:
         ee.data.getAsset(asset)

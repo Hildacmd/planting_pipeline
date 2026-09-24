@@ -32,6 +32,13 @@ HS = os.path.join(ROOT, "Cropyield-Data", "harveststat")
 DRIVE = os.environ.get("CTM_LOCAL_DRIVE", os.path.expanduser(
     "~/Library/CloudStorage/GoogleDrive-manzikye@gmail.com/My Drive/planting_outputs"))
 YEAR = 2024
+# Overlap weights are areas, so they are measured in an EQUAL-AREA projection. Computing them in
+# EPSG:4326 measures square degrees, which shrink with latitude: across this region, from Tanzania
+# at 12 S to Sudan at 22 N, a degree cell at the northern edge is about 7 % smaller than one at the
+# equator, so the same field would be weighted differently by where it happens to sit. Africa
+# Albers Equal Area, as used for the crop-type mask reprojections.
+AEA = ("+proj=aea +lat_1=20 +lat_2=-23 +lat_0=0 +lon_0=25 +x_0=0 +y_0=0 "
+       "+datum=WGS84 +units=m +no_defs")
 MAX_YIELD = 6.0        # t/ha: above this is implausible for rainfed smallholder sorghum
 SPLITS, TRAIN = 200, 0.7
 
@@ -54,13 +61,23 @@ JOBS = [
 # Tanzania and Eritrea are absent: HarvestStat holds no sorghum yields for either.
 
 
-def cpi_units(country, season):
-    """Admin-2 CPI and sorghum area fraction from the zonal export, as a GeoDataFrame."""
-    tok = f"{country}_{season}_{YEAR}".replace(" ", "")
-    for d in (DRIVE, f"{H}/work"):
-        p = os.path.join(d, f"sorghum_{tok}_L2.csv")
+def cpi_units(country, season, prefix="newcS"):
+    """Admin-2 CPI and sorghum area fraction, as a GeoDataFrame.
+
+    Prefers the reducer output (`newcS_<product>_2024_L2_skill_WKT.csv`), which already carries
+    the area-weighted CPI, `crop_area_frac` and the geometry, so `zonal_sorghum.py` is not needed
+    when the app reduce has already run. Falls back to the zonal export if it has not."""
+    tok = f"{country}_{season}".replace(" ", "")
+    from shapely import wkt as _wkt
+    import pandas as _pd
+    f = os.path.join(ROOT, f"{prefix}_{tok}_{YEAR}_L2_skill_WKT.csv")
+    if os.path.exists(f):
+        d = _pd.read_csv(f)
+        return gpd.GeoDataFrame(d, geometry=d.geometry_wkt.map(_wkt.loads), crs="EPSG:4326")
+    for dd in (DRIVE, f"{H}/work"):
+        p = os.path.join(dd, f"sorghum_{tok}_{YEAR}_L2.csv")
         if os.path.exists(p):
-            return gpd.read_file(p)          # the .geo column is read as the geometry
+            return gpd.read_file(p)
     return None
 
 
@@ -98,9 +115,9 @@ def main():
 
         g = g[g.cpi.notna() & g.crop_area_frac.notna() & (g.crop_area_frac > 0)].to_crs(4326)
         ov = gpd.overlay(u[["fnid", "y", "geometry"]], g[["cpi", "crop_area_frac", "geometry"]],
-                         how="intersection")
-        ov["w"] = ov.area * ov.crop_area_frac                     # sorghum area in the overlap
-        agg = (ov.groupby("fnid").apply(
+                         how="intersection").to_crs(AEA)
+        ov["w"] = ov.area * ov.crop_area_frac                     # sorghum area in the overlap, m2
+        agg = (ov.groupby("fnid")[["cpi", "y", "w"]].apply(
             lambda t: pd.Series({"cpi": np.average(t.cpi, weights=t.w) if t.w.sum() > 0 else np.nan,
                                  "y": t.y.iloc[0], "w": t.w.sum()}))
                .dropna().reset_index())

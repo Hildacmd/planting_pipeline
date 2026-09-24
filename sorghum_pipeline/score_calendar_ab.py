@@ -58,12 +58,19 @@ JOBS = [
 # Eritrea is absent from HarvestStat entirely, and no second-season sorghum series exists.
 
 
+AEA = ("+proj=aea +lat_1=20 +lat_2=-23 +lat_0=0 +lon_0=25 +x_0=0 +y_0=0 "
+       "+datum=WGS84 +units=m +no_defs")
+
+
 def zonal(prefix, country, season):
-    tok = f"{country}_{season}_{YEAR}".replace(" ", "")
-    for d in (DRIVE, f"{H}/work"):
-        p = os.path.join(d, f"{prefix}_{tok}_L2.csv")
-        if os.path.exists(p):
-            return gpd.read_file(p)
+    """Admin-2 CPI for one arm. `prefix` is newcS (arm A) or newcSB (arm B)."""
+    import pandas as _pd
+    from shapely import wkt as _wkt
+    tok = f"{country}_{season}".replace(" ", "")
+    f = os.path.join(ROOT, f"{prefix}_{tok}_{YEAR}_L2_skill_WKT.csv")
+    if os.path.exists(f):
+        d = _pd.read_csv(f)
+        return gpd.GeoDataFrame(d, geometry=d.geometry_wkt.map(_wkt.loads), crs="EPSG:4326")
     return None
 
 
@@ -71,9 +78,9 @@ def match(g, units):
     """Aggregate admin-2 CPI onto the HarvestStat units, weighted by sorghum area."""
     g = g[g.cpi.notna() & g.crop_area_frac.notna() & (g.crop_area_frac > 0)].to_crs(4326)
     ov = gpd.overlay(units[["fnid", "y", "geometry"]],
-                     g[["cpi", "crop_area_frac", "geometry"]], how="intersection")
-    ov["w"] = ov.area * ov.crop_area_frac
-    out = (ov.groupby("fnid")
+                     g[["cpi", "crop_area_frac", "geometry"]], how="intersection").to_crs(AEA)
+    ov["w"] = ov.area * ov.crop_area_frac          # equal-area, so the weights are real hectares
+    out = (ov.groupby("fnid")[["cpi", "y", "w"]]
              .apply(lambda t: pd.Series({"cpi": np.average(t.cpi, weights=t.w) if t.w.sum() > 0
                                          else np.nan, "y": t.y.iloc[0]}))
              .dropna().reset_index())
@@ -106,7 +113,7 @@ def main():
 
     rows, allunits = [], []
     for country, season, hsc, hss, years in JOBS:
-        gA, gB = zonal("sorghum", country, season), zonal("sorghumB", country, season)
+        gA, gB = zonal("newcS", country, season), zonal("newcSB", country, season)
         if gA is None or gB is None:
             rows.append(dict(country=country, season=season,
                              status=f"waiting on {'A' if gA is None else ''}"
