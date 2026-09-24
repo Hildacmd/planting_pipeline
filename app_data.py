@@ -56,6 +56,45 @@ for _id, _c, _s, _tok, _win, _ln in _NEW:
         "note": ("rainfall-anchored onset" if _tok in _RAIN else "green-up cue-fusion onset")
                 + " · yield on fallback Ym (no HarvestStat match yet)",
     })
+# ---- 2024 sorghum products (sorghum_pipeline) ---------------------------------------------------
+# Same shape as the maize entries. The calendar is the Inception Report Table 2.0; the mask is the
+# ICPAC crop-type mask sorghum band, not WorldCereal, which has no sorghum class. Products appear
+# in the app only once their reduce CSV exists, so this list can be registered before the Earth
+# Engine exports finish.
+# id, country, season label, base token, SOS window dekads, admin level names
+_SORGHUM = [
+    ("sd_kharif_s",  "Sudan",       "Kharif 2024",      "Sudan_Kharif",       [17, 26], ("State", "Locality")),
+    ("et_meher_s",   "Ethiopia",    "Meher 2024",       "Ethiopia_Meher",     [17, 26], ("Region", "Zone")),
+    ("tz_msimu_s",   "Tanzania",    "Msimu 2024",       "Tanzania_Msimu",     [32, 39], ("Region", "District")),
+    ("ss_main_s",    "South Sudan", "Main 2024",        "South_Sudan_Main",   [11, 22], ("State", "County")),
+    ("ss_2nd_s",     "South Sudan", "2nd 2024",         "South_Sudan_2nd",    [20, 27], ("State", "County")),
+    ("ke_long_s",    "Kenya",       "Long rains 2024",  "Kenya_Longrains",    [8, 15],  ("County", "Constituency")),
+    ("ke_short_s",   "Kenya",       "Short rains 2024", "Kenya_Shortrains",   [29, 33], ("County", "Constituency")),
+    ("ug_1st_s",     "Uganda",      "1st rains 2024",   "Uganda_1strains",    [8, 15],  ("Sub-region", "District")),
+    ("ug_2nd_s",     "Uganda",      "2nd rains 2024",   "Uganda_2ndrains",    [26, 30], ("Sub-region", "District")),
+    ("so_gu_s",      "Somalia",     "Gu 2024",          "Somalia_Gu",         [11, 15], ("Region", "District")),
+    ("so_deyr_s",    "Somalia",     "Deyr 2024",        "Somalia_Deyr",       [29, 33], ("Region", "District")),
+    ("rw_a_s",       "Rwanda",      "Season A 2024",    "Rwanda_SeasonA",     [26, 30], ("Province", "District")),
+    ("rw_b_s",       "Rwanda",      "Season B 2024",    "Rwanda_SeasonB",     [5, 12],  ("Province", "District")),
+    ("bi_a_s",       "Burundi",     "Season A 2024",    "Burundi_SeasonA",    [26, 30], ("Province", "Commune")),
+    ("bi_b_s",       "Burundi",     "Season B 2024",    "Burundi_SeasonB",    [5, 9],   ("Province", "Commune")),
+    ("er_kremti_s",  "Eritrea",     "Kremti 2024",      "Eritrea_Kremti",     [17, 27], ("Region", "Sub-region")),
+    ("tz_masika_s",  "Tanzania",    "Masika 2024",      "Tanzania_Masika",    [8, 12],  ("Region", "District")),
+    ("et_belg_s",    "Ethiopia",    "Belg 2024",        "Ethiopia_Belg",      [5, 12],  ("Region", "Zone")),
+]
+_SORGHUM_RAIN = {"Kenya_Shortrains", "Uganda_2ndrains", "Rwanda_SeasonA", "Rwanda_SeasonB",
+                 "Burundi_SeasonA", "Burundi_SeasonB", "Somalia_Deyr", "Ethiopia_Belg",
+                 "South_Sudan_2nd"}
+for _id, _c, _s, _tok, _win, _ln in _SORGHUM:
+    PRODUCTS.append({
+        "id": _id, "country": _c, "season": _s, "crop": "sorghum",
+        "base": f"newcS_{_tok}_2024", "wbase": f"newcS_{_tok}_2024_wrsi",
+        "win": _win, "levelnames": {1: _ln[0], 2: _ln[1]}, "scale": "250 m",
+        "note": ("rainfall-anchored onset" if _tok in _SORGHUM_RAIN else "green-up cue-fusion onset")
+                + " · crop-type mask sorghum band · Inception Report Table 2.0 calendar"
+                + " · YIELD UNCALIBRATED, report CPI not yield",
+    })
+
 KEYS = {1: ["name"], 2: ["county", "name"], 3: ["county", "constituency", "name"]}
 SIMPLIFY = {1: 0.008, 2: 0.006, 3: 0.004}
 PLANT = {"modal_dekad": "md", "mean_dekad": "mean", "p10": "p10", "p50": "p50", "p90": "p90",
@@ -120,10 +159,24 @@ def build_product(cfg):
 
 
 data = {"products": [], "default": PRODUCTS[0]["id"]}
+skipped = []
 for cfg in PRODUCTS:
-    print(f"== {cfg['country']} · {cfg['season']} ({cfg['scale']}) ==")
-    data["products"].append(build_product(cfg))
+    print(f"== {cfg['country']} · {cfg['season']} · {cfg['crop']} ({cfg['scale']}) ==")
+    prod = build_product(cfg)
+    if not prod["levels"]:
+        # a product with no levels would reach the app as an empty entry and break the selector
+        skipped.append(f"{cfg['crop']}: {cfg['country']} {cfg['season']}")
+        continue
+    data["products"].append(prod)
+data["crops"] = sorted({p["crop"] for p in data["products"]})
 
 js = json.dumps(data, separators=(",", ":"), allow_nan=False)   # NaN is invalid JSON -> fail loudly
 open("app_data.json", "w").write(js)
-print(f"\napp_data.json — {len(js)/1e6:.2f} MB · {len(data['products'])} products")
+from collections import Counter
+byc = Counter(p["crop"] for p in data["products"])
+print(f"\napp_data.json — {len(js)/1e6:.2f} MB · {len(data['products'])} products "
+      f"({', '.join(f'{v} {k}' for k, v in sorted(byc.items()))})")
+if skipped:
+    print(f"not built, no reduce CSV yet ({len(skipped)}):")
+    for x in skipped:
+        print("   ", x)

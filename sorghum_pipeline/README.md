@@ -103,3 +103,21 @@ arms shared a ceiling. A paired bootstrap over units gives the interval.
 (44), Uganda 1st rains (70) and South Sudan Main (2, almost certainly too few). Eritrea Kremti
 cannot — Eritrea is absent from HarvestStat — and there is no second-season sorghum series for
 South Sudan.
+
+## Feeding the apps and the atlas
+
+`pw_app.html`, `risk_app.html` and the crop-type mask atlas are driven by `app_data.py`, which
+reads per-product reduce CSVs. All 18 sorghum products are registered there and appear
+automatically once their CSV exists; until then `app_data.py` reports them as
+`not built, no reduce CSV yet` and leaves them out, so the apps never receive an empty product.
+
+```bash
+EE_PROJECT=... python reduce_newcountries.py --asset-prefix sorghumX --out-prefix newcS \
+    --project indigo-proxy-484220-q8
+python app_data.py && python embed_app_data.py
+```
+
+**The exports must be `--rich` to reach the apps.** The reducer needs `planting_dekad` and the six
+WRSI and WSI stage bands, which only the rich export carries. The first submission was made
+without `--rich`, so those assets serve the yield calibration (which needs CPI only) but not the
+apps; resubmit with `--rich` for the app path.

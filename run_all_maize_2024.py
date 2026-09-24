@@ -25,12 +25,15 @@ EARLY = {"LGP_dekads": 9, "L_ini": 2, "L_dev": 3, "L_mid": 2, "L_late": 2}   # s
 RICH = False   # --rich: also emit planting_dekad + 6 WRSI/WSI stage bands to cpiX_* (for app full panels)
 
 
-def build_product_image(ee, r, kc, soil, aoi=None, rich=False):
+def build_product_image(ee, r, kc, soil, aoi=None, rich=False, mask=None):
     """Build the CPI/yield/stress output image for one calendar row (any GHA country/season).
     Handles rainfall-anchored short/second seasons and cross-year main seasons (ss>se, e.g. Msimu).
     Returns (out, aoi, meta). `meta` carries the intermediates (planting, staged, Sw/Sh/Sv) so a
     notebook can display each module's layer. Pass `aoi` to run on a test box; default = whole country.
-    Set rich=True to append planting_dekad + the 6 WRSI/WSI stage bands (app full panels)."""
+    Set rich=True to append planting_dekad + the 6 WRSI/WSI stage bands (app full panels).
+    Pass `mask` to override the crop mask. The default is `run.crop_mask_image`, which returns the
+    ESA WorldCereal maize layer; `ctm_mask.crop_mask(ee, country, "maize")` substitutes the ICPAC
+    crop-type mask, which is calibrated to national statistics. See maize_ctm/."""
     from src import (s2_preprocess as S2, s1_preprocess as S1, fusion_phenometrics as FZ,
                      ltn as LTN, planting_date as PD, cpi as CPI, soil as SOIL,
                      wrsi_feedback as WR, zonal_aggregate as ZA)
@@ -40,7 +43,8 @@ def build_product_image(ee, r, kc, soil, aoi=None, rich=False):
         gname = GAUL_NAME.get(country) or GAUL_NAME.get(country.replace(" ", "_"), country)
         aoi = ZA.gaul_admin(ee, [gname], level=0).geometry()
     ss, se = utils.sos_window_dekads(r["sos_detection_window"])
-    mask = crop_mask_image(ee, country, "maize", None)
+    if mask is None:
+        mask = crop_mask_image(ee, country, "maize", None)
     rain = season in RAINFALL_ANCHORED
     wrsi_year, ss_use, se_use = YEAR, ss, se
     if rain:
