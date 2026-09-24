@@ -144,24 +144,35 @@ over the available years as the target and a 70/30 split repeated 200 times for 
 The admin-2 CPI is aggregated onto the HarvestStat units by polygon overlap, weighted by the
 sorghum area in each overlap and measured in an equal-area projection.
 
-**Fitted ceilings, 24 September 2026.**
+**Fitted ceilings, 24 September 2026. Twelve of eighteen products.**
 
-| Country · season | $Y_m$ t/ha | Units | Years | Held-out MAE, fitted vs default | $r$ | Status |
+| Country · season | $Y_m$ t/ha | Units | Years | Held-out MAE, fitted vs uncalibrated | $r$ | Status |
 |---|---|---|---|---|---|---|
 | Ethiopia · Meher | 2.60 | 64 | 2012 to 2021 | 0.43 vs 0.52 | 0.21 | level only |
 | **Kenya · Long rains** | **1.41** | 27 | 2015 to 2016 | **0.27 vs 1.16** | **0.54** | **level and pattern** |
+| Kenya · Short rains | 1.09 | 24 | 2016 to 2017 | 0.19 vs 0.73 | −0.15 | level only |
 | Uganda · 1st rains | 1.31 | 47 | 2009 | 0.67 vs 1.45 | −0.02 | level only |
+| Uganda · 2nd rains | 1.14 | 50 | 2008 | 0.64 vs 1.03 | −0.21 | level only |
+| Rwanda · Season A | 1.34 | 23 | 2010 to 2017 | 0.48 vs 1.32 | 0.43 | level, weak pattern |
+| Rwanda · Season B | 1.37 | 30 | 2009 to 2017 | 0.32 vs 1.22 | −0.17 | level only |
+| Burundi · Season A | 0.55 | 7 | 2013 to 2016 | 0.28 vs 2.00 | −0.17 | level only |
+| Burundi · Season B | 0.90 | 9 | 2012 to 2014 | 0.13 vs 1.70 | 0.37 | level, weak pattern |
 | Somalia · Gu | 0.41 | 12 | 2015 to 2024 | 0.16 vs 1.52 | 0.36 | level, weak pattern |
 | Somalia · Deyr | 0.87 | 12 | 2015 to 2024 | 0.21 vs 0.26 | −0.04 | level only |
 | Sudan · Kharif | 0.80 | 16 | 2015 to 2023 | 0.27 vs 1.08 | −0.14 | level only |
 
-**South Sudan has two HarvestStat reporting units, too few to fit. Tanzania and Eritrea have no
-sorghum yields in HarvestStat at all** and keep the uncalibrated 3.0 t/ha; their atlas yield layers
-are hatched so they cannot be read as calibrated.
+**Six products have no fitted ceiling.** South Sudan Main has two HarvestStat reporting units and
+its second season none; Tanzania and Eritrea have no sorghum yields in HarvestStat at all; Ethiopia
+Belg has two records from a single unit. They keep the uncalibrated default and their atlas yield
+layers are hatched.
+
+Calibration removes a large level error everywhere it is possible. The uncalibrated default
+over-predicted by factors of two to four, and the held-out error falls by 17 to 92 %.
 
 **Only Kenya carries rank skill, and one product ranks backwards.** This is the most important
-result in the set. Against reported yields the Spearman correlation is 0.59 for Kenya, 0.03 for
-Ethiopia and **−0.20 for Uganda**. A negative rank correlation is worse than no information. The
+result in the set. Across the twelve fitted products the Pearson $r$ between predicted and reported yield is above
+0.45 in **one**: Kenya long rains. It is negative in five — Kenya short rains, Uganda both seasons,
+Rwanda Season B and Burundi Season A. A negative rank correlation is worse than no information. The
 Ethiopian case is explained by the asset diagnostics: Meher sorghum runs at WRSI 99 with
 $S_{\text{water}}$ of 1.3 %, so the water balance carries almost no signal and the index is driven
 by the vegetation term alone. **Report Ethiopian and Ugandan sorghum CPI as a level, not a

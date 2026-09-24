@@ -66,10 +66,16 @@ SORGHUM_EMERGENCE_OFFSET = 2
 YM_CAL_SORGHUM = {
     ("Ethiopia", "Meher"): 2.60,   # n64 2012-2021  MAE 0.43 vs 0.52  r 0.21  level only
     ("Kenya", "Long rains"): 1.41,   # n27 2015-2016  MAE 0.27 vs 1.16  r 0.54  level and pattern
+    ("Kenya", "Short rains"): 1.09,   # n24 2016-2017  MAE 0.19 vs 0.73  r -0.15  level only
     ("Uganda", "1st rains"): 1.31,   # n47 2009-2009  MAE 0.67 vs 1.45  r -0.02  level only
+    ("Uganda", "2nd rains"): 1.14,   # n50 2008-2008  MAE 0.64 vs 1.03  r -0.21  level only
     ("Somalia", "Gu"): 0.41,   # n12 2015-2024  MAE 0.16 vs 1.52  r 0.36  level, weak pattern
     ("Somalia", "Deyr"): 0.87,   # n12 2015-2024  MAE 0.21 vs 0.26  r -0.04  level only
     ("Sudan", "Kharif"): 0.80,   # n16 2015-2023  MAE 0.27 vs 1.08  r -0.14  level only
+    ("Rwanda", "Season A"): 1.34,   # n23 2010-2017  MAE 0.48 vs 1.32  r 0.43  level, weak pattern
+    ("Rwanda", "Season B"): 1.37,   # n30 2009-2017  MAE 0.32 vs 1.22  r -0.17  level only
+    ("Burundi", "Season A"): 0.55,   # n7 2013-2016  MAE 0.28 vs 2.0  r -0.17  level only
+    ("Burundi", "Season B"): 0.90,   # n9 2012-2014  MAE 0.13 vs 1.7  r 0.37  level, weak pattern
 }
 SORGHUM_YM_DEFAULT = 3.0        # rainfed grain sorghum potential, uncalibrated
 SORGHUM_YM_SHORT_DEFAULT = 2.0  # short-duration second-season sorghum, uncalibrated

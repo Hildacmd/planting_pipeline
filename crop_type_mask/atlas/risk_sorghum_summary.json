@@ -1,12 +1,12 @@
 [
  {
-  "product": "Sudan_Kharif",
-  "units": 72,
-  "shown": 42,
+  "product": "Ethiopia_Belg",
+  "units": 49,
+  "shown": 37,
   "ym_used": 3.0,
-  "ym_fitted": 0.8,
-  "calibrated": true,
-  "cpi_median": 28.1
+  "ym_fitted": 3.0,
+  "calibrated": false,
+  "cpi_median": 79.0
  },
  {
   "product": "Ethiopia_Meher",
@@ -18,6 +18,15 @@
   "cpi_median": 86.0
  },
  {
+  "product": "Tanzania_Masika",
+  "units": 10,
+  "shown": 7,
+  "ym_used": 3.0,
+  "ym_fitted": 3.0,
+  "calibrated": false,
+  "cpi_median": 88.0
+ },
+ {
   "product": "Tanzania_Msimu",
   "units": 53,
   "shown": 48,
@@ -25,6 +34,15 @@
   "ym_fitted": 3.0,
   "calibrated": false,
   "cpi_median": 81.0
+ },
+ {
+  "product": "South_Sudan_2nd",
+  "units": 39,
+  "shown": 13,
+  "ym_used": 2.0,
+  "ym_fitted": 2.0,
+  "calibrated": false,
+  "cpi_median": 86.0
  },
  {
   "product": "South_Sudan_Main",
@@ -36,6 +54,15 @@
   "cpi_median": 85.0
  },
  {
+  "product": "Kenya_Shortrains",
+  "units": 68,
+  "shown": 55,
+  "ym_used": 2.0,
+  "ym_fitted": 1.09,
+  "calibrated": true,
+  "cpi_median": 87.0
+ },
+ {
   "product": "Kenya_Longrains",
   "units": 66,
   "shown": 54,
@@ -43,6 +70,15 @@
   "ym_fitted": 1.41,
   "calibrated": true,
   "cpi_median": 86.0
+ },
+ {
+  "product": "Uganda_2ndrains",
+  "units": 52,
+  "shown": 45,
+  "ym_used": 2.0,
+  "ym_fitted": 1.14,
+  "calibrated": true,
+  "cpi_median": 87.0
  },
  {
   "product": "Uganda_1strains",
@@ -54,13 +90,40 @@
   "cpi_median": 71.0
  },
  {
-  "product": "Somalia_Gu",
+  "product": "Rwanda_SeasonB",
   "units": 28,
-  "shown": 9,
+  "shown": 26,
   "ym_used": 3.0,
-  "ym_fitted": 0.41,
+  "ym_fitted": 1.37,
   "calibrated": true,
-  "cpi_median": 62.0
+  "cpi_median": 77.5
+ },
+ {
+  "product": "Rwanda_SeasonA",
+  "units": 28,
+  "shown": 26,
+  "ym_used": 3.0,
+  "ym_fitted": 1.34,
+  "calibrated": true,
+  "cpi_median": 78.5
+ },
+ {
+  "product": "Burundi_SeasonB",
+  "units": 35,
+  "shown": 35,
+  "ym_used": 3.0,
+  "ym_fitted": 0.9,
+  "calibrated": true,
+  "cpi_median": 78.0
+ },
+ {
+  "product": "Burundi_SeasonA",
+  "units": 35,
+  "shown": 35,
+  "ym_used": 3.0,
+  "ym_fitted": 0.55,
+  "calibrated": true,
+  "cpi_median": 74.0
  },
  {
   "product": "Somalia_Deyr",
@@ -72,6 +135,15 @@
   "cpi_median": 5.0
  },
  {
+  "product": "Somalia_Gu",
+  "units": 28,
+  "shown": 9,
+  "ym_used": 3.0,
+  "ym_fitted": 0.41,
+  "calibrated": true,
+  "cpi_median": 62.0
+ },
+ {
   "product": "Eritrea_Kremti",
   "units": 45,
   "shown": 29,
@@ -79,5 +151,14 @@
   "ym_fitted": 3.0,
   "calibrated": false,
   "cpi_median": 91.0
+ },
+ {
+  "product": "Sudan_Kharif",
+  "units": 72,
+  "shown": 42,
+  "ym_used": 3.0,
+  "ym_fitted": 0.8,
+  "calibrated": true,
+  "cpi_median": 28.1
  }
 ]

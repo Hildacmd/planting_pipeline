@@ -128,7 +128,12 @@ def main():
 
         c = (agg.cpi / 100).values; yv = agg.y.values
         ym = fit(yv, c)
-        dflt = P.ym_for(country, season)
+        # Compare against the UNCALIBRATED default, not against whatever YM_CAL_SORGHUM currently
+        # holds. Using ym_for here made the second run compare each fitted ceiling with itself, so
+        # the "default" column silently stopped meaning anything.
+        _s = str(season).lower()
+        dflt = (P.SORGHUM_YM_SHORT_DEFAULT
+                if ("short" in _s or "2nd" in _s or "deyr" in _s) else P.SORGHUM_YM_DEFAULT)
         rnd = random.Random(0); mae_c, mae_d = [], []
         idx = list(range(len(agg)))
         for _ in range(SPLITS):
@@ -163,9 +168,17 @@ def main():
                          f'   # n{int(r.units)} {r.years}  MAE {r.test_mae_calibrated} vs '
                          f'{r.test_mae_default}  r {r.r}  {r.status}'
                          for r in fitted.itertuples())
+        import re as _re
         p = f"{H}/sorghum_params.py"; s = open(p).read()
-        s = s.replace("YM_CAL_SORGHUM = {}", "YM_CAL_SORGHUM = {\n" + body + "\n}")
-        open(p, "w").write(s)
+        # Replace the whole block, however it currently reads. Matching the literal
+        # "YM_CAL_SORGHUM = {}" worked once and then silently did nothing on every later run,
+        # while still printing success, because the dict was no longer empty.
+        new_block = "YM_CAL_SORGHUM = {\n" + body + "\n}"
+        s2, n = _re.subn(r"^YM_CAL_SORGHUM = \{.*?^\}", new_block, s,
+                         count=1, flags=_re.S | _re.M)
+        if n != 1:
+            raise SystemExit("could not locate the YM_CAL_SORGHUM block in sorghum_params.py")
+        open(p, "w").write(s2)
         print(f"\npatched YM_CAL_SORGHUM with {len(fitted)} ceilings")
 
 

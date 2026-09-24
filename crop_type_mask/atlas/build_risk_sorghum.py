@@ -47,16 +47,27 @@ TR = from_origin(W_, N_, g["res_deg"], g["res_deg"])
 # the dominant crop: at a flat 1 % Sudan showed 10 of 72 localities, against 42 that hold any
 # sorghum at all, and Sudan carries 6.32 Mha, the largest sorghum area in the region. Ethiopia,
 # Kenya, Uganda and Tanzania have a median unit above 1 % and keep the stricter threshold.
+# All 18 products. Later entries override earlier ones where they overlap, so the MAIN season of a
+# country is listed last: a second season should not paint over the main one.
 JOBS = [
-    ("Sudan_Kharif",      "Sudan",       "Kharif",      3.0, 0.001),
+    ("Ethiopia_Belg",     "Ethiopia",    "Belg",        3.0, 0.01),
     ("Ethiopia_Meher",    "Ethiopia",    "Meher",       3.0, 0.01),
+    ("Tanzania_Masika",   "Tanzania",    "Masika",      3.0, 0.01),
     ("Tanzania_Msimu",    "Tanzania",    "Msimu",       3.0, 0.01),
+    ("South_Sudan_2nd",   "South_Sudan", "2nd",         2.0, 0.001),
     ("South_Sudan_Main",  "South_Sudan", "Main",        3.0, 0.001),
+    ("Kenya_Shortrains",  "Kenya",       "Short rains", 2.0, 0.01),
     ("Kenya_Longrains",   "Kenya",       "Long rains",  3.0, 0.01),
+    ("Uganda_2ndrains",   "Uganda",      "2nd rains",   2.0, 0.01),
     ("Uganda_1strains",   "Uganda",      "1st rains",   3.0, 0.01),
-    ("Somalia_Gu",        "Somalia",     "Gu",          3.0, 0.001),
+    ("Rwanda_SeasonB",    "Rwanda",      "Season B",    3.0, 0.01),
+    ("Rwanda_SeasonA",    "Rwanda",      "Season A",    3.0, 0.01),
+    ("Burundi_SeasonB",   "Burundi",     "Season B",    3.0, 0.01),
+    ("Burundi_SeasonA",   "Burundi",     "Season A",    3.0, 0.01),
     ("Somalia_Deyr",      "Somalia",     "Deyr",        2.0, 0.001),
+    ("Somalia_Gu",        "Somalia",     "Gu",          3.0, 0.001),
     ("Eritrea_Kremti",    "Eritrea",     "Kremti",      3.0, 0.001),
+    ("Sudan_Kharif",      "Sudan",       "Kharif",      3.0, 0.001),
 ]
 COLS = {"wrsi": "mean_WRSI", "cpi": "cpi", "stress": "s_water",
         "yield": "yield_tha", "fail": "failflo_pct"}
@@ -111,7 +122,7 @@ hatch = ((xx + yy) % 9) < 2                      # same stripe as the maize unca
 LAYERS = [("wrsi",   RYG,    40, 100, "risk_sorghum_wrsi.png"),
           ("cpi",    RYG,     0, 100, "risk_sorghum_cpi.png"),
           ("stress", STRESS,  0, 100, "risk_sorghum_stress.png"),
-          ("yield",  YLD,     0,   3, "risk_sorghum_yield.png"),
+          ("yield",  YLD,     0, 2.6, "risk_sorghum_yield.png"),
           ("fail",   FAIL,    0, 100, "risk_sorghum_fail.png")]
 
 for key, cm, lo, hi, name in LAYERS:
