@@ -138,33 +138,49 @@ def build_whc_saxton_mm(ee, root_depth_cm=100, min_whc_mm=25,
 
 
 def get_whc(ee, aoi, soil_cfg, root_depth_cm=100):
-    """Single entry point. Precedence: a materialized `whc_asset` > `whc_source` builder.
+    """Single entry point. Precedence: a materialized asset for THIS depth > the builder.
     root_depth_cm should come from the crop's FAO-56 rooting depth.
 
-    The cached asset is a STATIC raster integrated to one fixed rooting depth, so it is only valid
-    for that depth. It is used when the requested depth matches `whc_asset_root_depth_cm`
-    (default 100); any other depth falls through to the builder, which integrates the SoilGrids
-    layers to the depth actually asked for. Before this check the asset was returned unconditionally
-    and root_depth_cm was silently ignored, which made every rooting-depth sensitivity a no-op.
-    WHC is not linear in depth — SoilGrids texture varies by layer — so the asset cannot be rescaled."""
-    aid = (soil_cfg.get("whc_asset") or "").strip()
-    asset_depth = int(soil_cfg.get("whc_asset_root_depth_cm", 100))
+    A cached asset is a STATIC raster integrated to one fixed rooting depth, so it is only valid
+    for that depth. WHC is NOT linear in depth -- SoilGrids texture varies layer by layer -- so an
+    asset cannot be rescaled to another depth; each depth needs its own export, built once with
+    `python build_whc_asset.py --depth-cm N --submit`.
+
+    `soil_cfg["whc_assets"]` maps rooting depth in cm to asset id, so maize and wheat at 100 cm,
+    sorghum at 150 cm and teff at 60 cm can each have their own. The older single `whc_asset` plus
+    `whc_asset_root_depth_cm` pair is still honoured, so existing configs keep working.
+
+    A depth with no asset falls through to the builder, which integrates SoilGrids to the depth
+    actually asked for. Before this check the asset was returned unconditionally and root_depth_cm
+    was silently ignored, which made every rooting-depth sensitivity a no-op."""
     mn = soil_cfg.get("min_whc_mm", 25)
-    if aid and int(root_depth_cm) == asset_depth:
-        # The cached raster only covers its export footprint (GHA east of ~32.3 E). Countries west of
-        # that edge (Rwanda, Burundi, W. Uganda/Tanzania, W. South Sudan) fall in the gap and the whole
-        # water balance collapses (S_water/WSI/CPI empty). Fill any gap with a live SoilGrids build so
-        # the fast cached path is used where it exists and SoilGrids covers the rest.
-        cached = ee.Image(aid).rename("WHC_mm")
-        fill = build_whc_saxton_mm(ee, root_depth_cm=root_depth_cm, min_whc_mm=mn)
-        # sameFootprint=False so the fill also extends BEYOND the cached asset's export footprint
-        return cached.unmask(fill, sameFootprint=False).rename("WHC_mm")
+    depth = int(root_depth_cm)
+
+    # depth -> asset, from the registry plus the legacy single-asset pair
+    assets = {int(k): str(v).strip() for k, v in (soil_cfg.get("whc_assets") or {}).items()
+              if str(v).strip()}
+    legacy = (soil_cfg.get("whc_asset") or "").strip()
+    if legacy:
+        assets.setdefault(int(soil_cfg.get("whc_asset_root_depth_cm", 100)), legacy)
+
+    aid = assets.get(depth)
     if aid:
-        print(f"  [soil] whc_asset built at {asset_depth} cm but {int(root_depth_cm)} cm requested "
-              f"-> computing WHC from SoilGrids instead of the cached asset")
+        # A cached raster only covers its own export footprint. The original 100 cm asset stops at
+        # 32.3 E, so countries west of it (Rwanda, Burundi, W. Uganda/Tanzania, W. South Sudan)
+        # fell in the gap and the whole water balance collapsed there. Filling any gap from a live
+        # SoilGrids build keeps the fast cached path where it exists and covers the rest.
+        # sameFootprint=False so the fill also extends BEYOND the cached asset's footprint.
+        cached = ee.Image(aid).rename("WHC_mm")
+        fill = build_whc_saxton_mm(ee, root_depth_cm=depth, min_whc_mm=mn)
+        return cached.unmask(fill, sameFootprint=False).rename("WHC_mm")
+
+    if assets:
+        print(f"  [soil] no WHC asset at {depth} cm (have {sorted(assets)}) -> computing from "
+              f"SoilGrids. Materialize it once: "
+              f"python build_whc_asset.py --depth-cm {depth} --submit")
     if soil_cfg.get("whc_source", "saxton_soilgrids") == "saxton_soilgrids":
-        return build_whc_saxton_mm(ee, root_depth_cm=root_depth_cm, min_whc_mm=mn)
-    return build_whc_mm(ee, root_depth_cm=root_depth_cm,
+        return build_whc_saxton_mm(ee, root_depth_cm=depth, min_whc_mm=mn)
+    return build_whc_mm(ee, root_depth_cm=depth,
                         wp_frac=soil_cfg.get("wp_over_fc_frac", 0.45),
                         fc_asset=soil_cfg.get("openlandmap_fc_asset", FC_ASSET),
                         wp_asset=(soil_cfg.get("wp_asset") or None), min_whc_mm=mn)
