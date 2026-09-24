@@ -197,3 +197,5 @@ crop_type_mask/*/work/
 crop_type_mask/regional_report/*.docx
 crop_type_mask/regional_report/figures/
 soilgrids_vwc/
+maize_ctm/work/
+sorghum_pipeline/work/
