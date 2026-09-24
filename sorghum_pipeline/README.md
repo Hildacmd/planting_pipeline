@@ -144,3 +144,22 @@ The area threshold for colouring a unit is 0.1 % in Sudan, Somalia, South Sudan 
 elsewhere. Their reporting units are enormous, so sorghum is a small share of almost every one even
 where it dominates: at a flat 1 % Sudan showed 10 of 72 localities against the 42 that hold any
 sorghum, and Sudan carries the largest sorghum area in the region.
+
+## GEE viewer
+
+`gee_viewer_sorghum.js` displays any of the 18 products in the Earth Engine Code Editor, alongside
+the crop-type mask it was computed over, the arm-B product where it exists, and the 1.5 m
+water-holding capacity layer.
+
+1. Open <https://code.earthengine.google.com> with the account that owns `ee-manzikye`.
+2. New script, paste the file, set `PRODUCT` at the top, Run.
+3. To give colleagues a link that needs **no** Earth Engine account: **Apps → NEW APP → pick this
+   script → Publish**. The app URL is then shareable.
+
+Each product carries its own caveat in the side panel — the fitted ceiling and its rank
+correlation, or "UNCALIBRATED, report CPI not yield" — so the warning travels with the map rather
+than living only in the documentation.
+
+The planting-dekad layer stretches to each product's own window and uses a single-hue ramp, dark
+for early and light for late. A planting date is an ordered quantity with no meaningful midpoint,
+so a multi-hue or diverging ramp would invite reading the colours as categories.
