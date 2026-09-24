@@ -69,12 +69,15 @@ def ym_img_for(ee, aoi, country, season, dem="USGS/SRTMGL1_003"):
     return ee.Image.constant(ym_lo).where(highland, ym_hi).rename("Ym")
 
 
-def s_water(ee, staged):
-    """FAO-33 stage-weighted water-stress fraction 0–1, from per-stage AET/WR (run_wrsi_staged)."""
+def s_water(ee, staged, ky=None):
+    """FAO-33 stage-weighted water-stress fraction 0–1, from per-stage AET/WR (run_wrsi_staged).
+
+    `ky` overrides the module's maize stage factors with another crop's, e.g. FAO-33 sorghum
+    {"veg": 0.2, "flo": 0.55, "grf": 0.45} (total 0.9 against maize 1.25). Default = maize."""
     S = ee.Image.constant(0.0)
-    for s, ky in KY.items():
-        rel_def = ee.Image(1).subtract(staged[f"aet_{s}"].divide(staged[f"wr_{s}"].max(1e-6))).clamp(0, 1)
-        S = S.add(rel_def.multiply(ky))
+    for stage, k in (ky or KY).items():
+        rel_def = ee.Image(1).subtract(staged[f"aet_{stage}"].divide(staged[f"wr_{stage}"].max(1e-6))).clamp(0, 1)
+        S = S.add(rel_def.multiply(k))
     return S.clamp(0, 1).rename("S_water")
 
 
