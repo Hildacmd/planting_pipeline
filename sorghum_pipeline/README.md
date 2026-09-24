@@ -49,8 +49,8 @@ sorghum.
 ```bash
 python sorghum_pipeline/build_calendar.py                                   # rebuild the calendar
 python sorghum_pipeline/run_all_sorghum.py --stage all                      # dry run, prints the plan
-EE_PROJECT=indigo-proxy-484220-q8 python sorghum_pipeline/run_all_sorghum.py --stage high --submit
-EE_PROJECT=indigo-proxy-484220-q8 python sorghum_pipeline/zonal_sorghum.py  # once the assets exist
+EE_PROJECT=ee-manzikye python sorghum_pipeline/run_all_sorghum.py --stage high --submit
+EE_PROJECT=ee-manzikye python sorghum_pipeline/zonal_sorghum.py  # once the assets exist
 python sorghum_pipeline/calibrate_ym_sorghum.py --write                     # fit and record Ym
 ```
 
@@ -113,7 +113,7 @@ automatically once their CSV exists; until then `app_data.py` reports them as
 
 ```bash
 EE_PROJECT=... python reduce_newcountries.py --asset-prefix sorghumX --out-prefix newcS \
-    --project indigo-proxy-484220-q8
+    --project ee-manzikye
 python app_data.py && python embed_app_data.py
 ```
 

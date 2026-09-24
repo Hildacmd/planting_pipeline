@@ -8,7 +8,7 @@ factors, and the crop mask (the crop-type mask series, not WorldCereal).
 DRY-RUN by default. Nothing is exported unless you add --submit.
 
     python sorghum_pipeline/run_all_sorghum.py --stage high
-    EE_PROJECT=indigo-proxy-484220-q8 python sorghum_pipeline/run_all_sorghum.py --stage high --submit
+    EE_PROJECT=ee-manzikye python sorghum_pipeline/run_all_sorghum.py --stage high --submit
     ... --stage medium --submit        # then stage 2
 
 Each product -> asset `sorghum_<Country>_<Season>_<YEAR>` at 250 m, bands CPI, yield_tha_x100,
@@ -32,7 +32,10 @@ YEAR = 2024
 # Products are prefixed so the two arms can sit side by side and be scored against each other.
 CALENDARS = {"report": (f"{H}/config/season_calendar_sorghum.csv", "sorghum"),
              "cm4ew":  (f"{H}/config/season_calendar_sorghum_cm4ew.csv", "sorghumB")}
-EE_PROJECT = os.environ.get("EE_PROJECT", "indigo-proxy-484220-q8")
+# Compute and exports run in this project; the crop-type masks are READ from wherever
+# ctm_mask/sorghum_params point, which may be a different project (they are readable
+# cross-project under the same Google account).
+EE_PROJECT = os.environ.get("EE_PROJECT", "ee-manzikye")
 
 # Secondary and short seasons use the rainfall-anchored onset: green-up detection is unreliable
 # there (WORKFLOW_SHORTRAINS), and Season A in the Rwandan and Burundian highlands is defeated by

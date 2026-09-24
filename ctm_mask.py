@@ -17,7 +17,12 @@ error.
     mask = crop_mask(ee, "Kenya", "maize", 25)        # your own threshold on frac
     frac = crop_fraction(ee, "Kenya", "maize")        # % of the cell, for area weights
 """
-ASSET_ROOT = "projects/indigo-proxy-484220-q8/assets/crop_type_mask"
+# Where the crop-type mask assets LIVE. This is not necessarily the project that runs the
+# compute: the masks were built under indigo-proxy and are readable from ee-manzikye under the
+# same Google account. Override with CTM_ASSET_ROOT if they are ever moved or copied.
+import os as _os
+ASSET_ROOT = _os.environ.get(
+    "CTM_ASSET_ROOT", "projects/indigo-proxy-484220-q8/assets/crop_type_mask")
 
 # country -> (ISO code used in the asset name, crops the product carries)
 # Rwanda, Burundi and Somalia use their SPAM-2020 profiles, which are the released products.

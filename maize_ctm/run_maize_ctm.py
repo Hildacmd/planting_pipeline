@@ -33,7 +33,7 @@ from src import utils                                   # noqa: E402
 import ctm_mask as CTM                                   # noqa: E402
 import run_all_maize_2024 as M                           # noqa: E402
 
-EE_PROJECT = os.environ.get("EE_PROJECT", "indigo-proxy-484220-q8")
+EE_PROJECT = os.environ.get("EE_PROJECT", "ee-manzikye")
 YEAR = M.YEAR
 
 

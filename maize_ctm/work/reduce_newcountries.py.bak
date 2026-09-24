@@ -12,17 +12,6 @@ reference outside Kenya, so the app's validation sub-panel is honestly blank.
 
   EE_PROJECT=ee-manzikye python reduce_newcountries.py                  # all ready cpiX_ assets
   EE_PROJECT=ee-manzikye python reduce_newcountries.py Uganda_1strains  # one, by <Country>_<Season>
-
-Other crops and mask variants reuse this same reducer rather than a parallel copy, so the CSV
-schema the apps consume cannot drift between crops:
-
-  # sorghum (sorghum_pipeline), written as newcS_<product>_2024_L{1,2}_skill_WKT.csv
-  EE_PROJECT=ee-manzikye python reduce_newcountries.py \
-      --asset-prefix sorghumX --out-prefix newcS --project ee-manzikye \
-      Sudan_Kharif Ethiopia_Meher
-
-  # maize on the crop-type mask (maize_ctm), written as newcCTM_*
-  EE_PROJECT=... python reduce_newcountries.py --asset-prefix cpiCTMX --out-prefix newcCTM ...
 """
 import sys, os, csv, ee, geopandas as gpd
 from shapely import wkt as shp_wkt
@@ -35,22 +24,8 @@ def gdf_to_ee(g):
         feats.append(ee.Feature(ee.Geometry(r["geometry"].__geo_interface__), {"_id": int(r["_id"])}))
     return ee.FeatureCollection(feats)
 
-_ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
-
-
-def _opt(name, default):
-    """Minimal flag parser; argparse would fight the positional product list."""
-    flag = f"--{name}"
-    if flag in sys.argv:
-        return sys.argv[sys.argv.index(flag) + 1]
-    return default
-
-
-ASSET_PREFIX = _opt("asset-prefix", "cpiX")      # cpiX | sorghumX | cpiCTMX
-OUT_PREFIX = _opt("out-prefix", "newc")          # newc | newcS | newcCTM
-EE_PROJECT = _opt("project", os.environ.get("EE_PROJECT", "ee-manzikye"))
-ee.Initialize(project=EE_PROJECT)
-PROJ = f"projects/{EE_PROJECT}/assets"
+ee.Initialize(project=os.environ.get("EE_PROJECT", "ee-manzikye"))
+PROJ = "projects/ee-manzikye/assets"
 GADM_DIR = "/Users/hildamanzi/ICPAC-WORK/ADMIN-boundaries"
 PIXEL_HA = 6.25                                    # 250 m pixel
 VAL_BANDS = ["CPI", "S_water", "S_heat", "S_veg", "wrsi_veg", "wrsi_flo", "wrsi_grf",
@@ -139,11 +114,11 @@ def reduce_stats(img, fc):
 
 def process(product):
     ctok = product.split("_")[0]
-    asset = f"{PROJ}/{ASSET_PREFIX}_{product}_2024"
+    asset = f"{PROJ}/cpiX_{product}_2024"
     try:
         ee.data.getAsset(asset)
     except Exception:
-        print(f"  [skip] asset not ready: {ASSET_PREFIX}_{product}_2024"); return
+        print(f"  [skip] asset not ready: cpiX_{product}_2024"); return
     img = ee.Image(asset)
     print(f"== {product} ==")
     for lvl in (1, 2):
@@ -186,7 +161,7 @@ def process(product):
                 row["grf_dekad"] = wrap(md + st["ini"] + st["dev"] + st["mid"])           # grain fill
                 row["mat_dekad"] = wrap(md + st["ini"] + st["dev"] + st["mid"] + st["late"])  # maturity
             rows.append(row)
-        out = f"{OUT_PREFIX}_{product}_2024_L{lvl}_skill_WKT.csv"
+        out = f"newc_{product}_2024_L{lvl}_skill_WKT.csv"
         with open(out, "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=OUT_COLS); w.writeheader(); w.writerows(rows)
         got = sum(1 for r in rows if r["cpi"] is not None)
@@ -197,14 +172,6 @@ ALL = ["Uganda_1strains", "Uganda_2ndrains", "Rwanda_SeasonA", "Rwanda_SeasonB",
        "Burundi_SeasonA", "Burundi_SeasonB", "Tanzania_Masika", "Tanzania_Msimu",
        "Tanzania_Vuli", "SouthSudan_Main", "Somalia_Gu", "Somalia_Deyr", "Ethiopia_Belg"]
 
-SORGHUM_ALL = ["Sudan_Kharif", "Ethiopia_Meher", "Ethiopia_Belg", "Tanzania_Msimu",
-               "Tanzania_Masika", "South_Sudan_Main", "South_Sudan_2nd", "Kenya_Longrains",
-               "Kenya_Shortrains", "Uganda_1strains", "Uganda_2ndrains", "Somalia_Gu",
-               "Somalia_Deyr", "Rwanda_SeasonA", "Rwanda_SeasonB", "Burundi_SeasonA",
-               "Burundi_SeasonB", "Eritrea_Kremti"]
-
 if __name__ == "__main__":
-    default = SORGHUM_ALL if ASSET_PREFIX.startswith("sorghum") else ALL
-    print(f"asset prefix {ASSET_PREFIX}_ · project {EE_PROJECT} · output {OUT_PREFIX}_*")
-    for p in (_ARGS or default):
+    for p in (sys.argv[1:] or ALL):
         process(p)

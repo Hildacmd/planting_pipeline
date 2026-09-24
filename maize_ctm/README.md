@@ -22,7 +22,7 @@ identical, so any difference between `cpi_*` and `cpiCTM_*` is attributable to t
 
 ```bash
 python maize_ctm/run_maize_ctm.py --stage all                        # dry run, prints the plan
-EE_PROJECT=indigo-proxy-484220-q8 python maize_ctm/run_maize_ctm.py --stage high --submit --rich
+EE_PROJECT=ee-manzikye python maize_ctm/run_maize_ctm.py --stage high --submit --rich
 python maize_ctm/run_maize_ctm.py --min-fraction 25 --stage high     # tighter stratum
 ```
 
@@ -39,7 +39,7 @@ the crop-type mask. Sudan, Eritrea and Djibouti have no maize product and no mai
 
 ```bash
 EE_PROJECT=... python reduce_newcountries.py --asset-prefix cpiCTMX --out-prefix newcCTM \
-    --project indigo-proxy-484220-q8
+    --project ee-manzikye
 ```
 
 ## A note on the binary mask

@@ -9,7 +9,7 @@ fraction, which the calibration then uses as the overlap weight.
 count equally when a ceiling is fitted, and an unweighted mean CPI over a large arid district
 is dominated by land that grows nothing.
 
-    EE_PROJECT=indigo-proxy-484220-q8 python sorghum_pipeline/zonal_sorghum.py               # arm A, all finished
+    EE_PROJECT=ee-manzikye python sorghum_pipeline/zonal_sorghum.py               # arm A, all finished
     EE_PROJECT=... python sorghum_pipeline/zonal_sorghum.py --arm B                          # arm B (CM4EW calendar)
     EE_PROJECT=... python sorghum_pipeline/zonal_sorghum.py Sudan_Kharif Ethiopia_Meher      # named products
 
@@ -27,7 +27,7 @@ from src import utils, zonal_aggregate as ZA           # noqa: E402
 from run import GAUL_NAME                              # noqa: E402
 
 YEAR = 2024
-PROJ = f"projects/{os.environ.get('EE_PROJECT', 'indigo-proxy-484220-q8')}/assets"
+PROJ = f"projects/{os.environ.get('EE_PROJECT', 'ee-manzikye')}/assets"
 FOLDER = "planting_outputs"
 
 

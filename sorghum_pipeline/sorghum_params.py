@@ -92,7 +92,11 @@ MASK_ISO = {
     "Rwanda": "RW20", "Burundi": "BI20", "Somalia": "SO20",
     "South_Sudan": "SS", "Sudan": "SD", "Eritrea": "ER",
 }
-MASK_ASSET_ROOT = "projects/indigo-proxy-484220-q8/assets/crop_type_mask"
+import os as _os
+# Where the masks LIVE, which need not be the project running the compute; readable
+# cross-project under the same account. Override with CTM_ASSET_ROOT.
+MASK_ASSET_ROOT = _os.environ.get(
+    "CTM_ASSET_ROOT", "projects/indigo-proxy-484220-q8/assets/crop_type_mask")
 # mapped sorghum area, Mha, from crop_type_mask/regional_report/tbl_crops.csv
 MASK_AREA_MHA = {"Sudan": 6.320, "Ethiopia": 1.836, "Tanzania": 0.573, "South_Sudan": 0.295,
                  "Kenya": 0.209, "Uganda": 0.199, "Somalia": 0.162, "Rwanda": 0.156,
