@@ -1,0 +1,268 @@
+{
+ "ETH": {
+  "folder": "Ethiopia",
+  "iso": "ET",
+  "cropland": 18.633,
+  "crops": [
+   {
+    "crop": "maize",
+    "mapped": 2.034,
+    "target": 2.048,
+    "mask": 7.044,
+    "conf": 80
+   },
+   {
+    "crop": "wheat",
+    "mapped": 1.585,
+    "target": 1.585,
+    "mask": 5.876,
+    "conf": 77
+   },
+   {
+    "crop": "sorghum",
+    "mapped": 1.836,
+    "target": 1.828,
+    "mask": 5.711,
+    "conf": 72
+   },
+   {
+    "crop": "teff",
+    "mapped": 2.716,
+    "target": 2.818,
+    "mask": 6.918,
+    "conf": 71
+   }
+  ]
+ },
+ "KEN": {
+  "folder": "Kenya",
+  "iso": "KE",
+  "cropland": 5.035,
+  "crops": [
+   {
+    "crop": "maize",
+    "mapped": 1.539,
+    "target": 1.626,
+    "mask": 4.607,
+    "conf": 72
+   },
+   {
+    "crop": "wheat",
+    "mapped": 0.151,
+    "target": 0.143,
+    "mask": 0.45,
+    "conf": 73
+   },
+   {
+    "crop": "sorghum",
+    "mapped": 0.209,
+    "target": 0.216,
+    "mask": 0.687,
+    "conf": 63
+   }
+  ]
+ },
+ "UGA": {
+  "folder": "Uganda",
+  "iso": "UG",
+  "cropland": 4.777,
+  "crops": [
+   {
+    "crop": "maize",
+    "mapped": 0.575,
+    "target": 0.591,
+    "mask": 1.968,
+    "conf": 73
+   },
+   {
+    "crop": "sorghum",
+    "mapped": 0.199,
+    "target": 0.24,
+    "mask": 0.386,
+    "conf": 64
+   }
+  ]
+ },
+ "TZA": {
+  "folder": "Tanzania",
+  "iso": "TZ",
+  "cropland": 13.777,
+  "crops": [
+   {
+    "crop": "maize",
+    "mapped": 3.581,
+    "target": 3.908,
+    "mask": 10.467,
+    "conf": 73
+   },
+   {
+    "crop": "wheat",
+    "mapped": 0.078,
+    "target": 0.095,
+    "mask": 0.106,
+    "conf": 57
+   },
+   {
+    "crop": "sorghum",
+    "mapped": 0.573,
+    "target": 0.681,
+    "mask": 1.163,
+    "conf": 66
+   }
+  ]
+ },
+ "RWA": {
+  "folder": "Rwanda_SPAM2020",
+  "iso": "RW20",
+  "cropland": 0.999,
+  "crops": [
+   {
+    "crop": "maize",
+    "mapped": 0.198,
+    "target": 0.202,
+    "mask": 0.604,
+    "conf": 72
+   },
+   {
+    "crop": "wheat",
+    "mapped": 0.019,
+    "target": 0.022,
+    "mask": 0.023,
+    "conf": 67
+   },
+   {
+    "crop": "sorghum",
+    "mapped": 0.156,
+    "target": 0.167,
+    "mask": 0.528,
+    "conf": 68
+   }
+  ]
+ },
+ "BDI": {
+  "folder": "Burundi_SPAM2020",
+  "iso": "BI20",
+  "cropland": 0.532,
+  "crops": [
+   {
+    "crop": "maize",
+    "mapped": 0.093,
+    "target": 0.094,
+    "mask": 0.305,
+    "conf": 67
+   },
+   {
+    "crop": "wheat",
+    "mapped": 0.003,
+    "target": 0.004,
+    "mask": 0.0,
+    "conf": 64
+   },
+   {
+    "crop": "sorghum",
+    "mapped": 0.023,
+    "target": 0.028,
+    "mask": 0.055,
+    "conf": 61
+   }
+  ]
+ },
+ "SOM": {
+  "folder": "Somalia_SPAM2020",
+  "iso": "SO20",
+  "cropland": 1.07,
+  "crops": [
+   {
+    "crop": "maize",
+    "mapped": 0.11,
+    "target": 0.125,
+    "mask": 0.329,
+    "conf": 70
+   },
+   {
+    "crop": "sorghum",
+    "mapped": 0.162,
+    "target": 0.225,
+    "mask": 0.46,
+    "conf": 68
+   }
+  ]
+ },
+ "SSD": {
+  "folder": "South_Sudan",
+  "iso": "SS",
+  "cropland": 0.812,
+  "crops": [
+   {
+    "crop": "maize",
+    "mapped": 0.013,
+    "target": null,
+    "mask": 0.002,
+    "conf": 72
+   },
+   {
+    "crop": "sorghum",
+    "mapped": 0.295,
+    "target": null,
+    "mask": 0.865,
+    "conf": 62
+   }
+  ]
+ },
+ "SDN": {
+  "folder": "Sudan",
+  "iso": "SD",
+  "cropland": 17.286,
+  "crops": [
+   {
+    "crop": "sorghum",
+    "mapped": 6.32,
+    "target": 7.479,
+    "mask": 13.065,
+    "conf": 70
+   },
+   {
+    "crop": "millet",
+    "mapped": 2.278,
+    "target": 3.316,
+    "mask": 4.859,
+    "conf": 67
+   },
+   {
+    "crop": "wheat",
+    "mapped": 0.203,
+    "target": 0.263,
+    "mask": 0.818,
+    "conf": 89
+   }
+  ]
+ },
+ "ERI": {
+  "folder": "Eritrea",
+  "iso": "ER",
+  "cropland": 0.345,
+  "crops": [
+   {
+    "crop": "sorghum",
+    "mapped": 0.133,
+    "target": null,
+    "mask": 0.41,
+    "conf": 75
+   },
+   {
+    "crop": "millet",
+    "mapped": 0.03,
+    "target": null,
+    "mask": 0.118,
+    "conf": 76
+   }
+  ]
+ },
+ "DJI": {
+  "folder": "Djibouti",
+  "iso": "DJ",
+  "cropland": 5e-05,
+  "cropland_any": 0.00343,
+  "crops": []
+ }
+}

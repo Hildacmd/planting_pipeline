@@ -136,7 +136,7 @@ function hx(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.
 function ramp(stops,t){t=Math.max(0,Math.min(1,t));const n=stops.length-1;let i=Math.min(n-1,Math.floor(t*n));const f=t*n-i;const a=hx(stops[i]),b=hx(stops[i+1]);return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;}
 
 const ATTRS={
-  md:{label:'Planting dekad',min:7,max:13,stops:['#2b83ba','#80bfab','#ffffbf','#fdae61','#d7191c'],fmt:dekadLabel,dekad:true,note:'most common planting dekad'},
+  md:{label:'Planting dekad',min:7,max:13,stops:['#08306b','#2171b5','#4292c6','#6baed6','#9ecae1','#c6dbef'],fmt:dekadLabel,dekad:true,note:'most common planting dekad'},
   hit:{label:'Calendar hit-rate',min:0,max:1,stops:['#d73027','#fee08b','#1a9850'],fmt:v=>(v*100).toFixed(0)+'%',good:'high',note:'share of maize planting inside the FEWS/FAO window'},
   bias:{label:'Bias (dekads)',min:-3,max:3,div:true,stops:['#2166ac','#67a9cf','#f7f7f7','#ef8a62','#b2182b'],fmt:v=>(v>=0?'+':'')+v.toFixed(1),note:'− earlier / + later than the calendar centre'},
   mae:{label:'MAE (dekads)',min:0,max:3,stops:['#ffffcc','#fd8d3c','#800026'],fmt:v=>v.toFixed(2),good:'low',note:'mean absolute departure from the calendar centre'},
@@ -145,7 +145,7 @@ const ATTRS={
   fail:{label:'Crop-failure risk',min:0,max:100,stops:['#fff5f0','#fb6a4a','#67000d'],fmt:v=>v.toFixed(0)+'%',good:'low',note:'% crop area in WRSI class ≤ 2'},
   caf:{label:'Crop area fraction',min:0,max:0.3,stops:['#f7fcf5','#a1d99b','#238b45','#00441b'],fmt:v=>(v*100).toFixed(1)+'%',note:'share of the unit that is detected maize (CAF)'},
   viab:{label:'Planting viability % (LVPD)',min:0,max:100,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0)+'%',good:'high',note:'% of maize area passing the LVPD gate (early-variety WRSI ≥ 50); short rains only'},
-  obs:{label:'Observed planting — farmers (MAM)',min:7,max:13,stops:['#2b83ba','#80bfab','#ffffbf','#fdae61','#d7191c'],fmt:dekadLabel,dekad:true,note:'MAM 2024 median farmer planting date (~4.8M farmers; county at L1/L2, ward at L3) — validation ground truth'},
+  obs:{label:'Observed planting — farmers (MAM)',min:7,max:13,stops:['#08306b','#2171b5','#4292c6','#6baed6','#9ecae1','#c6dbef'],fmt:dekadLabel,dekad:true,note:'MAM 2024 median farmer planting date (~4.8M farmers; county at L1/L2, ward at L3) — validation ground truth'},
   perr:{label:'Planting error (estimated − observed)',min:-3,max:3,div:true,stops:['#2166ac','#67a9cf','#f7f7f7','#ef8a62','#b2182b'],fmt:v=>(v>=0?'+':'')+v.toFixed(0)+' dk',note:'estimated modal − observed farmer median, dekads (0 = perfect · ±1 ≈ 10 days) — Long rains only'}
 ,
   fcci:{label:'Canopy condition (FCCI)',min:0,max:100,stops:['#a50026','#fdae61','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0),good:'high',note:'Fused Canopy Condition Index — peak NDRE+FPAR+SAR greenness (0–100), a cloud-proof vegetation cross-check on WRSI'}

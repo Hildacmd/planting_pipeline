@@ -125,7 +125,7 @@ if SEASON != "Short rains":
 print("valid maize pixels:",
       planting.reduceRegion(ee.Reducer.count(), aoi_run, 250, maxPixels=int(1e13)).get("planting_dekad").getInfo())
 M = new_map()
-ee_layer(M, planting.clip(aoi_run), {"min": ss, "max": se+3, "palette": ["440154","3b528b","21908d","5dc863","fde725"]},
+ee_layer(M, planting.clip(aoi_run), {"min": ss, "max": se+3, "palette": ["08306b","08519c","2171b5","4292c6","6baed6","9ecae1","c6dbef"]},
          f"Planting dekad — {SEASON}")
 M   # geemap Layers panel (toggle + opacity) — no separate layer control needed
 """)

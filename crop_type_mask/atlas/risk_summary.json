@@ -1,0 +1,117 @@
+{
+ "KEN": {
+  "seasons": [
+   "Long rains 2024"
+  ],
+  "units": 738,
+  "watch": 1,
+  "alert": 0,
+  "critical": 1,
+  "level": "Ward",
+  "min_caf_pct": 1.0,
+  "yield_median": 1.91,
+  "yield_note": "Typical-year calibration: ceiling 2.34 t/ha fitted to HarvestStat Long 2015-2024 (45 units; held-out error 0.68 t/ha vs 2.26 uncalibrated; r 0.57).",
+  "cpi_median": 82
+ },
+ "ETH": {
+  "seasons": [
+   "Meher 2024"
+  ],
+  "units": 405,
+  "watch": 6,
+  "alert": 0,
+  "critical": 0,
+  "level": "Woreda",
+  "min_caf_pct": 1.0,
+  "yield_median": 3.31,
+  "yield_note": "Typical-year calibration: ceiling 4.14 t/ha fitted to HarvestStat Meher 2012-2021 (76 units; held-out error 0.71 t/ha vs 1.38 uncalibrated; r 0.64).",
+  "cpi_median": 80
+ },
+ "UGA": {
+  "seasons": [
+   "1st rains 2024"
+  ],
+  "units": 127,
+  "watch": 0,
+  "alert": 0,
+  "critical": 0,
+  "level": "District",
+  "min_caf_pct": 1.0,
+  "cpi_median": 72,
+  "yield_median": 1.68,
+  "yield_note": "Yield ceiling 2.34 t/ha fitted to HarvestStat First 2008-2009 (74 units; test error 1.24 t/ha vs 2.9 uncalibrated). Level only \u2014 the ranking of units is not reliable. Provisional: statistics end in 2009."
+ },
+ "TZA": {
+  "seasons": [
+   "Masika 2024",
+   "Msimu 2024"
+  ],
+  "units": 191,
+  "watch": 8,
+  "alert": 5,
+  "critical": 2,
+  "level": "District",
+  "min_caf_pct": 1.0,
+  "cpi_median": 79,
+  "yield_median": 4.67,
+  "yield_uncal": true,
+  "yield_note": "UNCALIBRATED: CPI \u00d7 the default ceiling of 6.0 t/ha, shown hatched. There are no HarvestStat maize yields to calibrate against; in Rwanda, Burundi and Somalia the default ran 3\u20137\u00d7 above reported yields, so read these as relative, not absolute, values."
+ },
+ "RWA": {
+  "seasons": [
+   "Season A 2024"
+  ],
+  "units": 26,
+  "watch": 0,
+  "alert": 0,
+  "critical": 0,
+  "level": "District",
+  "min_caf_pct": 1.0,
+  "cpi_median": 82,
+  "yield_median": 2.14,
+  "yield_note": "Yield ceiling 2.61 t/ha fitted to HarvestStat Season A 2010-2017 (30 units; test error 0.37 t/ha vs 2.75 uncalibrated). Level only \u2014 the ranking of units is not reliable."
+ },
+ "BDI": {
+  "seasons": [
+   "Season A 2024"
+  ],
+  "units": 104,
+  "watch": 1,
+  "alert": 0,
+  "critical": 0,
+  "level": "Commune",
+  "min_caf_pct": 1.0,
+  "cpi_median": 86,
+  "yield_median": 1.61,
+  "yield_note": "Yield ceiling 1.88 t/ha fitted to HarvestStat Season A 2012-2016 (16 units; test error 0.71 t/ha vs 3.57 uncalibrated). Level only \u2014 the ranking of units is not reliable."
+ },
+ "SOM": {
+  "seasons": [
+   "Gu 2024"
+  ],
+  "units": 9,
+  "watch": 0,
+  "alert": 0,
+  "critical": 1,
+  "level": "District",
+  "min_caf_pct": 0.1,
+  "cpi_median": 29,
+  "yield_median": 0.3,
+  "yield_note": "Yield ceiling 1.02 t/ha fitted to HarvestStat Gu 2015-2024 (18 units; test error 0.24 t/ha vs 1.58 uncalibrated). Level only \u2014 the ranking of units is not reliable."
+ },
+ "SSD": {
+  "seasons": [
+   "Main 2024"
+  ],
+  "units": 13,
+  "watch": 0,
+  "alert": 0,
+  "critical": 0,
+  "level": "County",
+  "min_caf_pct": 0.1,
+  "cpi_median": 80,
+  "yield_median": 4.74,
+  "yield_uncal": true,
+  "yield_note": "UNCALIBRATED: CPI \u00d7 the default ceiling of 6.0 t/ha, shown hatched. There are no HarvestStat maize yields to calibrate against; in Rwanda, Burundi and Somalia the default ran 3\u20137\u00d7 above reported yields, so read these as relative, not absolute, values."
+ }
+}

@@ -72,11 +72,20 @@ Green-up follows planting by about two dekads, and the tail allows for the late 
 staggered planting front, which is how the maize windows are set. Regions within a country agree
 in CM4EW, so the modal day of year is taken and the number of contributing regions recorded.
 
-**Nine of the eighteen products have no CM4EW sorghum entry** — Kenya short rains, Uganda second
-rains, Rwanda and Burundi Seasons A and B, Tanzania Msimu and Masika, and Ethiopia Belg. These
-take the country's **maize** window, because sorghum shares those rains. Each row records which
-source it came from in `crop_calendar_source`. **They are provisional and are the first thing to
-validate with national partners.**
+**GEOGLAM CM4EW is carried as a second arm, and both were run.** Its shapefile holds a
+sorghum-specific calendar where Table 2.0 gives one generalised calendar per country. They disagree
+for six of the nine products CM4EW covers, by three dekads for Kenya, Eritrea, Uganda and South
+Sudan's second season. The arms differ in exactly one thing: arm B takes CM4EW's planting window
+and cycle, with the SOS window re-derived by arm A's rule, so a difference cannot be an artefact of
+the rule.
+
+**The A/B found no difference.** Scored against HarvestStat on the three products that can be
+validated: Ethiopia Δρ −0.044 [−0.279, 0.187], Kenya −0.046 [−0.187, 0.073], Uganda −0.007
+[−0.293, 0.274]. Arm A is nominally ahead in all three and **every interval spans zero**. The
+report's calendar therefore stands on the grounds of not being beaten rather than of winning, and
+the three-dekad disagreements remain a question for national partners that this test cannot close.
+Eritrea and South Sudan could not be scored at all: Eritrea is absent from HarvestStat, and South
+Sudan has two units.
 
 ## 3.2 Planting date
 
@@ -130,14 +139,33 @@ literature reviewed. Heat results should not be reported on their own until it i
 
 $$Y_a=\frac{\mathrm{CPI}}{100}\times Y_m$$
 
-$Y_m$ is fitted to HarvestStat sorghum yields by least squares through the origin, with the
-median over the available years as the target and a 70/30 split repeated 200 times for the
-held-out error. The fit is not yet run: it needs the 2024 CPI to exist first.
+$Y_m$ is fitted to HarvestStat sorghum yields by least squares through the origin, with the median
+over the available years as the target and a 70/30 split repeated 200 times for the held-out error.
+The admin-2 CPI is aggregated onto the HarvestStat units by polygon overlap, weighted by the
+sorghum area in each overlap and measured in an equal-area projection.
 
-**Until then every product carries an uncalibrated 3.0 t/ha, or 2.0 for short seasons, and the
-yield band is not reportable.** On every maize country where the equivalent default could be
-tested it was two to seven times what smallholders harvest. CPI carries the season signal and
-is usable immediately; $Y_m$ only sets the level.
+**Fitted ceilings, 24 September 2026.**
+
+| Country · season | $Y_m$ t/ha | Units | Years | Held-out MAE, fitted vs default | $r$ | Status |
+|---|---|---|---|---|---|---|
+| Ethiopia · Meher | 2.60 | 64 | 2012 to 2021 | 0.43 vs 0.52 | 0.21 | level only |
+| **Kenya · Long rains** | **1.41** | 27 | 2015 to 2016 | **0.27 vs 1.16** | **0.54** | **level and pattern** |
+| Uganda · 1st rains | 1.31 | 47 | 2009 | 0.67 vs 1.45 | −0.02 | level only |
+| Somalia · Gu | 0.41 | 12 | 2015 to 2024 | 0.16 vs 1.52 | 0.36 | level, weak pattern |
+| Somalia · Deyr | 0.87 | 12 | 2015 to 2024 | 0.21 vs 0.26 | −0.04 | level only |
+| Sudan · Kharif | 0.80 | 16 | 2015 to 2023 | 0.27 vs 1.08 | −0.14 | level only |
+
+**South Sudan has two HarvestStat reporting units, too few to fit. Tanzania and Eritrea have no
+sorghum yields in HarvestStat at all** and keep the uncalibrated 3.0 t/ha; their atlas yield layers
+are hatched so they cannot be read as calibrated.
+
+**Only Kenya carries rank skill, and one product ranks backwards.** This is the most important
+result in the set. Against reported yields the Spearman correlation is 0.59 for Kenya, 0.03 for
+Ethiopia and **−0.20 for Uganda**. A negative rank correlation is worse than no information. The
+Ethiopian case is explained by the asset diagnostics: Meher sorghum runs at WRSI 99 with
+$S_{\text{water}}$ of 1.3 %, so the water balance carries almost no signal and the index is driven
+by the vegetation term alone. **Report Ethiopian and Ugandan sorghum CPI as a level, not a
+ranking.**
 
 # 4. Coverage
 
@@ -161,12 +189,12 @@ produced.
 
 # 5. Gaps, and what would close them
 
-1. **No yield calibration yet.** The fit needs the 2024 CPI. Once it exists,
-   `calibrate_ym_sorghum.py` runs in minutes. Somalia is the strongest case in the region with
-   839 Gu and 757 Deyr yield records, better than its maize record.
-2. **Nine provisional calendars.** Kenya short rains, Uganda second rains, Rwanda, Burundi,
-   Tanzania and Ethiopia Belg use the maize window. National partners can correct these from
-   their own extension calendars, and the stakeholder workshop is the place to do it.
+1. **Nine of the eighteen products are not yet run** — the Medium and Low viability seasons: Kenya
+   short rains, Uganda second rains, Rwanda and Burundi Seasons A and B, Tanzania Masika, Ethiopia
+   Belg and South Sudan's second season.
+2. **CPI has no rank skill outside Kenya.** Ethiopia is flat and Uganda is negative. Until that is
+   understood, those products support level statements only. The Ethiopian cause is identified —
+   WRSI saturation — and points at the water balance rather than the calendar or the mask.
 3. **Two parameters carried over from maize.** The emergence offset of two dekads and the heat
    loss rate of 0.06 per heat-degree-dekad have no sorghum-specific source. Both are flagged
    `FIRST PASS` in the code.

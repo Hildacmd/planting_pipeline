@@ -121,3 +121,26 @@ python app_data.py && python embed_app_data.py
 WRSI and WSI stage bands, which only the rich export carries. The first submission was made
 without `--rich`, so those assets serve the yield calibration (which needs CPI only) but not the
 apps; resubmit with `--rich` for the app path.
+
+## Colab
+
+`sorghum_pipeline_colab.ipynb` runs the whole workflow with the methodology documented at each
+step: calendar, mask, one product interactively, the batch, the reduce, the yield fit, the calendar
+A/B, and the app and atlas rebuilds. It is **generated** by `build_colab.py`, so the documentation
+cannot drift from the code — edit the generator and re-run it, never the notebook.
+
+```bash
+python sorghum_pipeline/build_colab.py
+```
+
+## Atlas
+
+`crop_type_mask/atlas/build_risk_sorghum.py` writes five sorghum risk layers (CPI, WRSI, water
+stress, yield, crop failure) from the same admin CSVs, with no further Earth Engine work. Yield is
+**rescaled** to the fitted ceiling rather than re-exported, which is exact because yield is linear
+in Ym. Tanzania, South Sudan and Eritrea have no fitted ceiling and are hatched.
+
+The area threshold for colouring a unit is 0.1 % in Sudan, Somalia, South Sudan and Eritrea and 1 %
+elsewhere. Their reporting units are enormous, so sorghum is a small share of almost every one even
+where it dominates: at a flat 1 % Sudan showed 10 of 72 localities against the 42 that hold any
+sorghum, and Sudan carries the largest sorghum area in the region.

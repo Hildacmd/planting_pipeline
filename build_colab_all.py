@@ -136,7 +136,7 @@ Msimu, Dec→Feb) are built from the prior year with the dekads wrapped past 36.
 cells.append(co(
 'M = new_map()\n'
 'ee_layer(M, planting.clip(aoi_run), {"min":1,"max":36,\n'
-'         "palette":["440154","3b528b","21918c","5ec962","fde725"]}, f"Planting dekad — {COUNTRY} {SEASON}")\n'
+'         "palette":["08306b","08519c","2171b5","4292c6","6baed6","9ecae1","c6dbef"]}, f"Planting dekad — {COUNTRY} {SEASON}")\n'
 'M'))
 
 # ---------------- Module 2 · Risk monitoring ----------------

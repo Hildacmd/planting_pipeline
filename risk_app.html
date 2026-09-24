@@ -146,8 +146,8 @@ const LAYERS={
   wlogp:{label:'Soil waterlogging — modelled, uncal. (ASAP)',cat:true,unit:'modelled waterlogging',note:'% of maize area with the AquaCrop-style aeration index ≥ 25. Soil-water model (root-zone water above field capacity toward saturation). UNCALIBRATED — indicative; a different hazard from surface-wet (SPI-3)'},
   wlog:{label:'Soil waterlogging index — modelled (uncal.)',min:0,max:60,stops:['#f7fbff','#9ecae1','#3182bd','#08306b'],fmt:v=>v.toFixed(0),note:'AquaCrop-style aeration-stress 0–100: soil water above field capacity toward saturation, drainage from SoilGrids/Saxton, establishment-weighted. UNCALIBRATED first-pass — cross-check with SPI-3-wet'},
   fstart:{label:'False-start risk (5+7 onset)',min:0,max:50,stops:['#ffffcc','#fd8d3c','#800026'],fmt:v=>v.toFixed(0)+'%',note:'% of green-up onsets rejected by the 5+7 gate (<20 mm/5 d or a >7-day dry spell); green-up seasons only'},
-  flo:{label:'Flowering dekad (GDD clock)',dek:true,stops:['#2b83ba','#80bfab','#ffffbf','#fdae61','#d7191c'],fmt:dekadLabel,note:'predicted median silking (R1) dekad — the critical stage'},
-  mat:{label:'Maturity dekad (GDD clock)',dek:true,stops:['#2b83ba','#80bfab','#ffffbf','#fdae61','#d7191c'],fmt:dekadLabel,note:'predicted median physiological maturity — end of season'}
+  flo:{label:'Flowering dekad (GDD clock)',dek:true,stops:['#08306b','#2171b5','#4292c6','#6baed6','#9ecae1','#c6dbef'],fmt:dekadLabel,note:'predicted median silking (R1) dekad — the critical stage'},
+  mat:{label:'Maturity dekad (GDD clock)',dek:true,stops:['#08306b','#2171b5','#4292c6','#6baed6','#9ecae1','#c6dbef'],fmt:dekadLabel,note:'predicted median physiological maturity — end of season'}
 };
 const ORDER=['cpi','yld','fcci','fail','failflo','spidry','spiwet','wlogp','wlog','viab','fstart','spi','wrsi','def','caf','flo','mat'];
 

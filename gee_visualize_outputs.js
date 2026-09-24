@@ -42,7 +42,7 @@ var STRESS = ['ffffff','fee5d9','fcae91','fb6a4a','de2d26','a50f15']; // 0->1 wo
 var YIELD  = ['ffffcc','c2e699','78c679','31a354','006837'];     // t/ha
 var WHCPAL = ['fff7fb','ece7f2','d0d1e6','a6bddb','74a9cf','3690c0','0570b0','045a8d','023858'];
 var SPIPAL = ['8c510a','bf812d','dfc27d','f6e8c3','f5f5f5','c7eae5','80cdc1','35978f','01665e'];
-var DEKAD  = ['440154','3b528b','21908d','5dc863','fde725'];     // planting dekad (viridis)
+var DEKAD  = ['08306b','08519c','2171b5','4292c6','6baed6','9ecae1','c6dbef'];     // planting dekad (viridis)
 
 var VIS = {
   wrsi : {min:0,   max:100, palette:RdYlGn},   // WRSI 0-100 (<50 failure)

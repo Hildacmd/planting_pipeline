@@ -269,7 +269,7 @@ NOTEBOOKS["01_planting_window"] = setup(
        "if SEASON!='Short rains':\n"
        "    ok=WR.dryspell_false_start(ee,aoi_run,planting,YEAR,dk_lo=ss,dk_hi=se+2); planting=planting.updateMask(ok)\n"
        "print('valid maize pixels:', planting.reduceRegion(ee.Reducer.count(),aoi_run,250,maxPixels=int(1e13)).get('planting_dekad').getInfo())"),
-    co("M=new_map()\nee_layer(M, planting.clip(aoi_run), {'min':ss,'max':se+3,'palette':['440154','3b528b','21908d','5dc863','fde725']}, f'Planting dekad — {SEASON}')\n"
+    co("M=new_map()\nee_layer(M, planting.clip(aoi_run), {'min':ss,'max':se+3,'palette':['08306b','08519c','2171b5','4292c6','6baed6','9ecae1','c6dbef']}, f'Planting dekad — {SEASON}')\n"
        "M   # geemap renders its own GEE-native Layers panel (toggle + opacity slider) — no extra layer control needed"),
     md("## Planting-window statistics\nDistribution of the estimated planting dekad over maize area, an agreement "
        "(**skill**) score against the FEWS/FAO calendar window, and a per-admin table + ranked bar."),
