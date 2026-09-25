@@ -6,7 +6,7 @@ Earth Engine work is needed: the reduce step has already produced everything.
 
     risk_sorghum_wrsi.png    season WRSI, 40 to 100
     risk_sorghum_cpi.png     crop performance index, 0 to 100
-    risk_sorghum_stress.png  water stress S_water, 0 to 100 %
+    risk_sorghum_stress.png  season water deficit, 0 to 200 mm
     risk_sorghum_yield.png   yield t/ha, rescaled to the FITTED ceiling; uncalibrated products hatched
     risk_sorghum_fail.png    crop failure at flowering, % of sorghum area
 
@@ -69,11 +69,19 @@ JOBS = [
     ("Eritrea_Kremti",    "Eritrea",     "Kremti",      3.0, 0.001),
     ("Sudan_Kharif",      "Sudan",       "Kharif",      3.0, 0.001),
 ]
-COLS = {"wrsi": "mean_WRSI", "cpi": "cpi", "stress": "s_water",
+# `stress` is the season water DEFICIT in mm, the same quantity as the maize layer of that name,
+# so the two crops can be read on one scale. It comes from reduce_newcountries_tier2.py
+# (`--crop sorghum --metrics def`). Until that has run the column is absent, and the layer falls
+# back to the stage-weighted S_water percentage with a warning rather than being written silently
+# in the wrong units.
+COLS = {"wrsi": "mean_WRSI", "cpi": "cpi", "stress": "mean_deficit_mm",
         "yield": "yield_tha", "fail": "failflo_pct"}
+# No fallback quantity. If mean_deficit_mm is missing the layer is not written at all, because
+# the legend commits to millimetres and a percentage drawn under it would be silently wrong.
 
 adm = {k: np.full((H, W), np.nan, "float32") for k in COLS}
 grey = np.zeros((H, W), bool)
+fallback = set()
 uncal = np.zeros((H, W), bool)          # products with no fitted ceiling, for the hatch
 summary = []
 
@@ -94,6 +102,9 @@ for tok, country, season, ym_used, min_caf in JOBS:
         uncal |= okm
 
     for k, col in COLS.items():
+        if k == "stress" and (col not in d.columns or d[col].notna().sum() == 0):
+            fallback.add(tok)          # do not substitute another quantity; see below
+            continue
         if col not in d.columns:
             continue
         v = d[col].astype(float).values
@@ -121,11 +132,16 @@ hatch = ((xx + yy) % 9) < 2                      # same stripe as the maize unca
 
 LAYERS = [("wrsi",   RYG,    40, 100, "risk_sorghum_wrsi.png"),
           ("cpi",    RYG,     0, 100, "risk_sorghum_cpi.png"),
-          ("stress", STRESS,  0, 100, "risk_sorghum_stress.png"),
+          ("stress", STRESS,  0, 200, "risk_sorghum_stress.png"),
           ("yield",  YLD,     0, 2.6, "risk_sorghum_yield.png"),
           ("fail",   FAIL,    0, 100, "risk_sorghum_fail.png")]
 
 for key, cm, lo, hi, name in LAYERS:
+    if key == "stress" and fallback:
+        print(f"SKIPPED {name}: {len(fallback)} product(s) have no mean_deficit_mm. The legend "
+              f"reads millimetres on a 0 to 200 ramp, so writing stage-weighted S_water percent "
+              f"into it would produce a readable and wrong map. The existing layer is left alone.")
+        continue
     a = adm[key]
     ok = np.isfinite(a)
     rgba = (cm(np.clip((np.nan_to_num(a) - lo) / (hi - lo), 0, 1)) * 255).astype("uint8")
@@ -139,5 +155,15 @@ for key, cm, lo, hi, name in LAYERS:
     print(f"{name:<28} cells {int(ok.sum()):>7}  median "
           f"{np.nanmedian(v) if v.size else float('nan'):.1f}")
 
+if fallback:
+    print(f"\nWARNING: {len(fallback)} product(s) have no mean_deficit_mm and fell back to "
+          f"S_water %, which is NOT the same quantity as the maize stress layer:")
+    for t in sorted(fallback):
+        print("   ", t)
+    print("    fix: EE_PROJECT=ee-manzikye python reduce_newcountries_tier2.py "
+          "--crop sorghum --metrics def")
+else:
+    print("\nstress layer is season water deficit in mm for all products, matching maize.")
+
 json.dump(summary, open(os.path.join(H0, "risk_sorghum_summary.json"), "w"), indent=1)
-print(f"\nsummary -> risk_sorghum_summary.json")
+print(f"summary -> risk_sorghum_summary.json")
