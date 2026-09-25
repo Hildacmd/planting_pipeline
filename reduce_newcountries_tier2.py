@@ -199,8 +199,42 @@ def reduce_and_merge(tok, which):
                         print(f"  L{lvl}: {gk} needed {scale} m")
                     break
                 except Exception as e:
-                    if scale == 2500:
-                        print(f"  L{lvl}: {gk} FAILED at every scale ({str(e)[:60]}) — null")
+                    last = e
+                    if scale != 2500:
+                        continue
+                    # Coarsening does not help a MEMORY limit, only a time limit: the request is
+                    # too big whatever the pixel size. Sudan's 72 localities exceeded it on FCCI,
+                    # which rebuilds the Sentinel-2, Sentinel-1 and FPAR fusion. Splitting the
+                    # units into batches cuts the per-request footprint instead.
+                    # Batching the REGIONS alone is not enough: the metric image is built over
+                    # the whole country, and for FCCI that means the Sentinel-2, Sentinel-1 and
+                    # FPAR fusion across Sudan, which blows the memory limit before any region is
+                    # touched. Rebuild the metric over each batch's OWN extent as well.
+                    n = g.shape[0]
+                    done = False
+                    for batch in (16, 8, 4):
+                        try:
+                            got = {}
+                            for i0 in range(0, n, batch):
+                                gb = g.iloc[i0:i0 + batch]
+                                sub_aoi = ee.Geometry(gb.unary_union.__geo_interface__).bounds()
+                                imgs_b = metric_images(tok, sub_aoi, mask, planting, {gk})
+                                band_b = ee.Image.cat([imgs_b[b].rename(b) for b in bands])
+                                sub = R1.gdf_to_ee(gb[["_id", "geometry"]])
+                                for r in band_b.reduceRegions(sub, rd, scale=1000,
+                                                              tileScale=16).getInfo()["features"]:
+                                    got[r["properties"]["_id"]] = {
+                                        b: r["properties"].get(b) for b in bands}
+                            for k, v in got.items():
+                                red.setdefault(k, {}).update(v)
+                            print(f"  L{lvl}: {gk} needed per-batch extents, {batch} units at 1000 m")
+                            done = True
+                            break
+                        except Exception as e2:
+                            last = e2
+                    if not done:
+                        print(f"  L{lvl}: {gk} FAILED at every scale and batch size "
+                              f"({str(last)[:60]}) — null")
         csvf = f"{OUT_PREFIX}_{tok}_2024_L{lvl}_skill_WKT.csv"
         df = pd.read_csv(csvf)
         gi = g.set_index("_id")

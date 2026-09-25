@@ -128,10 +128,42 @@ def coords(geom, tol):
     return out
 
 
+def sorghum_ym_scale(cfg):
+    """Factor converting the asset's yield to the FITTED ceiling, or None if there is none.
+
+    The sorghum assets were exported before the ceilings were fitted, so their yield band carries
+    the uncalibrated default. Yield is CPI/100 x Ym, linear in Ym, so multiplying by
+    fitted / as-built is exact. The atlas already does this; without the same step here the apps
+    and the atlas would show different yields for the same unit - the apps 2 to 4 times high.
+    """
+    if cfg.get("crop") != "sorghum":
+        return None
+    import sys as _sys, os as _os
+    _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "sorghum_pipeline"))
+    import sorghum_params as _P
+    country, season = cfg["country"].replace(" ", "_"), cfg["season"].rsplit(" ", 1)[0]
+    if not _P.is_calibrated(country, season):
+        return None                                   # leave it as exported, and say so in the note
+    s_ = season.lower()
+    as_built = (_P.SORGHUM_YM_SHORT_DEFAULT
+                if ("short" in s_ or "2nd" in s_ or "deyr" in s_) else _P.SORGHUM_YM_DEFAULT)
+    return _P.ym_for(country, season) / as_built
+
+
 def build_product(cfg):
+    scale_y = sorghum_ym_scale(cfg)
+    note = cfg.get("note", "")
+    if cfg.get("crop") == "sorghum":
+        note = note.replace(" · YIELD UNCALIBRATED, report CPI not yield", "")
+        if scale_y is not None:
+            import sorghum_params as _P
+            ym = _P.ym_for(cfg["country"].replace(" ", "_"), cfg["season"].rsplit(" ", 1)[0])
+            note += f" · yield on the fitted ceiling Ym = {ym:.2f} t/ha"
+        else:
+            note += " · YIELD UNCALIBRATED (no HarvestStat sorghum yields) — report CPI, not yield"
     prod = {"id": cfg["id"], "country": cfg["country"], "season": cfg["season"],
             "crop": cfg["crop"], "scale": cfg["scale"], "win": cfg["win"],
-            "note": cfg.get("note", ""), "levels": {}}
+            "note": note, "levels": {}}
     for lvl in (1, 2, 3):
         try:
             pl = gload(f"{cfg['base']}_L{lvl}_skill_WKT.csv")
@@ -149,6 +181,10 @@ def build_product(cfg):
         for _, r in m.iterrows():
             a = {v: (round(float(r[k]), 3) if k in r and pd.notna(r[k]) else None)
                  for k, v in {**PLANT, **WRSI}.items()}
+            if scale_y is not None:                    # rescale to the fitted ceiling
+                for _k in ("yld", "tyld"):
+                    if a.get(_k) is not None:
+                        a[_k] = round(a[_k] * scale_y, 3)
             sv = lambda k: (str(r[k]) if k in r and pd.notna(r[k]) else "")   # NaN/empty -> "" (valid JSON)
             units.append({"n": sv("name"), "p": sv("county"),
                           "c": sv("constituency") if lvl == 3 else "",
