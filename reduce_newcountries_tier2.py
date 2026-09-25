@@ -182,13 +182,16 @@ def reduce_and_merge(tok, which):
             # and ERA5 anyway, so 250 m was oversampling it in the first place.
             for scale, tile in ((250, 8), (1000, 16), (2500, 16)):
                 try:
-                    # setOutputs pins the property names to the band names. Without it a
-                    # SINGLE-band image comes back as {"mean": ...} rather than {"deficit": ...},
-                    # so the merge below found nothing and wrote null for every unit while
-                    # reporting success. Multi-band groups were unaffected, which is why only the
-                    # single-band metrics (deficit, fcci, vci) were silently empty.
-                    feats = band.reduceRegions(fc, ee.Reducer.mean().setOutputs(bands),
-                                               scale=scale, tileScale=tile).getInfo()["features"]
+                    # A MULTI-band image already names its outputs after the bands. A
+                    # SINGLE-band one comes back as {"mean": ...}, so get(band_name) found
+                    # nothing and every unit was written null while the run reported success -
+                    # which is why only deficit, fcci and vci were silently empty. setOutputs
+                    # pins the name, but Reducer.mean has exactly ONE output, so passing it two
+                    # names is an error: apply it only in the single-band case.
+                    rd = (ee.Reducer.mean().setOutputs(bands) if len(bands) == 1
+                          else ee.Reducer.mean())
+                    feats = band.reduceRegions(fc, rd, scale=scale,
+                                               tileScale=tile).getInfo()["features"]
                     for r in feats:
                         red.setdefault(r["properties"]["_id"], {}).update(
                             {b: r["properties"].get(b) for b in bands})
@@ -226,7 +229,9 @@ def reduce_and_merge(tok, which):
         checks = {"spi": "spi3_mean", "def": "mean_deficit_mm", "lvpd": "lvpd_dekad",
                   "fcci": "fcci", "vci": "fcci"}
         got = {k: int(df[checks[k]].notna().sum()) for k in sorted(which) if k in checks}
-        print(f"  L{lvl}: merged {got} of {len(df)} units  ({csvf})")
+        # NOTE: this is the column total after the merge, not what this run contributed. On a
+        # re-run a failed group still shows the values that were already in the CSV.
+        print(f"  L{lvl}: {got} of {len(df)} units non-null  ({csvf})")
 
 
 if __name__ == "__main__":

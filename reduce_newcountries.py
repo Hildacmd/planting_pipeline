@@ -59,6 +59,7 @@ def _opt(name, default):
 
 
 ASSET_PREFIX = _opt("asset-prefix", "cpiX")      # cpiX | sorghumX | cpiCTMX
+CROP = _opt("crop", "sorghum" if _opt("asset-prefix", "cpiX").startswith("sorghum") else "maize")
 OUT_PREFIX = _opt("out-prefix", "newc")          # newc | newcS | newcCTM
 EE_PROJECT = _opt("project", os.environ.get("EE_PROJECT", "ee-manzikye"))
 ee.Initialize(project=EE_PROJECT)
@@ -112,13 +113,28 @@ def admin_gdf(ctok, lvl):
     return g[["_id", "name", "county", "constituency", "geometry"]]
 
 
-def _maize_mask(ee):
-    from run import crop_mask_image
-    return crop_mask_image(ee, "maize", "maize", None)   # WorldCereal maize is global/country-independent
+def _crop_mask(ee, country):
+    """The mask `crop_area_frac` is measured over — the share of the admin unit that is THIS crop.
+
+    This used to be hard-coded to WorldCereal maize for every product, on the grounds that the
+    layer is global and country-independent. It is also **crop**-independent, so every sorghum
+    product was reporting the MAIZE fraction as its crop area. The giveaway was that maize and
+    sorghum shared a `crop_area_frac` maximum to four decimal places in every country.
+
+    That column is not decorative: it is the overlap weight when the yield ceiling is fitted, and
+    the threshold that decides which units the atlas colours. Weighted by maize, a district that
+    grows maize and no sorghum counted fully towards a sorghum ceiling.
+    """
+    if CROP == "maize":
+        from run import crop_mask_image
+        return crop_mask_image(ee, "maize", "maize", None)
+    import ctm_mask as CTM
+    return CTM.crop_fraction(ee, country, CROP).divide(100)   # frac_<crop> is a percentage
 
 
-def reduce_stats(img, fc):
-    """reduceRegions for value/yield/planting + derived ASAP/risk metrics, keyed by '_id'."""
+def reduce_stats(img, fc, ctok):
+    """reduceRegions for value/yield/planting + derived ASAP/risk metrics, keyed by '_id'.
+    `ctok` is the country token; the crop-area fraction is crop- AND country-specific."""
     plant = img.select("planting_dekad"); yld = img.select("yield_tha_x100"); vals = img.select(VAL_BANDS)
     out = {}
     for r in vals.reduceRegions(fc, ee.Reducer.median(), scale=250, tileScale=4).getInfo()["features"]:
@@ -139,7 +155,7 @@ def reduce_stats(img, fc):
     wstack = img.select(["wrsi_veg", "wrsi_flo", "wrsi_grf"])
     smin = wstack.reduce(ee.Reducer.min())
     derived = ee.Image.cat([
-        _maize_mask(ee).unmask(0).rename("caf"),                 # fraction of admin that is maize
+        _crop_mask(ee, ctok).unmask(0).rename("caf"),            # fraction of admin that is THIS crop
         smin.lt(50).rename("failp"),                             # fraction of MAIZE with seasonal WRSI<50
         img.select("wrsi_flo").lt(50).rename("failflop"),        # fraction of MAIZE failing at flowering
         wstack.reduce(ee.Reducer.mean()).rename("wrsimean")])    # mean seasonal WRSI over maize
@@ -180,7 +196,7 @@ def process(product):
         g = admin_gdf(ctok, lvl)
         fc = gdf_to_ee(g[["_id", "geometry"]])
         try:
-            stats = reduce_stats(img, fc)
+            stats = reduce_stats(img, fc, ctok)
         except Exception as e:
             print(f"  L{lvl}: FAILED {str(e)[:90]}"); continue
         rows = []
