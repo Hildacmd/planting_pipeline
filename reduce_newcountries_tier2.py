@@ -210,28 +210,36 @@ def reduce_and_merge(tok, which):
                     # the whole country, and for FCCI that means the Sentinel-2, Sentinel-1 and
                     # FPAR fusion across Sudan, which blows the memory limit before any region is
                     # touched. Rebuild the metric over each batch's OWN extent as well.
+                    # Smaller batches shrink the AOI, and a smaller AOI may fit 250 m where the
+                    # whole country does not, so try the FULL resolution at each batch size before
+                    # giving up any precision. Only fall back to 1000 m if even 4 units at 250 m
+                    # will not fit.
                     n = g.shape[0]
                     done = False
-                    for batch in (16, 8, 4):
-                        try:
-                            got = {}
-                            for i0 in range(0, n, batch):
-                                gb = g.iloc[i0:i0 + batch]
-                                sub_aoi = ee.Geometry(gb.unary_union.__geo_interface__).bounds()
-                                imgs_b = metric_images(tok, sub_aoi, mask, planting, {gk})
-                                band_b = ee.Image.cat([imgs_b[b].rename(b) for b in bands])
-                                sub = R1.gdf_to_ee(gb[["_id", "geometry"]])
-                                for r in band_b.reduceRegions(sub, rd, scale=1000,
-                                                              tileScale=16).getInfo()["features"]:
-                                    got[r["properties"]["_id"]] = {
-                                        b: r["properties"].get(b) for b in bands}
-                            for k, v in got.items():
-                                red.setdefault(k, {}).update(v)
-                            print(f"  L{lvl}: {gk} needed per-batch extents, {batch} units at 1000 m")
-                            done = True
+                    for bscale in (250, 1000):
+                        for batch in (16, 8, 4):
+                            try:
+                                got = {}
+                                for i0 in range(0, n, batch):
+                                    gb = g.iloc[i0:i0 + batch]
+                                    sub_aoi = ee.Geometry(gb.unary_union.__geo_interface__).bounds()
+                                    imgs_b = metric_images(tok, sub_aoi, mask, planting, {gk})
+                                    band_b = ee.Image.cat([imgs_b[b].rename(b) for b in bands])
+                                    sub = R1.gdf_to_ee(gb[["_id", "geometry"]])
+                                    for r in band_b.reduceRegions(sub, rd, scale=bscale,
+                                                                  tileScale=16).getInfo()["features"]:
+                                        got[r["properties"]["_id"]] = {
+                                            b: r["properties"].get(b) for b in bands}
+                                for k, v in got.items():
+                                    red.setdefault(k, {}).update(v)
+                                print(f"  L{lvl}: {gk} needed per-batch extents, "
+                                      f"{batch} units at {bscale} m")
+                                done = True
+                                break
+                            except Exception as e2:
+                                last = e2
+                        if done:
                             break
-                        except Exception as e2:
-                            last = e2
                     if not done:
                         print(f"  L{lvl}: {gk} FAILED at every scale and batch size "
                               f"({str(last)[:60]}) — null")
