@@ -122,6 +122,15 @@ Full treatment, including the eight gaps and the remediation order:
   at all. Only 2 of 9 states kept enough pixels for a CPI. South Sudan is a sorghum country and its
   two sorghum products are sound. Recorded in `crop_coverage.DROPPED` with the evidence, which the
   runners, the apps and this inventory all honour, so it cannot return by a side door.
+- **Ym re-fitted on the crop-type-mask footprint, and the result argues against switching.**
+  `calibrate_ym_ctm.py` fits both footprints at admin-2 with the same units, targets, 70/30 x 200
+  held-out test and seed, so the difference is the footprint alone. **Ceilings move: median -6.7 %,
+  range -13.7 % (Somalia Gu) to +0.5 % (Burundi Season A)** - so a WorldCereal ceiling must never be
+  carried onto a crop-type-mask product. But the new footprint does **not** fit the yield statistics
+  better: held-out MAE improves in only **2 of 7** products (median change +0.01 t/ha, a wash), and
+  the CPI-yield correlation r **falls in 5 of 7** - Kenya Long rains 0.60 to 0.48, Ethiopia Meher
+  0.58 to 0.45. Only Somalia Gu improves materially (0.34 to 0.53). Ceilings are stored separately
+  as `YM_CAL_CTM` in `src/cpi.py`, never mixed with the WorldCereal `YM_CAL`.
 - **Cached-WHC footprint bug found and fixed** — the materialised asset stopped at 32.3 °E, which had
   emptied Rwanda and Burundi entirely and silently clipped western Uganda, Tanzania and South Sudan.
 
@@ -130,7 +139,10 @@ Full treatment, including the eight gaps and the remediation order:
 - **Yield is level-only in the ASAL.** Kenya Short rains calibrates to the right national average but
   **r ≈ 0** against county crop-cutting — it sets the level and does not rank the counties. Reported
   as such; do not use it for county targeting.
-- **9 of 16 products still use a fallback Ym.** Their CPI is fully valid; the absolute t/ha is
+- **Only 7 of the 15 products can be Ym-calibrated at all**, on either footprint: the rest have no
+  HarvestStat maize yields to fit against. Tanzania (3 products) and the second seasons of Uganda,
+  Rwanda and Burundi, plus Somalia Deyr and Ethiopia Belg, run on fallback ceilings under both masks.
+- **8 of 15 products still use a fallback Ym.** Their CPI is fully valid; the absolute t/ha is
   provisional. Tanzania and South Sudan have no HarvestStat maize yields at all.
 - **Total production is an upper bound.** The mask does not distinguish season, so short-rains totals
   assume the whole mask plants twice. Yield (t/ha) is the reliable figure.

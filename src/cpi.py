@@ -37,6 +37,20 @@ YM_CAL = {
     ("Somalia", "Gu"):         1.02,
     ("Uganda", "1st rains"):   2.34,     # provisional
 }
+# Ym fitted on the ICPAC CROP-TYPE-MASK footprint (calibrate_ym_ctm.py). Use ONLY
+# with the cpiCTMX_/newcCTM_ products - a ceiling and a footprint are a matched
+# pair, because the mask changes both CPI and the crop-area weights it is fitted
+# against. Do NOT apply these to the WorldCereal products in YM_CAL above.
+YM_CAL_CTM = {
+    ("Kenya", "Long rains"): 2.16,   # n46 MAE 0.72 vs wc 0.65  r 0.48
+    ("Kenya", "Short rains"): 1.32,   # n44 MAE 0.34 vs wc 0.4  r 0.27
+    ("Ethiopia", "Meher"): 3.78,   # n77 MAE 0.7 vs wc 0.69  r 0.45
+    ("Rwanda", "Season A"): 2.58,   # n30 MAE 0.36 vs wc 0.37  r -0.08
+    ("Burundi", "Season A"): 1.89,   # n16 MAE 0.72 vs wc 0.71  r 0.22
+    ("Somalia", "Gu"): 0.88,   # n31 MAE 0.25 vs wc 0.24  r 0.53
+    ("Uganda", "1st rains"): 2.23,   # n74 MAE 1.26 vs wc 1.24  r -0.23  PROVISIONAL
+}
+
 YM_MAIN_DEFAULT = 6.0                        # uncalibrated fallback, medium/long maize (t/ha)
 YM_SHORT_DEFAULT = 4.5                       # uncalibrated fallback, short-duration maize (t/ha)
 
