@@ -605,10 +605,16 @@ that has not translated into better condition or yield. Switch per product, on e
 All references below are reproduced from the project's maintained bibliography,
 `REFERENCES.md`, which carries the full annotated list.
 
-**Reader's caveat, carried over from that file:** several DOIs are foundational standards cited from
-established literature, and the 2023–2026 fusion papers were surfaced through web search during
-development. **Verify every DOI against your own library before formal publication or submission.**
-The MapSPAM release identifier in particular should be cited from the exact Dataverse record used.
+**Verification status.** All **42 DOIs in the bibliography resolve, and each resolved record's
+title matches the citation** — checked on 26 September 2026 by DOI content negotiation against
+Crossref/DataCite (`verify_dois.py`, results in `doi_verification.csv`), not by eye. Two entries
+that had been anonymous placeholders were completed with their authors and DOIs in the process.
+
+What remains unverified is not the DOIs but the 11 entries that have none — books, monographs and
+agency reports such as FAO (1978), Jones & Kiniry (1986) and Jaetzold et al. (2006–2012). One,
+De Groote et al. (2005, eJADE), could not be confirmed by Crossref search and **should be checked
+against a library before citing**. The MapSPAM release identifier should likewise be cited from the
+exact Dataverse record used.
 
 """
     refs = open(f"{H}/REFERENCES.md").read()

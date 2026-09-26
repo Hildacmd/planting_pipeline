@@ -9,9 +9,9 @@
   Sentinel-2 Time Series Using GEE for Agricultural Monitoring in Ethiopia.* Remote Sensing
   16(5):866. https://doi.org/10.3390/rs16050866  — S1+S2 time-series, red-edge indices, 10 m,
   three Ethiopian regions (methodological basis for feature stack).
-- (2025) *A novel fusion of Sentinel-1 and Sentinel-2 with climate data for crop phenology
-  estimation using machine learning.* ScienceDirect.
-  https://www.sciencedirect.com/science/article/pii/S2666017225000331
+- Shojaeezadeh, S.A., Elnashar, A. & Weber, T.K.D. (2025). *A novel fusion of Sentinel-1 and
+  Sentinel-2 with climate data for crop phenology estimation using machine learning.* Science of
+  Remote Sensing 11:100227. https://doi.org/10.1016/j.srs.2025.100227
 - (2025) *Time-series analysis of Sentinel-1 SAR to retrieve annual rice area and long-term
   dynamics of start of season.* Scientific Reports. https://doi.org/10.1038/s41598-025-91655-z
   — SAR-only SOS retrieval; supports SAR as the cloud-proof onset cue.
@@ -73,8 +73,9 @@
 ## Regional monitoring, calendars, statistics (calibration/validation)
 - Becker-Reshef, I. et al. (2020). *The GEOGLAM Crop Monitor for Early Warning.* Remote Sensing
   of Environment 237:111553. https://doi.org/10.1016/j.rse.2019.111553  |  https://cropmonitor.org
-- (2021) *A review of satellite-based global agricultural monitoring systems available for
-  Africa.* Global Food Security. https://www.sciencedirect.com/science/article/pii/S2211912421000523
+- Nakalembe, C., Becker-Reshef, I., Bonifacio, R. et al. (2021). *A review of satellite-based
+  global agricultural monitoring systems available for Africa.* Global Food Security 29:100543.
+  https://doi.org/10.1016/j.gfs.2021.100543
 - Lee, D. et al. (2025). *HarvestStat Africa — Harmonized Subnational Crop Statistics for
   Sub-Saharan Africa.* Scientific Data. https://doi.org/10.1038/s41597-025-05001-z
 - FEWS NET crop calendars & data portal. https://fews.net/data
@@ -93,15 +94,31 @@
 - ASF HyP3 (Sentinel-1 RTC on demand) — https://hyp3-docs.asf.alaska.edu
 - USGS FEWS NET / GeoWRSI software — https://earlywarning.usgs.gov/fews/software-tools
 
-*Note: a few DOIs above are foundational standards (Verdin & Klaver, Senay & Verdin, Funk,
-Myneni) cited from established literature; the 2023–2026 fusion papers were surfaced in this
-session's web searches. Verify DOIs against your library before formal publication.*
+**Verification status (checked 26 September 2026, `verify_dois.py`).** All **42 DOIs in this file
+resolve, and each resolved record's title matches the citation here** — checked by DOI content
+negotiation against Crossref/DataCite, not by eye. Re-run with `python verify_dois.py`; results in
+`doi_verification.csv`.
+
+Two entries that were previously anonymous placeholders ("(2025) *A novel fusion…*", "(2021)
+*A review…*") have been completed with their authors and DOIs, and DOIs were added for Running et
+al. (2004) and Ritchie & NeSmith (1991).
+
+**What is still unverified**, and it is not the DOIs: 11 entries are books, monographs, agency
+reports and one 2005 journal article with no DOI to check — Stone (1974), Efron & Tibshirani (1993),
+FAO (1978), Jones & Kiniry (1986), Kiniry & Bonhomme (1991), Jaetzold et al. (2006–2012), Hassan
+(1998), De Groote et al. (2005) and similar. These were confirmed against a Crossref search where a
+record exists; De Groote et al. (2005, eJADE) returned only a different 2023 paper by the same
+author, so **check that one against a library before citing it**. Live URLs resolve except three
+that return 403 to automated requests (ScienceDirect, mapspam.info) and two agency APIs — all
+reachable in a browser.
 
 ## Productivity / biomass-based yield (DMP, added 2026-09)
 - Monteith, J.L. (1972). *Solar radiation and productivity in tropical ecosystems.* Journal of
   Applied Ecology 9(3), 747–766. https://doi.org/10.2307/2401901  — light-use-efficiency basis of DMP.
-- Running, S.W. et al. (2004). *A continuous satellite-derived measure of global terrestrial primary
-  production.* BioScience 54(6), 547–560. — MOD17 GPP/NPP algorithm (the MODIS stand-in for CGLS DMP).
+- Running, S.W., Nemani, R.R., Heinsch, F.A. et al. (2004). *A continuous satellite-derived measure
+  of global terrestrial primary production.* BioScience 54(6), 547–560.
+  https://doi.org/10.1641/0006-3568(2004)054[0547:ACSMOG]2.0.CO;2 — MOD17 GPP/NPP algorithm (the
+  MODIS stand-in for CGLS DMP).
 - Zhao, M. et al. (2005). *Improvements of the MODIS terrestrial gross and net primary production
   global data set.* Remote Sensing of Environment 95(2), 164–176.
   https://doi.org/10.1016/j.rse.2004.12.011
@@ -161,8 +178,9 @@ session's web searches. Verify DOIs against your library before formal publicati
   boundaries, retained only where GADM lacks a layer.
 
 ## Prognostic vs diagnostic phenology — why forecasting needs the thermal clock (added 2026-09)
-- Ritchie, J.T. & NeSmith, D.S. (1991). *Temperature and crop development.* Agronomy Monograph 31,
-  ASA-CSSA-SSSA, 5-29.
+- Ritchie, J.T. & NeSmith, D.S. (1991). *Temperature and crop development.* In: Modeling Plant and
+  Soil Systems, Agronomy Monograph 31, ASA-CSSA-SSSA, 5–29.
+  https://doi.org/10.2134/agronmonogr31.c2
 - Holzworth, D.P. et al. (2014). *APSIM - evolution towards a new generation of agricultural systems
   simulation.* Environmental Modelling & Software 62, 327-350.
   https://doi.org/10.1016/j.envsoft.2014.07.009

@@ -1423,12 +1423,19 @@ wholesale</strong>, re-fitting Ym each time.</li>
 <p>All references below are reproduced from the project’s maintained
 bibliography, <code>REFERENCES.md</code>, which carries the full
 annotated list.</p>
-<p><strong>Reader’s caveat, carried over from that file:</strong>
-several DOIs are foundational standards cited from established
-literature, and the 2023–2026 fusion papers were surfaced through web
-search during development. <strong>Verify every DOI against your own
-library before formal publication or submission.</strong> The MapSPAM
-release identifier in particular should be cited from the exact
+<p><strong>Verification status.</strong> All <strong>42 DOIs in the
+bibliography resolve, and each resolved record’s title matches the
+citation</strong> — checked on 26 September 2026 by DOI content
+negotiation against Crossref/DataCite (<code>verify_dois.py</code>,
+results in <code>doi_verification.csv</code>), not by eye. Two entries
+that had been anonymous placeholders were completed with their authors
+and DOIs in the process.</p>
+<p>What remains unverified is not the DOIs but the 11 entries that have
+none — books, monographs and agency reports such as FAO (1978), Jones
+&amp; Kiniry (1986) and Jaetzold et al. (2006–2012). One, De Groote et
+al. (2005, eJADE), could not be confirmed by Crossref search and
+<strong>should be checked against a library before citing</strong>. The
+MapSPAM release identifier should likewise be cited from the exact
 Dataverse record used.</p>
 <h2 id="start-of-season-planting-date-from-saroptical-fusion">Start-of-season
 / planting-date from SAR–optical fusion</h2>
@@ -1445,12 +1452,10 @@ Agricultural Monitoring in Ethiopia.</em> Remote Sensing 16(5):866.
 https://doi.org/10.3390/rs16050866 — S1+S2 time-series, red-edge
 indices, 10 m, three Ethiopian regions (methodological basis for feature
 stack).</li>
-<li><ol start="2025" type="1">
-<li><em>A novel fusion of Sentinel-1 and Sentinel-2 with climate data
-for crop phenology estimation using machine learning.</em>
-ScienceDirect.
-https://www.sciencedirect.com/science/article/pii/S2666017225000331</li>
-</ol></li>
+<li>Shojaeezadeh, S.A., Elnashar, A. &amp; Weber, T.K.D. (2025). <em>A
+novel fusion of Sentinel-1 and Sentinel-2 with climate data for crop
+phenology estimation using machine learning.</em> Science of Remote
+Sensing 11:100227. https://doi.org/10.1016/j.srs.2025.100227</li>
 <li><ol start="2025" type="1">
 <li><em>Time-series analysis of Sentinel-1 SAR to retrieve annual rice
 area and long-term dynamics of start of season.</em> Scientific Reports.
@@ -1553,11 +1558,10 @@ monitoring, calendars, statistics (calibration/validation)</h2>
 <li>Becker-Reshef, I. et al. (2020). <em>The GEOGLAM Crop Monitor for
 Early Warning.</em> Remote Sensing of Environment 237:111553.
 https://doi.org/10.1016/j.rse.2019.111553 | https://cropmonitor.org</li>
-<li><ol start="2021" type="1">
-<li><em>A review of satellite-based global agricultural monitoring
-systems available for Africa.</em> Global Food Security.
-https://www.sciencedirect.com/science/article/pii/S2211912421000523</li>
-</ol></li>
+<li>Nakalembe, C., Becker-Reshef, I., Bonifacio, R. et al. (2021). <em>A
+review of satellite-based global agricultural monitoring systems
+available for Africa.</em> Global Food Security 29:100543.
+https://doi.org/10.1016/j.gfs.2021.100543</li>
 <li>Lee, D. et al. (2025). <em>HarvestStat Africa — Harmonized
 Subnational Crop Statistics for Sub-Saharan Africa.</em> Scientific
 Data. https://doi.org/10.1038/s41597-025-05001-z</li>
@@ -1587,11 +1591,28 @@ https://hyp3-docs.asf.alaska.edu</li>
 <li>USGS FEWS NET / GeoWRSI software —
 https://earlywarning.usgs.gov/fews/software-tools</li>
 </ul>
-<p><em>Note: a few DOIs above are foundational standards (Verdin &amp;
-Klaver, Senay &amp; Verdin, Funk, Myneni) cited from established
-literature; the 2023–2026 fusion papers were surfaced in this session’s
-web searches. Verify DOIs against your library before formal
-publication.</em></p>
+<p><strong>Verification status (checked 26 September 2026,
+<code>verify_dois.py</code>).</strong> All <strong>42 DOIs in this file
+resolve, and each resolved record’s title matches the citation
+here</strong> — checked by DOI content negotiation against
+Crossref/DataCite, not by eye. Re-run with
+<code>python verify_dois.py</code>; results in
+<code>doi_verification.csv</code>.</p>
+<p>Two entries that were previously anonymous placeholders (“(2025)
+<em>A novel fusion…</em>”, “(2021) <em>A review…</em>”) have been
+completed with their authors and DOIs, and DOIs were added for Running
+et al. (2004) and Ritchie &amp; NeSmith (1991).</p>
+<p><strong>What is still unverified</strong>, and it is not the DOIs: 11
+entries are books, monographs, agency reports and one 2005 journal
+article with no DOI to check — Stone (1974), Efron &amp; Tibshirani
+(1993), FAO (1978), Jones &amp; Kiniry (1986), Kiniry &amp; Bonhomme
+(1991), Jaetzold et al. (2006–2012), Hassan (1998), De Groote et
+al. (2005) and similar. These were confirmed against a Crossref search
+where a record exists; De Groote et al. (2005, eJADE) returned only a
+different 2023 paper by the same author, so <strong>check that one
+against a library before citing it</strong>. Live URLs resolve except
+three that return 403 to automated requests (ScienceDirect,
+mapspam.info) and two agency APIs — all reachable in a browser.</p>
 <h2 id="productivity-biomass-based-yield-dmp-added-2026-09">Productivity
 / biomass-based yield (DMP, added 2026-09)</h2>
 <ul>
@@ -1599,10 +1620,11 @@ publication.</em></p>
 tropical ecosystems.</em> Journal of Applied Ecology 9(3), 747–766.
 https://doi.org/10.2307/2401901 — light-use-efficiency basis of
 DMP.</li>
-<li>Running, S.W. et al. (2004). <em>A continuous satellite-derived
-measure of global terrestrial primary production.</em> BioScience 54(6),
-547–560. — MOD17 GPP/NPP algorithm (the MODIS stand-in for CGLS
-DMP).</li>
+<li>Running, S.W., Nemani, R.R., Heinsch, F.A. et al. (2004). <em>A
+continuous satellite-derived measure of global terrestrial primary
+production.</em> BioScience 54(6), 547–560.
+https://doi.org/10.1641/0006-3568(2004)054[0547:ACSMOG]2.0.CO;2 — MOD17
+GPP/NPP algorithm (the MODIS stand-in for CGLS DMP).</li>
 <li>Zhao, M. et al. (2005). <em>Improvements of the MODIS terrestrial
 gross and net primary production global data set.</em> Remote Sensing of
 Environment 95(2), 164–176.
@@ -1713,7 +1735,9 @@ vs diagnostic phenology — why forecasting needs the thermal clock (added
 2026-09)</h2>
 <ul>
 <li>Ritchie, J.T. &amp; NeSmith, D.S. (1991). <em>Temperature and crop
-development.</em> Agronomy Monograph 31, ASA-CSSA-SSSA, 5-29.</li>
+development.</em> In: Modeling Plant and Soil Systems, Agronomy
+Monograph 31, ASA-CSSA-SSSA, 5–29.
+https://doi.org/10.2134/agronmonogr31.c2</li>
 <li>Holzworth, D.P. et al. (2014). <em>APSIM - evolution towards a new
 generation of agricultural systems simulation.</em> Environmental
 Modelling &amp; Software 62, 327-350.
