@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>Maize Planting-Window Explorer — GHA / ICPAC</title>
+<title>Crop Planting-Window Explorer — GHA / ICPAC</title>
 <style>
   :root{
     --ground:#f4f6f1; --panel:#ffffff; --panel2:#fafbf7; --ink:#182019; --ink-soft:#5a655c;
@@ -87,7 +87,7 @@
 <div class="wrap">
   <header class="mast">
     <p class="eyebrow">ICPAC · Agromet</p>
-    <h1 id="h1title">Maize Planting-Window Explorer</h1>
+    <h1 id="h1title">Crop Planting-Window Explorer</h1>
     <p class="sub" id="subtitle">pick a season, admin level and attribute, click an area for its full readout</p>
     <div id="irrBanner"></div>
   </header>
@@ -139,6 +139,14 @@
 <div class="tip" id="tip"></div>
 
 <script>
+// ---- crop-aware labelling -------------------------------------------------------------------
+// These apps serve maize, sorghum, wheat, teff and millet. Every user-visible label carries a
+// {crop} token that SUB() fills from the product on screen, so a sorghum product never claims to
+// be showing maize. CW() = lower-case crop word, CWC() = capitalised for titles.
+function CW(){ return (typeof prod!=='undefined' && prod && prod.crop) ? prod.crop : 'crop'; }
+function CWC(){ const c=CW(); return c.charAt(0).toUpperCase()+c.slice(1); }
+function SUB(s){ return String(s).replace(/\{crop\}/g, CW()).replace(/\{Crop\}/g, CWC()); }
+
 const DATA = JSON.parse(document.getElementById('pw-data').textContent);
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function dekadLabel(d){d=Math.round(d);const w=(d-1)%36;const m=Math.floor(w/3);const dm=(w%3)+1;return d+'·'+MONTHS[Math.max(0,Math.min(11,m))]+'-d'+dm+(d>36?'+1y':'');}
@@ -147,14 +155,14 @@ function ramp(stops,t){t=Math.max(0,Math.min(1,t));const n=stops.length-1;let i=
 
 const ATTRS={
   md:{label:'Planting dekad',min:7,max:13,stops:['#08306b','#2171b5','#4292c6','#6baed6','#9ecae1','#c6dbef'],fmt:dekadLabel,dekad:true,note:'most common planting dekad'},
-  hit:{label:'Calendar hit-rate',min:0,max:1,stops:['#d73027','#fee08b','#1a9850'],fmt:v=>(v*100).toFixed(0)+'%',good:'high',note:'share of maize planting inside the FEWS/FAO window'},
+  hit:{label:'Calendar hit-rate',min:0,max:1,stops:['#d73027','#fee08b','#1a9850'],fmt:v=>(v*100).toFixed(0)+'%',good:'high',note:'share of {crop} planting inside the FEWS/FAO window'},
   bias:{label:'Bias (dekads)',min:-3,max:3,div:true,stops:['#2166ac','#67a9cf','#f7f7f7','#ef8a62','#b2182b'],fmt:v=>(v>=0?'+':'')+v.toFixed(1),note:'− earlier / + later than the calendar centre'},
   mae:{label:'MAE (dekads)',min:0,max:3,stops:['#ffffcc','#fd8d3c','#800026'],fmt:v=>v.toFixed(2),good:'low',note:'mean absolute departure from the calendar centre'},
   wrsi:{label:'Mean WRSI',min:0,max:100,stops:['#a50026','#fdae61','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0),good:'high',note:'FAO-56 water satisfaction (≥80 good, <50 failure)'},
   def:{label:'Water deficit (mm)',min:0,max:150,stops:['#ffffcc','#fd8d3c','#800026'],fmt:v=>v.toFixed(0)+' mm',good:'low',note:'season cumulative water deficit'},
   fail:{label:'Crop-failure risk',min:0,max:100,stops:['#fff5f0','#fb6a4a','#67000d'],fmt:v=>v.toFixed(0)+'%',good:'low',note:'% crop area in WRSI class ≤ 2'},
-  caf:{label:'Crop area fraction',min:0,max:0.3,stops:['#f7fcf5','#a1d99b','#238b45','#00441b'],fmt:v=>(v*100).toFixed(1)+'%',note:'share of the unit that is detected maize (CAF)'},
-  viab:{label:'Planting viability % (LVPD)',min:0,max:100,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0)+'%',good:'high',note:'% of maize area passing the LVPD gate (early-variety WRSI ≥ 50); short rains only'},
+  caf:{label:'Crop area fraction',min:0,max:0.3,stops:['#f7fcf5','#a1d99b','#238b45','#00441b'],fmt:v=>(v*100).toFixed(1)+'%',note:'share of the unit that is detected {crop} (CAF)'},
+  viab:{label:'Planting viability % (LVPD)',min:0,max:100,stops:['#a50026','#f46d43','#fee08b','#a6d96a','#1a9850'],fmt:v=>v.toFixed(0)+'%',good:'high',note:'% of {crop} area passing the LVPD gate (early-variety WRSI ≥ 50); short rains only'},
   obs:{label:'Observed planting — farmers (MAM)',min:7,max:13,stops:['#08306b','#2171b5','#4292c6','#6baed6','#9ecae1','#c6dbef'],fmt:dekadLabel,dekad:true,note:'MAM 2024 median farmer planting date (~4.8M farmers; county at L1/L2, ward at L3) — validation ground truth'},
   perr:{label:'Planting error (estimated − observed)',min:-3,max:3,div:true,stops:['#2166ac','#67a9cf','#f7f7f7','#ef8a62','#b2182b'],fmt:v=>(v>=0?'+':'')+v.toFixed(0)+' dk',note:'estimated modal − observed farmer median, dekads (0 = perfect · ±1 ≈ 10 days) — Long rains only'}
 ,
@@ -265,7 +273,7 @@ function updateSummary(){
   let sw=0,ws=0;
   for(const u of units){const v=u.a[attr]; if(v==null)continue; const w=u.a.n||1; sw+=v*w; ws+=w;}
   const val= ws? sw/ws : null;
-  document.getElementById('sumAttr').textContent=A.label+' — '+A.note;
+  document.getElementById('sumAttr').textContent=SUB(A.label+' — '+A.note);
   document.getElementById('sumVal').textContent= val==null?'—':A.fmt(val);
   document.getElementById('sumSwatch').style.background=colorFor(val);
   document.getElementById('sumNote').textContent= val==null?'':'area-weighted mean across '+units.filter(u=>u.a[attr]!=null).length+' units';
@@ -303,7 +311,7 @@ function showDetail(i){
     ['Crop-failure risk', a.fail!=null?a.fail.toFixed(0)+'%':'—'],
     ['Crop area fraction', a.caf!=null?(a.caf*100).toFixed(1)+'%':'—'],
     ['Planting viability (LVPD)', a.viab!=null?a.viab.toFixed(0)+'%':'—'],
-    ['Maize pixels', a.n!=null?a.n.toLocaleString():'—'],
+    [SUB('{Crop} pixels'), a.n!=null?a.n.toLocaleString():'—'],
   ];
   const wrsiPill = a.wrsi!=null? `<span class="pill" style="background:${colorFor(a.wrsi<0?null:a.wrsi)||'#888'};background:${ramp(ATTRS.wrsi.stops,(a.wrsi)/100)}">WRSI ${a.wrsi.toFixed(0)}</span>`:'';
   body.innerHTML=`<div class="unitname">${u.n}</div><div class="parent">${parent}</div>`+
@@ -383,7 +391,7 @@ function setProduct(id){
   level=Object.keys(prod.levels)[0]||'1'; selected=null;
   document.getElementById('detailBody').hidden=true; document.getElementById('detailHint').hidden=false;
   computeProjection(); computeDekadRange(); buildLevelSeg();
-  document.getElementById('h1title').textContent=prod.country+' Maize Planting-Window Explorer';
+  document.getElementById('h1title').textContent=prod.country+' '+CWC()+' Planting-Window Explorer';
   const win=dekadLabel(prod.win[0])+'–'+dekadLabel(prod.win[1]);
   document.getElementById('subtitle').innerHTML=prod.season+' · '+prod.scale+' · calendar window '+win
     +(prod.note?' · <em>'+prod.note+'</em>':'');
