@@ -140,7 +140,10 @@ PLANT = {"modal_dekad": "md", "mean_dekad": "mean", "p10": "p10", "p50": "p50", 
          "cpi": "cpi", "yield_tha": "yld", "total_yield_t": "tyld",
          "s_water": "sw", "s_heat": "sh", "s_veg": "sv",
          "false_start_pct": "fstart", "waterlog_idx": "wlog", "waterlog_pct": "wlogp", "spi_wet_pct": "spiwet",
-         "obs_plant_dk": "obs", "plant_err": "perr", "fcci": "fcci"}
+         "obs_plant_dk": "obs", "plant_err": "perr", "fcci": "fcci",
+         # DMP: an INDEPENDENT ranking covariate, present only on the 8 products where CPI ranks
+         # admin units backwards against reported yield. See dmp_covariate.py.
+         "dmp": "dmp"}
 WRSI = {"mean_WRSI": "wrsi", "mean_deficit_mm": "def", "fail_pct": "fail"}
 
 

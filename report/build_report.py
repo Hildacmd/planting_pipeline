@@ -398,6 +398,15 @@ control set the two are a dead heat. The supported claim is therefore the narrow
 **DMP adds nothing where the water balance already works, and recovers a usable ranking where it
 does not.**
 
+**It is now shipped on exactly those 8 products** as a `dmp` column at both admin levels and as a
+layer in the risk monitor, and is absent everywhere else. A blend was tested before recommending
+anything — the mean of the two percentile ranks — and **it loses**: DMP alone is the best index on
+6 of the 8, CPI on 1 (Kenya short-rains sorghum, where both are negative) and the blend on 1
+(Burundi Season A, n = 7, where the two tie at −0.071). Averaging a good ranking with an inverted
+one drags it back toward zero, which is what the numbers show. **Use DMP for ranking on these
+products, not for level** — it cannot see ASAP crop failure (implied harvest index 0.02, far outside
+the 0.30–0.55 agronomic range of Hay 1995).
+
 # 8. Departures from the Inception Report, and why
 
 Each departure states what the report proposed, what was built, and the peer-reviewed basis.
