@@ -15,7 +15,12 @@ m = re.search(r'<script[^>]*type="application/json"[^>]*>', s); st = m.end(); D 
 P = {p["id"]: p for p in D["products"]}
 # painting order: later overrides earlier (Tanzania: Msimu over Masika)
 PRODS = [("ke_long", "KEN"), ("et_meher", "ETH"), ("ug_1st", "UGA"), ("tz_mas", "TZA"), ("tz_msi", "TZA"),
-         ("rw_a", "RWA"), ("bi_a", "BDI"), ("so_gu", "SOM"), ("ss_main", "SSD")]
+         ("rw_a", "RWA"), ("bi_a", "BDI"), ("so_gu", "SOM")]
+# South Sudan maize ("ss_main", "SSD") was DROPPED on 26 Sep 2026 and is no longer in the app data.
+# The crop-type mask leaves it 135 maize pixels country-wide against WorldCereal's 9,398, with
+# Eastern Equatoria - 90 % of the country's maize by WorldCereal - carrying none, so only 2 of 9
+# states kept enough pixels for a CPI. See crop_coverage.DROPPED. South Sudan's SORGHUM products
+# are sound and are drawn by build_risk_sorghum.py.
 import pandas as pd
 _cal = pd.read_csv(os.path.expanduser("~/Downloads/planting_pipeline/Cropyield-Data/ym_calibration_local.csv")).set_index("file")
 CAL = {"ke_long": float(_cal.loc["app:ke_long", "ym_cal"]), "et_meher": float(_cal.loc["app:et_meher", "ym_cal"])}   # typical-year Ym

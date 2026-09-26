@@ -513,7 +513,7 @@ const LAYERS = [
        use:"Alerting: these unit-level classes are the trigger used in early-warning reporting.",
        cats:[["None (< 25 %)","#1a9850"],["Watch (≥ 25 %)","#fee08b"],["Alert (≥ 50 %)","#f46d43"],["Critical (≥ 75 %)","#a50026"],["< 1 % maize","#aaaca5"]]}},
   ]},
-  {group:"Sorghum 2024 \u00b7 risk", layers:[
+  {group:"Sorghum 2024 \u00b7 risk", items:[
     {id:"risk_sorghum_cpi", name:"Sorghum CPI", file:"layers/risk_sorghum_cpi.png", sw:"linear-gradient(90deg,#a50026,#fee08b,#1a9850)",
      legend:{kind:"ramp", title:"Sorghum crop performance index", note:"(1\u2212S_water)(1\u2212S_heat)(1\u2212S_veg) \u00d7 100, by admin-2 unit, 2024, all 18 products (main seasons drawn over second seasons). FAO-33 sorghum stage weights (Ky 0.2 / 0.55 / 0.45), not maize's. Grey = below the area threshold (0.1 % in Sudan, Somalia, South Sudan and Eritrea, 1 % elsewhere).",
        use:"Season signal. Only Kenya ranks units well (\u03c1 0.59); Ethiopia is flat (\u03c1 0.03) and Uganda ranks BACKWARDS (\u03c1 \u22120.20) against reported yields \u2014 read those two as a level, not a ranking.",
@@ -535,7 +535,7 @@ const LAYERS = [
        use:"Alerting. Sorghum failing is a stronger signal than maize failing, because it is grown where the rains are least reliable.",
        ramp:["#ffffff","#fdae61","#a50026"], labels:["0","50","100 %"]}},
   ]},
-  {group:"Wheat 2024 \u00b7 risk", layers:[
+  {group:"Wheat 2024 \u00b7 risk", items:[
     {id:"risk_wheat_cpi", name:"Wheat CPI", file:"layers/risk_wheat_cpi.png", sw:"linear-gradient(90deg,#a50026,#fee08b,#1a9850)",
      legend:{kind:"ramp", title:"Wheat crop performance index", note:"(1\u2212S_water)(1\u2212S_heat)(1\u2212S_veg) \u00d7 100, admin-2, 2024. Sudan is excluded: irrigated, see the yield layer note.",
        use:"Season signal. Every wheat ceiling fitted so far is LEVEL ONLY or weaker \u2014 read the map as a level, not a ranking.",
@@ -547,11 +547,16 @@ const LAYERS = [
      legend:{kind:"ramp", title:"Wheat yield, t/ha", note:"CPI \u00d7 the fitted ceiling: Ethiopia 2.69, Kenya 3.11 t/ha. Tanzania has no HarvestStat wheat and is hatched. SUDAN IS ABSENT: its Shitwi wheat is scheme-irrigated, and the rainfed water balance returns CPI 0 across all 18 localities including the Gezira, which would read as a catastrophe that is not happening.",
        use:"Levels only. No wheat product reaches r 0.45 against reported yields.",
        ramp:["#f7fcb9","#78c679","#005a32"], labels:["0","half","max"], hatch:"Hatched = uncalibrated"}},
+    {id:"risk_wheat_stress", name:"Wheat water stress", file:"layers/risk_wheat_stress.png", sw:"linear-gradient(90deg,#ffffcc,#fd8d3c,#800026)",
+     legend:{kind:"ramp", title:"Wheat water deficit, mm", note:"Season water deficit from the FAO-56 balance, the SAME quantity and the SAME scale as the maize and sorghum stress layers, so all crops read together. Wheat roots to 1.0 m, the same as maize, so the two read directly against each other. SUDAN IS ABSENT: its Shitwi wheat is 98.4 % irrigated, and this layer would show the irrigation requirement, not crop stress.",
+       use:"How much water the crop went short of. Compare with the CPI layer: a deficit that does not move CPI fell outside the stages that carry the yield weight.",
+       ramp:["#ffffcc","#fd8d3c","#800026"], labels:["0","100","\u2265 200 mm"]}},
+    
     {id:"risk_wheat_fail", name:"Wheat crop-failure risk", file:"layers/risk_wheat_fail.png", sw:"linear-gradient(90deg,#ffffff,#fdae61,#a50026)",
      legend:{kind:"ramp", title:"Wheat crop failure at flowering, %", note:"Share of the unit's wheat area with WRSI below 50 at flowering.",
        use:"Alerting.", ramp:["#ffffff","#fdae61","#a50026"], labels:["0","50","100 %"]}},
   ]},
-  {group:"Teff 2024 \u00b7 risk", layers:[
+  {group:"Teff 2024 \u00b7 risk", items:[
     {id:"risk_teff_cpi", name:"Teff CPI", file:"layers/risk_teff_cpi.png", sw:"linear-gradient(90deg,#a50026,#fee08b,#1a9850)",
      legend:{kind:"ramp", title:"Teff crop performance index", note:"(1\u2212S_water)(1\u2212S_heat)(1\u2212S_veg) \u00d7 100, admin-2, 2024. Ethiopia only \u2014 no other Member State has a teff mask.",
        use:"Season signal. Every teff ceiling fitted so far is LEVEL ONLY or weaker \u2014 read the map as a level, not a ranking.",
@@ -563,11 +568,16 @@ const LAYERS = [
      legend:{kind:"ramp", title:"Teff yield, t/ha", note:"CPI \u00d7 the fitted ceiling of 1.77 t/ha, n 60, r 0.33.",
        use:"Levels only. No teff product reaches r 0.45 against reported yields.",
        ramp:["#f7fcb9","#78c679","#005a32"], labels:["0","half","max"], hatch:"Hatched = uncalibrated"}},
+    {id:"risk_teff_stress", name:"Teff water stress", file:"layers/risk_teff_stress.png", sw:"linear-gradient(90deg,#ffffcc,#fd8d3c,#800026)",
+     legend:{kind:"ramp", title:"Teff water deficit, mm", note:"Season water deficit from the FAO-56 balance, the SAME quantity and the SAME scale as the maize and sorghum stress layers, so all crops read together. Teff has the SHALLOWEST root zone in the pipeline at 0.6 m, so it exhausts its soil water soonest and the same rainfall gives it a larger deficit than maize or sorghum. Computed against a dedicated 60 cm WHC raster, because water-holding capacity is not linear in depth and the 100 cm raster cannot be rescaled.",
+       use:"How much water the crop went short of. Compare with the CPI layer: a deficit that does not move CPI fell outside the stages that carry the yield weight.",
+       ramp:["#ffffcc","#fd8d3c","#800026"], labels:["0","100","\u2265 200 mm"]}},
+    
     {id:"risk_teff_fail", name:"Teff crop-failure risk", file:"layers/risk_teff_fail.png", sw:"linear-gradient(90deg,#ffffff,#fdae61,#a50026)",
      legend:{kind:"ramp", title:"Teff crop failure at flowering, %", note:"Share of the unit's teff area with WRSI below 50 at flowering.",
        use:"Alerting.", ramp:["#ffffff","#fdae61","#a50026"], labels:["0","50","100 %"]}},
   ]},
-  {group:"Millet 2024 \u00b7 risk", layers:[
+  {group:"Millet 2024 \u00b7 risk", items:[
     {id:"risk_millet_cpi", name:"Millet CPI", file:"layers/risk_millet_cpi.png", sw:"linear-gradient(90deg,#a50026,#fee08b,#1a9850)",
      legend:{kind:"ramp", title:"Millet crop performance index", note:"(1\u2212S_water)(1\u2212S_heat)(1\u2212S_veg) \u00d7 100, admin-2, 2024. Sudan and Eritrea only: no other country has a millet mask band, although HarvestStat holds millet yields for Ethiopia, Kenya, Uganda and Burundi.",
        use:"Season signal. Every millet ceiling fitted so far is LEVEL ONLY or weaker \u2014 read the map as a level, not a ranking.",
@@ -579,6 +589,11 @@ const LAYERS = [
      legend:{kind:"ramp", title:"Millet yield, t/ha", note:"CPI \u00d7 the fitted ceiling of 0.63 t/ha for Sudan, n 14. Eritrea is absent from HarvestStat and is hatched.",
        use:"Levels only. No millet product reaches r 0.45 against reported yields.",
        ramp:["#f7fcb9","#78c679","#005a32"], labels:["0","half","max"], hatch:"Hatched = uncalibrated"}},
+    {id:"risk_millet_stress", name:"Millet water stress", file:"layers/risk_millet_stress.png", sw:"linear-gradient(90deg,#ffffcc,#fd8d3c,#800026)",
+     legend:{kind:"ramp", title:"Millet water deficit, mm", note:"Season water deficit from the FAO-56 balance, the SAME quantity and the SAME scale as the maize and sorghum stress layers, so all crops read together. Millet draws on a 1.5 m root zone, as sorghum does, so the same rainfall gives it a smaller deficit than maize. Al Jazirah and Kassala are partly irrigated: there this layer is closer to an irrigation requirement than to crop stress.",
+       use:"How much water the crop went short of. Compare with the CPI layer: a deficit that does not move CPI fell outside the stages that carry the yield weight.",
+       ramp:["#ffffcc","#fd8d3c","#800026"], labels:["0","100","\u2265 200 mm"]}},
+    
     {id:"risk_millet_fail", name:"Millet crop-failure risk", file:"layers/risk_millet_fail.png", sw:"linear-gradient(90deg,#ffffff,#fdae61,#a50026)",
      legend:{kind:"ramp", title:"Millet crop failure at flowering, %", note:"Share of the unit's millet area with WRSI below 50 at flowering.",
        use:"Alerting.", ramp:["#ffffff","#fdae61","#a50026"], labels:["0","50","100 %"]}},
