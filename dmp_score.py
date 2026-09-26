@@ -145,7 +145,14 @@ for tag, pat, zone, cs, obsfn, cpipat in VAR:
     _m = np.isfinite(cy)
     _d = _sk(obs, dy)
     _c = _sk(obs[_m], cy[_m]) if _m.sum() > 2 else (np.nan,) * 4
-    SCORES.append(dict(frame=tag.upper(), n=len(rows),
+    # The ward crop-cut frames are a TARGETED sample: Embu, Kitui, Kwale, Machakos and Makueni,
+    # all ASAL counties, in the short rains of 2021 and 2022 - the drought years. Observed means of
+    # 0.23 and 0.06 t/ha are near-total failure. Any biomass product over-predicts against a harvest
+    # that did not happen, so these frames cannot test LEVEL skill; they are recorded, not used for
+    # that conclusion. The admin-scale frames are the representative ones.
+    _targeted = tag.upper().startswith("KE_WARD")
+    SCORES.append(dict(frame=tag.upper(), sample=("targeted ASAL drought" if _targeted
+                                                  else "representative admin"), n=len(rows),
                        dm_mean=round(float(DM.mean())), obs_mean=round(float(obs.mean()), 2),
                        dmp_mae=round(_d[0], 3), dmp_bias=round(_d[1], 3),
                        dmp_r=round(_d[2], 2), dmp_rho=round(_d[3], 2),

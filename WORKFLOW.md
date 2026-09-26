@@ -86,7 +86,7 @@ flowchart TD
 | Crop mask | `ESA/WorldCereal/2021/MODELS/v100` | 10 m | crop-specific stratum | Van Tricht 2023 |
 | Forecast (option) | Open-Meteo API / `NOAA/GFS0P25` | ~1–28 km | 4-day forecast rain | — |
 | Admin boundaries | GAUL (GEE) + GADM 4.1 (local) | vector | zonal units | — |
-| AEZ | Jaetzold/Sombroek Kenya AEZ (local shp) | vector | maturity zonation | Jaetzold & Schmidt (FMHK) |
+| AEZ | Data-derived: length-of-growing-period (P/PET ≥ 0.5 run) + SRTM elevation (`agroecology.py`) | derived raster | maturity zonation | country-agnostic; replaces the Kenya Jaetzold parser |
 
 ---
 
@@ -117,7 +117,7 @@ opt_G = mean( unitScale(NDRE), unitScale(FPAR) )
 G     = opt_G  filled by  SAR-derived greenness (RVI)  where optical is missing
 ```
 
-**ubESTARFM was tested as an enhancement and shelved — a documented negative result for onset
+**ubESTARFM was tested as an enhancement and RETIRED — a documented negative result for onset
 (`src/estarfm.py`, `UBESTARFM_FINDING.md`).** Unbiased Enhanced Spatial-Temporal Adaptive Reflectance
 Fusion blends fine/sparse Sentinel-2 with coarse/dense MODIS (MCD43A4) into a gap-free series, and was
 trialled both as a raw NDVI gap-fill and with an NDVI→NDRE moment-match calibration. At **matched 250 m
@@ -236,8 +236,9 @@ builder via `whc_source: openlandmap`).
 
 - **Admin-1/2/3** (`src/zonal_aggregate.py`, `admin_skill_local.py`): modal/P10/P50/P90 planting dekad,
   plus **skill vs the FEWS/FAO calendar window** (hit-rate, bias, MAE).
-- **AEZ → maize maturity** (`aez_analysis.py`): the Jaetzold AEZ code (temperature belt + moisture zone)
-  sets the length of growing period → indicative variety class.
+- **AEZ → maize maturity** (`agroecology.py`): a country-agnostic function of the length of growing
+  period (longest run of dekads with P/PET ≥ 0.5) and SRTM elevation sets the indicative variety
+  class. This replaces the earlier Kenya-specific Jaetzold-code parser.
 
 ```mermaid
 flowchart LR
@@ -264,7 +265,7 @@ the AEZ map shows maturity — they are largely decoupled.
 | LTN prior — unified rainfall-led (phenology-confirmed) + temperature offset | `src/ltn.py`, `run.py` | +4.5 pts long-rains hit-rate; short rains kept running but confirmation-limited |
 | P/PET ≥ 0.5 onset gate | `src/wrsi_feedback.py`, `run.py` | agroclimatic onset; suppresses false starts in dry zones |
 | 6-obs + 4-forecast dekad | `openmeteo_forecast.py`, `export_chirps6.py`, `src/wrsi_feedback.py` | near-real-time onset timeliness |
-| ubESTARFM fusion (**tested & shelved**) | `src/estarfm.py`, `UBESTARFM_FINDING.md` | documented negative result: −3 to −4 pts vs cue for onset at matched 250 m; off the production path |
+| ubESTARFM fusion (**tested & retired**) | `src/estarfm.py`, `UBESTARFM_FINDING.md` | documented negative result: −3 to −4 pts vs cue for onset at matched 250 m; off the production path |
 | Statistics + skill | `src/skill_stats.py`, `stats.py`, `skill_graphs.py`, `skill_across_outputs.py` | descriptive + validation-skill + signal-strength + WRSI stats |
 | AEZ maturity + influence | `aez_analysis.py`, `aez_influence.py` | maize variety-class zonation |
 | WKT attribute tables | `build_wkt_table.py`, `attributes_table.py` | QGIS-ready CSVs with geometry + all attributes |
@@ -275,7 +276,24 @@ the AEZ map shows maturity — they are largely decoupled.
 
 ## 5b. Validation & key findings
 
-Measured on Kenya maize 2024 (admin-1 ablation vs the FEWS/FAO calendar window):
+**Farmer-record validation (primary field truth, added Sep 2026).** The FarmerList survey
+(~4.8 M farmer-reported planting records) supersedes the calendar as the planting reference
+wherever both exist. Kenya Long rains (MAM) 2024, 42/44 maize counties matched:
+
+| Level | n | Modal bias (dk) | MAE (dk) | within ±2 dk |
+|---|---|---|---|---|
+| County | 42 | −0.31 (~3 days early) | 1.02 (~9 days) | 92.9% |
+| Ward | 855 | −0.44 | 1.10 | 96% |
+
+Misses are local and interpretable: Garissa/Marsabit +3 (sparse maize margins), Tana River −3
+(model plants on early coastal showers). **Short rains: not yet cleanly validated** — 84% of the
+OND survey predates OND; the Kakamega+Bungoma records (409,306 farmers) reveal an Aug–Sep western
+second season (ward-median dekad 24–25) three dekads before the OND-calibrated search window — a
+regime difference requiring a separate earlier search window before scoring. Ethiopia Meher has no
+farmer records yet and stands unscored. Full detail: `PLANTING_VALIDATION_2024.md` and
+`Pipeline_Workflow_Methodologies.docx` §10.1.
+
+Ablations, measured on Kenya maize 2024 (admin-1, vs the FEWS/FAO calendar window):
 
 **LTN prior effect on the start of season** — *tightens the distribution, doesn't move the mean:*
 
@@ -335,9 +353,9 @@ predicts, independently confirming the AEZ → maturity logic through the water 
 - Calendar windows in `config/season_calendar.csv` are **indicative** — calibrate against FEWS NET / FAO
   GIEWS / GEOGLAM before operational use.
 - Smallholder mixed pixels blur SOS; the finest native resolution the compute budget allows is the best
-  remedy (resolution is the dominant skill lever — see §4.3). ubESTARFM was tested for this and does **not**
+  remedy (resolution is the dominant skill lever — see §4.3). ubESTARFM was tested for this (now retired) and does **not**
   help onset; Planet 3 m or native-10 m S2 are the levers that do.
-- AEZ maturity mapping is a first-order Jaetzold convention — calibrate against Kenya Seed variety zonation.
+- AEZ maturity mapping is a first-order LGP-plus-elevation rule (country-agnostic) — calibrate against Kenya Seed variety zonation.
 - Ward-level (admin-3) statistics from downsampled mosaics are approximate; use native-resolution zonal
   stats for publication.
 - Full LTN+WRSI at 10 m is compute-heavy and does not sustain for two concurrent country exports (both
@@ -412,3 +430,29 @@ anomaly at silking counts ~3–4× one during vegetative growth. Full spec + roa
 18. Zhu, X. et al. (2010). *ESTARFM — enhanced spatial and temporal adaptive reflectance fusion.* RSE 114(11), 2610–2623. https://doi.org/10.1016/j.rse.2010.05.032
 
 *Verify DOIs against your library before formal publication; the 2023–2026 fusion papers were surfaced via web search.*
+
+---
+
+## Methodology testing (2026-09) — what has and has not been validated
+
+Five controlled experiments re-examined core pipeline choices. Full algorithms, formulas, an
+illustrative workflow diagram and peer-reviewed references:
+**[`Methodology_Testing/METHODOLOGY_TESTING.md`](Methodology_Testing/METHODOLOGY_TESTING.md)**
+(runnable Colabs: `Methodology_Testing/0{1..5}_*.ipynb`).
+
+| component | status |
+|---|---|
+| SoilGrids/Saxton WHC | **kept on physical grounds, NOT skill-validated.** No rank gain anywhere; the uniform bucket detects the Kitui 2022 failure better (14/15 vs 5/15 wards severe) |
+| Fixed 120 d cycle (long rains) | **wrong by 48 d** against farmer-reported cycle length (n=27 counties). The EXISTING GDD clock (ERA5-Land, Tbase 9, 1300/1500/1700) recovers most of it: MAE 23 d, r +0.80. Replace the fixed cycle, keep the clock |
+| Fixed 90 d cycle (short rains) | **validated** — GDD within 5 d, and all three stages within 5 d of the fixed Kc timing |
+| Per-zone Ym (`YM_HIGHLAND`) | **kept**, justified by out-of-sample ranking (Spearman 0.725→0.830), not MAE; independently corroborated by the Kenya Insurance Atlas (4.12/2.72 vs 3.7/2.3) |
+| DMP biomass yield | out-ranks CPI on **all 3 representative frames** (KE long +0.76 vs +0.59, KE short +0.72 vs +0.09, ET Meher +0.60 vs -0.40) and is close to unbiased there (implied HI 0.34-0.48, in the agronomic band). The old "cannot see ASAL crop failure, implied HI 0.02" came from **targeted ASAL drought crop-cuts** where a near-zero harvest forces the implied HI down whatever the model does - it is not a measured limitation. Shipped as a RANKING covariate on the 8 anti-correlated products; not a reported yield, because its level rests on only 3 frames |
+| DMP as `S_veg` | **rejected** — no rank gain in any season (Ethiopia admin-2, n=39: ρ ≈ 0 for both arms) |
+| GDD maturity target | AEZ proxy disagrees with observed varieties in **30% of counties** (under-calls cold highlands, over-calls bimodal west). BUT the operational table's targets (1030/1300/2020) scored significantly WORSE than the current 1300/1500/1700 (Δ −11.9 d, CI [−19.9,−3.1]) — adopt its stage structure only after re-test |
+| CHIRTS vs ERA5-Land for the clock | **no significant difference** at county scale (Δ −0.4 d, CI [−14.5,+14.9]). CHIRTS LTN 1996–2025 is built and useful for grid consistency with CHIRPS, but is not an accuracy fix |
+| `agroecology.lgp_dekads` | **defect** — returns a 320–334 d max-run in bimodal western Kenya, merging two rainy seasons into one "growing period" |
+
+**Scoring standard adopted:** leave-one-out CV + paired bootstrap CI, scored under BOTH a per-arm
+and a fixed Ym, with Spearman reported alongside MAE. A single 70/30 split at n ≈ 45 carries a
+±0.10 t/ha standard deviation — larger than any effect measured here, and it produced two
+false positives before this standard was adopted.

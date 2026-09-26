@@ -62,8 +62,8 @@ of modal/P10/P50/P90 planting dekad. Djibouti auto-excluded (no viable rows).
 | FPAR | `MODIS/061/MCD15A3H`; CGLS FPAR 300 m | GEE; NASA AppEEARS; CGLS/VITO |
 | LTN phenology | USGS/FEWS eMODIS phenology; `MODIS/061/MCD12Q2` | USGS EROS; FEWS NET Data Portal; GEE |
 | Rainfall (WRSI) | `UCSB-CHG/CHIRPS/DAILY` | GEE; Climate Hazards Center |
-| PET/soil (WRSI) | GRIDMET / ERA5-Land; SoilGrids WHC | GEE; ISRIC |
-| WRSI engine | GeoWRSI 3.x | USGS FEWS software |
+| PET/ET0 & soil (WRSI) | ERA5-Land Tmin/Tmax (Hargreaves ET0); SoilGrids WHC | GEE; ISRIC |
+| WRSI engine | Full FAO-56/33 water balance in Google Earth Engine (`wrsi_waterbalance.py`); GeoWRSI 3.x = legacy reference only | GEE; USGS FEWS software (legacy) |
 | Generic/maize mask | `ESA/WorldCereal/2021/MODELS/v100` | GEE; WorldCereal openEO |
 | Crop calendars | FEWS NET; FAO GIEWS; GEOGLAM Crop Monitor | portals / country briefs |
 | Reference labels | EthCT2020; HarvestStat Africa | Mendeley; Dryad/GitHub |
@@ -124,3 +124,29 @@ GIEWS / GEOGLAM before operational use. Smallholder mixed pixels blur SOS; resol
 (reach for native-10 m S2 or Planet 3 m) — ubESTARFM was tested for this and does *not* help onset.
 
 See `REFERENCES.md` for the supporting literature.
+
+---
+
+## Methodology testing (2026-09) — what has and has not been validated
+
+Five controlled experiments re-examined core pipeline choices. Full algorithms, formulas, an
+illustrative workflow diagram and peer-reviewed references:
+**[`Methodology_Testing/METHODOLOGY_TESTING.md`](Methodology_Testing/METHODOLOGY_TESTING.md)**
+(runnable Colabs: `Methodology_Testing/0{1..5}_*.ipynb`).
+
+| component | status |
+|---|---|
+| SoilGrids/Saxton WHC | **kept on physical grounds, NOT skill-validated.** No rank gain anywhere; the uniform bucket detects the Kitui 2022 failure better (14/15 vs 5/15 wards severe) |
+| Fixed 120 d cycle (long rains) | **wrong by 48 d** against farmer-reported cycle length (n=27 counties). The EXISTING GDD clock (ERA5-Land, Tbase 9, 1300/1500/1700) recovers most of it: MAE 23 d, r +0.80. Replace the fixed cycle, keep the clock |
+| Fixed 90 d cycle (short rains) | **validated** — GDD within 5 d, and all three stages within 5 d of the fixed Kc timing |
+| Per-zone Ym (`YM_HIGHLAND`) | **kept**, justified by out-of-sample ranking (Spearman 0.725→0.830), not MAE; independently corroborated by the Kenya Insurance Atlas (4.12/2.72 vs 3.7/2.3) |
+| DMP biomass yield | out-ranks CPI on **all 3 representative frames** (KE long +0.76 vs +0.59, KE short +0.72 vs +0.09, ET Meher +0.60 vs -0.40) and is close to unbiased there (implied HI 0.34-0.48, in the agronomic band). The old "cannot see ASAL crop failure, implied HI 0.02" came from **targeted ASAL drought crop-cuts** where a near-zero harvest forces the implied HI down whatever the model does - it is not a measured limitation. Shipped as a RANKING covariate on the 8 anti-correlated products; not a reported yield, because its level rests on only 3 frames |
+| DMP as `S_veg` | **rejected** — no rank gain in any season (Ethiopia admin-2, n=39: ρ ≈ 0 for both arms) |
+| GDD maturity target | AEZ proxy disagrees with observed varieties in **30% of counties** (under-calls cold highlands, over-calls bimodal west). BUT the operational table's targets (1030/1300/2020) scored significantly WORSE than the current 1300/1500/1700 (Δ −11.9 d, CI [−19.9,−3.1]) — adopt its stage structure only after re-test |
+| CHIRTS vs ERA5-Land for the clock | **no significant difference** at county scale (Δ −0.4 d, CI [−14.5,+14.9]). CHIRTS LTN 1996–2025 is built and useful for grid consistency with CHIRPS, but is not an accuracy fix |
+| `agroecology.lgp_dekads` | **defect** — returns a 320–334 d max-run in bimodal western Kenya, merging two rainy seasons into one "growing period" |
+
+**Scoring standard adopted:** leave-one-out CV + paired bootstrap CI, scored under BOTH a per-arm
+and a fixed Ym, with Spearman reported alongside MAE. A single 70/30 split at n ≈ 45 carries a
+±0.10 t/ha standard deviation — larger than any effect measured here, and it produced two
+false positives before this standard was adopted.

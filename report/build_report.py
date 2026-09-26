@@ -382,8 +382,8 @@ requirement. Full treatment: `crop_pipeline/docs/IRRIGATED_WATER_BALANCE.md`.
 
 Dry-matter productivity (MOD17 GPP → DMP; Monteith 1972; Running et al. 2004) was tested as an
 independent **ranking covariate** — not as a replacement for CPI, and not as a level product, since
-DMP cannot see ASAL crop failure (implied harvest index 0.02, far outside the 0.30–0.55 agronomic
-range of Hay 1995).
+its level has been checked on only three representative frames (see 7.5); on those it is close to
+unbiased, but three frames do not license a reported yield.
 
 The test is **rank-only**, which removes DMP's dominant uncertainty: Spearman ρ is invariant to
 monotonic transforms, so harvest index, above-ground fraction and grain moisture cannot affect it.
@@ -406,15 +406,21 @@ anything — the mean of the two percentile ranks — and **it loses**: DMP alon
 6 of the 8, CPI on 1 (Kenya short-rains sorghum, where both are negative) and the blend on 1
 (Burundi Season A, n = 7, where the two tie at −0.071). Averaging a good ranking with an inverted
 one drags it back toward zero, which is what the numbers show. **Use DMP for ranking on these
-products, not for level** — it cannot see ASAP crop failure (implied harvest index 0.02, far outside
-the 0.30–0.55 agronomic range of Hay 1995).
+products, not for level** — not because a level failure was shown (see 7.5, which corrects that
+earlier claim) but because the representative evidence for its level is only three frames.
 
 ## 7.5 The Kenya DMP assessment — where the covariate evidence came from
 
 DMP was not adopted on the strength of the eight-product test alone. It was first assessed against
-Kenya's own yield records, over five frames that between them span a good season, a poor season and
-two drought crop-cutting campaigns. `dmp_score.py` produces these numbers; the table is read from
+Kenya's own yield records. `dmp_score.py` produces these numbers; the table is read from
 `Cropyield-Data/dmp_score_summary.csv` at build time.
+
+**The frames are not equally admissible, and the table says which is which.** The two `KE_WARD`
+frames are crop-cutting campaigns in Embu, Kitui, Kwale, Machakos and Makueni — all ASAL counties —
+during the short rains of 2021 and 2022, the drought years. Observed means of 0.23 and 0.06 t/ha are
+near-total crop failure in a sample selected toward poorly performing areas. **Any biomass product
+over-predicts against a harvest that did not happen**, so those frames cannot test level skill. They
+are reported for completeness and excluded from the conclusions below.
 
 {{KDMP_TABLE}}
 
@@ -425,26 +431,26 @@ observed at that assumed HI.
 
 {{KDMP_FIG}}
 
-**Two findings, and they point in opposite directions — which is exactly why DMP is used as a
-ranking covariate and nothing more.**
+**On the representative frames, DMP out-ranks CPI in {{KDMP_REP_WINS}} of {{KDMP_REP_N}}** — Kenya
+long rains ρ +0.76 against +0.59, Kenya short rains **+0.72 against +0.09**, Ethiopia Meher +0.60
+against −0.40. The gap is widest exactly where CPI is weakest: the ASAL short-rains season this
+pipeline has never ranked well, and the two frames where CPI is outright negative.
 
-1. **DMP ranks better than CPI in every frame.** On Spearman it wins {{KDMP_WINS}} of {{KDMP_N}},
-   including the two where CPI is *negative* (KE_WARD_2021 and ET_MEHER). The gap is largest exactly
-   where CPI is weakest: KE_SHORT is ρ {{KDMP_SHORT_D}} for DMP against {{KDMP_SHORT_C}} for CPI, the
-   ASAL short-rains season the pipeline has never ranked well.
-2. **DMP cannot carry a level in a failed season.** The implied harvest index is agronomically
-   plausible in the two admin-scale frames — KE_LONG {{KDMP_HI_LONG}} and ET_MEHER {{KDMP_HI_ET}}, both
-   inside 0.30–0.55 — but collapses to {{KDMP_HI_W21}} in the 2021 ward crop-cuts and {{KDMP_HI_W22}} in
-   2022, over-predicting observed yield by {{KDMP_OV21}}× and {{KDMP_OV22}}×. An implied HI of 0.04 is
-   not a harvest index; it is the model's way of saying the biomass it measured did not become
-   grain.
+**And on those same frames DMP is close to unbiased in level.** The implied harvest index is
+{{KDMP_HI_RANGE}}, inside the agronomic 0.30–0.55 band in every case, and DMP-derived yield sits at
+{{KDMP_OV_RANGE}} of observed. That is not the behaviour of a broken level estimator.
 
-That second row is the ASAL drought signal, and it is the reason DMP is **never** exposed as a yield
-in this pipeline. Read as a biomass diagnostic it is honest — the crop grew and then failed to fill
-— but any level derived from it in such a season is wrong by a factor of four to ten.
+> **This corrects an earlier claim in this project.** The pipeline documentation has carried
+> "DMP cannot see ASAL crop failure (implied HI 0.02)" as a settled finding. That figure comes from
+> the targeted drought crop-cuts, where a near-zero observed harvest forces the implied HI toward
+> zero whatever the biomass product does. It is a statement about those campaigns, not a measured
+> limitation of DMP. On representative data no such failure is visible.
 
-*(This supersedes the earlier "DMP out-ranks CPI in 4/5" note in `ALL_COUNTRIES_2024.md` §5, which
-recorded the long-rains frame as a Spearman tie. On the current exports DMP leads there too.)*
+**DMP is nevertheless shipped for ranking only, and the reason has changed.** It is not that a level
+failure was demonstrated — it was not. It is that the representative evidence base is three frames,
+one of them n = 6, and three near-unbiased frames are not enough to promote a biomass product to a
+reported yield. The ward campaigns remain informative about what a failed season looks like in
+biomass; they simply cannot answer the level question either way.
 
 # 8. Departures from the Inception Report, and why
 
@@ -587,13 +593,14 @@ ceiling; blank means no ceiling could be fitted.
 {md_table(M, floatfmt="{:.2f}")}
 """
     if len(kdmp):
-        kt = kdmp.rename(columns={"frame": "frame", "n": "n", "dm_mean": "DM kg/ha",
+        kt = kdmp.rename(columns={"frame": "frame", "sample": "sample", "n": "n", "dm_mean": "DM kg/ha",
                                   "obs_mean": "obs t/ha", "dmp_mae": "DMP MAE", "dmp_r": "DMP r",
                                   "dmp_rho": "DMP rho", "cpi_mae": "CPI MAE", "cpi_r": "CPI r",
                                   "cpi_rho": "CPI rho", "hi_implied": "HI implied",
                                   "overpred": "over"})
-        cols = ["frame", "n", "DM kg/ha", "obs t/ha", "DMP MAE", "DMP r", "DMP rho",
+        cols = ["frame", "sample", "n", "DM kg/ha", "obs t/ha", "DMP MAE", "DMP r", "DMP rho",
                 "CPI MAE", "CPI r", "CPI rho", "HI implied", "over"]
+        rep = kdmp[kdmp["sample"].str.startswith("representative")]
         wins = int((kdmp.dmp_rho > kdmp.cpi_rho).sum())
         g = lambda fr, c: kdmp.loc[kdmp.frame == fr, c].iloc[0] if (kdmp.frame == fr).any() else float("nan")
         doc = doc.replace("{KDMP_TABLE}", md_table(kt[cols], floatfmt="{:g}"))
@@ -602,6 +609,12 @@ ceiling; blank means no ceiling could be fitted.
             "Right: the harvest index implied by the observations — plausible at admin scale, "
             "collapsing in the drought ward crop-cuts, which is why DMP is never reported as a yield."))
         doc = doc.replace("{KDMP_WINS}", str(wins)).replace("{KDMP_N}", str(len(kdmp)))
+        doc = doc.replace("{KDMP_REP_WINS}", str(int((rep.dmp_rho > rep.cpi_rho).sum())))
+        doc = doc.replace("{KDMP_REP_N}", str(len(rep)))
+        doc = doc.replace("{KDMP_HI_RANGE}",
+                          f"{rep.hi_implied.min():.3f} to {rep.hi_implied.max():.3f}")
+        doc = doc.replace("{KDMP_OV_RANGE}",
+                          f"{rep.overpred.min():.1f}x to {rep.overpred.max():.1f}x")
         doc = doc.replace("{KDMP_SHORT_D}", f"{g('KE_SHORT','dmp_rho'):+.2f}")
         doc = doc.replace("{KDMP_SHORT_C}", f"{g('KE_SHORT','cpi_rho'):+.2f}")
         doc = doc.replace("{KDMP_HI_LONG}", f"{g('KE_LONG','hi_implied'):.3f}")
