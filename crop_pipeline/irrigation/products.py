@@ -45,6 +45,15 @@ def inventory():
                 country, season = _split(tok)
                 out.append(dict(crop=crop, country=country, season=season, stem=stem, csv=f))
                 break
+    # products retired by decision are not part of the inventory any more
+    try:
+        import sys as _s
+        _s.path.insert(0, P)
+        from crop_coverage import is_dropped
+        out = [r for r in out if not is_dropped(r["crop"], r["country"])]
+    except Exception:
+        pass
+
     # one entry per (crop, country, season) — prefer the plainest stem (no _250m/_rainfed suffix)
     best = {}
     for r in out:

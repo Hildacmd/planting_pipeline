@@ -1,8 +1,8 @@
 # The water balance is rainfed. Where crops are irrigated, this is what it means.
 
-**Scope:** all 41 products that exist across the five crops (maize, sorghum, wheat, teff, millet)
+**Scope:** all 40 products that exist across the five crops (maize, sorghum, wheat, teff, millet)
 and eleven countries. **Status:** 1 product must not be read as crop condition, 6 more carry a
-material bias, 2 a local one, and 32 are unaffected.
+material bias, 2 a local one, and 31 are unaffected.
 
 Everything below is computed, not asserted. The four scripts in `crop_pipeline/irrigation/`
 regenerate every number, and the CSVs they write are the tables. The grades are consumed at runtime
@@ -181,7 +181,7 @@ still sound:
 
 ## 5. Per-product exposure
 
-`product_exposure.py` grades all 41 products. Full table:
+`product_exposure.py` grades all 40 products. Full table:
 `crop_pipeline/irrigation/product_irrigation_exposure.csv`. A unit counts as **compromised** only if
 it is both substantially irrigated *and* holds real area: `irrigated_pct ≥ 30 AND area_all_ha ≥ 1000`.
 
@@ -190,7 +190,7 @@ it is both substantially irrigated *and* holds real area: `irrigated_pct ≥ 30 
 | **INVALID as rainfed** | national ≥ 40 % | **1** | Sudan wheat Shitwi (98.4 %) |
 | **materially biased** | national ≥ 10 %, or ≥ 2 compromised units, or ≥ 50,000 ha irrigated | **6** | Somalia maize Gu & Deyr · Somalia sorghum Gu & Deyr · Sudan sorghum Kharif · Sudan millet Kharif |
 | **locally biased** | ≥ 1 compromised unit | **2** | Ethiopia maize Meher & Belg (Afar) |
-| **negligible** | none of the above | **32** | all Kenya, Uganda, Rwanda, Burundi, Tanzania and Eritrea products; Ethiopia sorghum, wheat and teff; South Sudan maize and sorghum |
+| **negligible** | none of the above | **31** | all Kenya, Uganda, Rwanda, Burundi, Tanzania and Eritrea products; Ethiopia sorghum, wheat and teff; South Sudan maize and sorghum |
 
 **How to read each grade.** *Invalid*: do not report CPI, yield or stress; the deficit is the
 irrigation requirement. *Materially biased*: report at admin-1, name the irrigated units, and do not
@@ -273,7 +273,7 @@ grade-driven, but the *onset* workaround is not.
 ### Reproducing this note
 
 ```bash
-python crop_pipeline/irrigation/products.py               # the 41-product inventory, from disk
+python crop_pipeline/irrigation/products.py               # the 40-product inventory, from disk
 python crop_pipeline/irrigation/spam_irrigated_share.py   # → spam2020_irrigated_share.csv     (§2)
 python crop_pipeline/irrigation/spam_irrigated_admin1.py  # → spam2020_irrigated_admin1.csv    (§2)
 python crop_pipeline/irrigation/cpi_vs_irrigation.py      # → cpi_vs_irrigation.csv            (§3)

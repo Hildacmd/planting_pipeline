@@ -107,10 +107,10 @@ from them would be meaningless.
 
 ## Irrigation
 
-The water balance is rainfed by construction (`Wb = SW + P`, no irrigation term). Of the 41 products
+The water balance is rainfed by construction (`Wb = SW + P`, no irrigation term). Of the 40 products
 that exist across the five crops, **1 must not be read as crop condition** (Sudan wheat Shitwi,
 98.4 % of wheat area irrigated — excluded from the apps and Atlas), 6 carry a material bias, 2 a
-local one, and 32 are unaffected. The one measurable inversion is **Sudan millet Kharif**: across its
+local one, and 31 are unaffected. The one measurable inversion is **Sudan millet Kharif**: across its
 15 states CPI ranks negatively against the SPAM irrigated share (Spearman rho = -0.68, p = 0.005), so
 Al Jazirah and Khartoum score below fully-rainfed Darfur. Sudan sorghum is the counter-example —
 four states at 31-51 % irrigated yet rho = -0.17 (p = 0.50), because the 3.3 M ha Al Qadarif bulk is

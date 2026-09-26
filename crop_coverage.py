@@ -25,6 +25,19 @@ H = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, H); sys.path.insert(0, f"{H}/crop_pipeline/irrigation")
 import ctm_mask as CTM
 
+# Products DROPPED by decision, with the evidence. This is separate from ACCEPTED because the mask
+# DOES carry a band here - it is just too thin to support a product. PROFILES keeps describing the
+# asset truthfully; the decision lives here, where it can be read and reversed.
+DROPPED = {
+    ("maize", "South_Sudan"):
+        "Dropped 26 Sep 2026 by decision. The crop-type mask maps 0.013 Mha of maize in South Sudan "
+        "against 0.295 Mha of sorghum. On that mask the product retains 135 maize pixels country-wide "
+        "against WorldCereal's 9,398, and Eastern Equatoria - 90 % of the country's maize by "
+        "WorldCereal - has none at all. Only 2 of 9 states keep enough pixels to produce a CPI, so it "
+        "cannot support admin-level reporting. South Sudan is a sorghum country and its sorghum "
+        "products (Main and 2nd) are sound. Evidence: maize_ctm/mask_comparison.csv.",
+}
+
 # Differences that are DELIBERATE, with the reason. Without this the report reads every difference
 # as a defect, and someone eventually "fixes" one that was a decision.
 ACCEPTED = {
@@ -63,9 +76,14 @@ def _rows(crop):
     return out
 
 
+def is_dropped(crop, country):
+    return (str(crop).lower(), str(country).replace(" ", "_")) in DROPPED
+
+
 def runnable(crop=None):
-    """Calendar rows the crop-type mask can actually support, as {crop: [rows]}."""
-    return {c: [r for r in _rows(c) if CTM.has(r["_country"], c)]
+    """Calendar rows the crop-type mask can actually support and that have not been dropped."""
+    return {c: [r for r in _rows(c)
+                if CTM.has(r["_country"], c) and not is_dropped(c, r["_country"])]
             for c in ([crop] if crop else CROPS)}
 
 
@@ -89,15 +107,26 @@ def gate(rows, crop, country_key="country", verbose=True):
 
     Runners should call this instead of iterating the calendar directly, so the plan they print is
     the plan that can run."""
-    keep, drop = [], []
+    keep, noband, dropped = [], [], []
     for r in rows:
-        (keep if CTM.has(str(r[country_key]).replace(" ", "_"), crop) else drop).append(r)
-    if drop and verbose:
-        print(f"  [crop-type mask] {len(drop)} row(s) dropped — no {crop} band for that country:")
-        for r in drop:
+        co = str(r[country_key]).replace(" ", "_")
+        if is_dropped(crop, co):
+            dropped.append(r)
+        elif CTM.has(co, crop):
+            keep.append(r)
+        else:
+            noband.append(r)
+    if noband and verbose:
+        print(f"  [crop-type mask] {len(noband)} row(s) skipped — no {crop} band for that country:")
+        for r in noband:
             co = str(r[country_key]).replace(" ", "_")
             have = CTM.PROFILES.get(co, ("?", ()))[1]
             print(f"      {co} {r.get('season', '')} — mask carries {', '.join(have) or 'nothing'}")
+    if dropped and verbose:
+        print(f"  [dropped by decision] {len(dropped)} {crop} row(s):")
+        for r in dropped:
+            co = str(r[country_key]).replace(" ", "_")
+            print(f"      {co} {r.get('season', '')} — {DROPPED[(crop, co)][:96]}...")
     return keep
 
 
@@ -110,8 +139,17 @@ def main():
         line = f"{co:14s}"
         for c in CROPS:
             band, has_cal = CTM.has(co, c), co in cal[c]
-            line += f"{('RUN' if band and has_cal else 'no-cal' if band else 'NO BAND' if has_cal else '·'):>11}"
+            cell = ("DROPPED" if is_dropped(c, co) else
+                    "RUN" if band and has_cal else "no-cal" if band else
+                    "NO BAND" if has_cal else "·")
+            line += f"{cell:>11}"
         print(line)
+
+    if DROPPED:
+        print(f"\n=== DROPPED by decision — mask has a band, product retired ({len(DROPPED)}) ===")
+        for (c, co), why in sorted(DROPPED.items()):
+            print(f"  {co:14s} {c:8s}")
+            print(f"      {why}")
 
     nb = no_mask_band()
     print(f"\n=== NO MASK BAND — in a calendar, cannot ever be built ({len(nb)}) ===")

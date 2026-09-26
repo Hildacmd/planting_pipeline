@@ -8,6 +8,7 @@ window, and per-level GeoJSON+attributes. The app switches between products clie
 import json, pandas as pd, geopandas as gpd
 from shapely import wkt
 import irrigation_exposure as IRR
+import crop_coverage as COV
 
 # --- product registry: id -> config ---
 PRODUCTS = [
@@ -42,7 +43,6 @@ _NEW = [
     ("tz_mas",  "Tanzania", "Masika 2024",   "Tanzania_Masika",  [8, 14],  ("Region", "District")),
     ("tz_msi",  "Tanzania", "Msimu 2024",    "Tanzania_Msimu",   [34, 40], ("Region", "District")),
     ("tz_vul",  "Tanzania", "Vuli 2024",     "Tanzania_Vuli",    [29, 34], ("Region", "District")),
-    ("ss_main", "South Sudan", "Main 2024",  "SouthSudan_Main",  [11, 19], ("State", "County")),
     ("so_gu",   "Somalia", "Gu 2024",        "Somalia_Gu",       [11, 16], ("Region", "District")),
     ("so_deyr", "Somalia", "Deyr 2024",      "Somalia_Deyr",     [29, 34], ("Region", "District")),
     ("et_belg", "Ethiopia", "Belg 2024",     "Ethiopia_Belg",    [7, 12],  ("Region", "Zone")),
@@ -258,6 +258,13 @@ data = {"products": [], "default": PRODUCTS[0]["id"]}
 skipped = []
 excluded = []
 for cfg in PRODUCTS:
+    # A product dropped by decision (crop_coverage.DROPPED) never reaches the apps, whichever
+    # registry it was listed in. South Sudan maize is the case: the crop-type mask leaves it
+    # 135 pixels country-wide, too thin for admin-level reporting.
+    if COV.is_dropped(cfg.get("crop") or "maize", cfg["country"]):
+        excluded.append(f"{cfg['crop']}: {cfg['country']} {cfg['season']} — dropped by decision "
+                        f"(crop_coverage.DROPPED)")
+        continue
     if cfg.get("exclude_from_apps"):
         excluded.append(f"{cfg['crop']}: {cfg['country']} {cfg['season']} "
                         f"— {cfg['exclude_reason']}")

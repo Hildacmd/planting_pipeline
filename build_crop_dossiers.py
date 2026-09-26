@@ -117,6 +117,12 @@ only during flowering, because maize sterilises at silking.""",
 - **Season-A green-up failure diagnosed and fixed**: Rwanda and Burundi Season A returned ~64
   planting pixels against 3,365 maize pixels because cue-fusion cannot find green-up under persistent
   highland cloud. Routed to rainfall-anchored onset; full coverage restored.
+- **South Sudan maize dropped, on evidence.** The crop-type mask maps 0.013 Mha of maize there
+  against 0.295 Mha of sorghum; the product retained 135 maize pixels country-wide against
+  WorldCereal's 9,398, and Eastern Equatoria - 90 % of the country's maize by WorldCereal - had none
+  at all. Only 2 of 9 states kept enough pixels for a CPI. South Sudan is a sorghum country and its
+  two sorghum products are sound. Recorded in `crop_coverage.DROPPED` with the evidence, which the
+  runners, the apps and this inventory all honour, so it cannot return by a side door.
 - **Cached-WHC footprint bug found and fixed** — the materialised asset stopped at 32.3 °E, which had
   emptied Rwanda and Burundi entirely and silently clipped western Uganda, Tanzania and South Sudan.""",
  gaps="""- **Yield is level-only in the ASAL.** Kenya Short rains calibrates to the right national average but
@@ -135,10 +141,7 @@ only during flowering, because maize sterilises at silking.""",
 - **Two products re-rank under the crop-type mask**: Uganda 1st rains (Spearman rho 0.758 between the
   two admin rankings) and Burundi Season A (0.734). A level shift can be absorbed by re-fitting Ym;
   a re-ranking cannot, and which units look worst is what an early-warning product is for.
-- **South Sudan maize barely exists under the crop-type mask.** 135 maize pixels against WorldCereal's
-  9,398, and Eastern Equatoria - which WorldCereal puts at 8,508 pixels, 90 % of the country's maize -
-  has none at all. The mask maps 0.013 Mha of maize against 0.295 Mha of sorghum. Only 2 of 9 states
-  retain enough pixels to produce a CPI.""",
+- *(Resolved)* South Sudan maize has been **dropped**, see Achievements.""",
  recs="""1. ~~**Re-run maize on the ICPAC crop-type mask and A/B it.**~~ **Done, 26 September 2026** - all 16
    products re-run and compared (`maize_ctm/compare_masks.py`, `mask_comparison.csv`). Over the 14
    comparable products the level barely moves (mean CPI +1.22, median per-unit change 2.0) and the
@@ -148,9 +151,7 @@ only during flowering, because maize sterilises at silking.""",
    directions - WorldCereal claims 1.9x more maize area in Uganda and 1.6x in Burundi, while the
    crop-type mask claims 1.3x more in Rwanda, 1.4x more in Kenya and 5x more in Somalia. **Decide per
    product, not wholesale**, and re-fit Ym on the new footprint before promoting any of them.
-2. **Drop or re-scope South Sudan maize.** With 135 mapped maize pixels country-wide it cannot support
-   admin-level reporting under the crop-type mask. South Sudan is a sorghum country in the mask
-   (0.295 Mha) and the sorghum products there are sound.
+2. ~~**Drop or re-scope South Sudan maize.**~~ **Dropped, 26 September 2026** - see Achievements.
 3. **Resolve short-rains season attribution** before the regime-aware onset is promoted out of
    provisional — the 39 % figure is large enough to change county rankings.
 4. **Fit Ym for Tanzania and South Sudan** from any sub-national source other than HarvestStat.

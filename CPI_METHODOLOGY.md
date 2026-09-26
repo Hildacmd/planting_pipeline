@@ -93,10 +93,10 @@ Ym (reference potential):  short-duration maize ≈ 4.5 t/ha · medium/long ≈ 
 - **Parameters (HEAT_K, VEG_W, HEAT_TCAP) are first-pass**; refine against local trials.
 - **Resolution:** CPI inherits ~5.5–11 km climate content on the 250 m grid — an admin-scale estimate.
 - **Irrigation is invisible to the balance (see 3.1).** Measured against SPAM 2020's irrigated/rainfed
-  technology split, of the 41 products across the five crops: **1 is invalid as a rainfed product**
+  technology split, of the 40 products across the five crops: **1 is invalid as a rainfed product**
   (Sudan wheat Shitwi, 98.4 % of wheat area irrigated — excluded from the apps and the Atlas), **6 are
   materially biased** (Somalia maize and sorghum in both seasons, Sudan sorghum Kharif, Sudan millet
-  Kharif), **2 are locally biased** (Ethiopia maize Meher and Belg, via Afar), and **32 are rainfed to
+  Kharif), **2 are locally biased** (Ethiopia maize Meher and Belg, via Afar), and **31 are rainfed to
   within a rounding error** and need no caveat. Every Earth Engine asset now carries the grade as the
   property `irrigation_exposure`, and the apps show it as a banner. Do not rank an irrigated admin unit
   against rainfed ones in the same table.

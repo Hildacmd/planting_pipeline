@@ -7,13 +7,13 @@ products — they cannot drift from what is actually in Earth Engine and on disk
 
 | crop | products | fitted Ym | irrigation-flagged | tier-2 (def/SPI/LVPD/FCCI) | dossier |
 |---|---|---|---|---|---|
-| **maize** | 16 | 7 | 4 | 13/16/13/15 | [maize/METHODOLOGY.md](maize/METHODOLOGY.md) |
+| **maize** | 15 | 7 | 4 | 12/15/12/14 | [maize/METHODOLOGY.md](maize/METHODOLOGY.md) |
 | **sorghum** | 18 | 12 | 3 | 18/18/18/18 | [sorghum/METHODOLOGY.md](sorghum/METHODOLOGY.md) |
 | **wheat** | 4 | 2 | 1 | 4/4/4/4 | [wheat/METHODOLOGY.md](wheat/METHODOLOGY.md) |
 | **teff** | 1 | 1 | 0 | 1/1/1/1 | [teff/METHODOLOGY.md](teff/METHODOLOGY.md) |
 | **millet** | 2 | 1 | 1 | 2/2/2/2 | [millet/METHODOLOGY.md](millet/METHODOLOGY.md) |
 
-**41 products in total.** Cross-cutting methodology lives in `CPI_METHODOLOGY.md`
+**40 products in total.** Cross-cutting methodology lives in `CPI_METHODOLOGY.md`
 (the CPI chain), `ALL_COUNTRIES_2024.md` (the run and its gaps) and
 `crop_pipeline/docs/IRRIGATED_WATER_BALANCE.md` (why a rainfed balance misreads an
 irrigated crop, and which products it affects).

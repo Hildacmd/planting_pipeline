@@ -32,6 +32,7 @@ sys.path.insert(0, ROOT)
 from src import utils                                   # noqa: E402
 import ctm_mask as CTM                                   # noqa: E402
 import irrigation_exposure as IRR                        # noqa: E402
+import crop_coverage as COV                              # noqa: E402
 import run_all_maize_2024 as M                           # noqa: E402
 
 EE_PROJECT = os.environ.get("EE_PROJECT", "ee-manzikye")
@@ -39,10 +40,14 @@ YEAR = M.YEAR
 
 
 def eligible(rows):
-    """Maize products in a country that has a maize band in the crop-type mask."""
+    """Maize products in a country that has a maize band AND has not been dropped by decision.
+
+    South Sudan has a band but was dropped: the mask leaves it 135 maize pixels country-wide, too
+    thin for admin-level reporting. See crop_coverage.DROPPED."""
     out, skipped = [], []
     for r in rows:
-        (out if CTM.has(r["country"], "maize") else skipped).append(r)
+        ok = CTM.has(r["country"], "maize") and not COV.is_dropped("maize", r["country"])
+        (out if ok else skipped).append(r)
     return out, skipped
 
 
@@ -70,8 +75,11 @@ def main():
     print(f"{'SUBMIT' if a.submit else 'DRY-RUN'} · stage={a.stage} · {len(rows)} maize products "
           f"on the crop-type mask (250 m)")
     if skipped:
-        print(f"  skipping {len(skipped)}: no maize band in the crop-type mask — "
-              f"{', '.join(sorted({r['country'] for r in skipped}))}")
+        for r in skipped:
+            why = ("dropped by decision — " + COV.DROPPED[("maize", r["country"].replace(" ", "_"))][:80] + "..."
+                   if COV.is_dropped("maize", r["country"])
+                   else "no maize band in the crop-type mask")
+            print(f"  skipping {r['country']} {r.get('season', '')}: {why}")
     print(f"{'product':<34} {'onset':<9} {'mapped maize Mha':>17}  mask")
 
     ee = utils.gee_init() if a.submit else None
