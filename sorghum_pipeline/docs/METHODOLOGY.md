@@ -142,13 +142,49 @@ partners.** The discrepancy is recorded in `config/season_calendar_maize_provena
 gap in dekads against both independent sources, so it travels with the data rather than living only
 in a conversation.
 
-**What would settle it.** The A/B machinery already exists — `run_all_sorghum.py --calendar` runs a
-second arm and `score_calendar_ab.py` scores both against HarvestStat. Ethiopia Meher maize has 76
-reporting units over ten years, the largest sample of any product in the series, and the gap to test
-is four to six dekads rather than the three that the sorghum A/B could not separate. It is the one
-case in the region where such a test has a real chance of being decisive. Until it is run, the
-honest statement is that the operative window is supported by its skill and by a documented
-agronomic rationale, and contradicted by two country-generalised calendars.
+**It was settled. The A/B was run on 26 September 2026 and the operative window wins
+significantly** — the first calendar comparison in this project that separates at all.
+
+Three arms, identical in everything but the planting window, scored against 74 HarvestStat zones
+matched on all three. The SOS window of each alternative was derived from its published planting
+months by the operative rule, so the derivation is not a confounder.
+
+| Arm | SOS window | Spearman ρ | Pearson r | $Y_m$ fit | LOO MAE |
+|---|---|---|---|---|---|
+| **operative** | Apr-d2 to Jun-d3 | **0.573** | **0.583** | 4.09 | **0.660** |
+| GEOGLAM CM4EW | May-d3 to Aug-d2 | 0.211 | 0.252 | 3.79 | 0.765 |
+| Report Table 2.0 | Jun-d2 to Aug-d3 | 0.106 | 0.215 | 3.69 | 0.913 |
+
+Paired bootstrap on ρ, 2000 resamples over the zones:
+
+| Comparison | Δρ | 95 % interval | Verdict |
+|---|---|---|---|
+| operative − CM4EW | **+0.355** | [+0.163, +0.564] | **significant**, operative wins 100 % |
+| operative − report | **+0.463** | [+0.229, +0.710] | **significant**, operative wins 100 % |
+| CM4EW − report | +0.104 | [−0.074, +0.293] | not separable |
+
+**Three things make this convincing rather than merely favourable.**
+
+1. **Both intervals exclude zero.** Every previous A/B in this project returned an interval spanning
+   zero — the water-holding-capacity test, the sorghum calendar test, the vegetation-term swap. This
+   one does not.
+2. **Skill falls monotonically as planting is pushed later**, 0.573 → 0.211 → 0.106, and the
+   held-out error rises monotonically with it, 0.660 → 0.765 → 0.913 t/ha. A single pairwise test
+   could not have shown that; it is why three arms were run rather than two.
+3. **Coverage falls the same way.** The number of admin-2 units returning a valid CPI drops from 74
+   to 72 to 60 as the window moves later: the later windows are not merely mis-timing the crop, they
+   are missing it.
+
+**Conclusion.** The operative window is correct for Ethiopian Meher maize, and the two published
+calendars are wrong for this crop — as anticipated, because both are country-generalised and led by
+the Kiremt-onset crops, while the operative row is specific to long-cycle maize on Belg moisture.
+The prior reasoning from skill is confirmed rather than overturned.
+
+**What this does and does not license.** It settles Ethiopia Meher maize. It says nothing about the
+other two maize disagreements (Uganda 1st and 2nd rains), and nothing about sorghum, whose own
+calendar A/B could not separate its arms. It is, though, direct evidence that a crop-specific
+calendar can beat a country-generalised one by a wide margin, which is the argument for collecting
+crop-specific calendars from national partners rather than adopting a published table wholesale.
 
 ## 3.2 Planting date
 
