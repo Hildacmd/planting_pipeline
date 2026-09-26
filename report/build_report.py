@@ -160,6 +160,8 @@ def main():
         else pd.read_csv(f"{H}/maize_ctm/dmp_rank_test.csv")
     dmp_c = pd.read_csv(f"{H}/maize_ctm/dmp_rank_test_control.csv")
     mask = pd.read_csv(f"{H}/maize_ctm/mask_comparison.csv").dropna(subset=["rho_rank"])
+    kdmp_p = f"{H}/Cropyield-Data/dmp_score_summary.csv"
+    kdmp = pd.read_csv(kdmp_p) if os.path.exists(kdmp_p) else pd.DataFrame()
 
     doc = f"""---
 title: "Crop Condition Monitoring and Forecasting for the ICPAC Region"
@@ -407,6 +409,43 @@ one drags it back toward zero, which is what the numbers show. **Use DMP for ran
 products, not for level** — it cannot see ASAP crop failure (implied harvest index 0.02, far outside
 the 0.30–0.55 agronomic range of Hay 1995).
 
+## 7.5 The Kenya DMP assessment — where the covariate evidence came from
+
+DMP was not adopted on the strength of the eight-product test alone. It was first assessed against
+Kenya's own yield records, over five frames that between them span a good season, a poor season and
+two drought crop-cutting campaigns. `dmp_score.py` produces these numbers; the table is read from
+`Cropyield-Data/dmp_score_summary.csv` at build time.
+
+{{KDMP_TABLE}}
+
+`MAE` and `bias` are t/ha against observed yield; `r` is Pearson and `ρ` Spearman. *HI implied* is
+the harvest index back-solved from the observations, against the 0.45 assumed in the conversion and
+the 0.30–0.55 agronomic range (Hay 1995). *over* is the factor by which DMP-derived yield exceeds
+observed at that assumed HI.
+
+{{KDMP_FIG}}
+
+**Two findings, and they point in opposite directions — which is exactly why DMP is used as a
+ranking covariate and nothing more.**
+
+1. **DMP ranks better than CPI in every frame.** On Spearman it wins {{KDMP_WINS}} of {{KDMP_N}},
+   including the two where CPI is *negative* (KE_WARD_2021 and ET_MEHER). The gap is largest exactly
+   where CPI is weakest: KE_SHORT is ρ {{KDMP_SHORT_D}} for DMP against {{KDMP_SHORT_C}} for CPI, the
+   ASAL short-rains season the pipeline has never ranked well.
+2. **DMP cannot carry a level in a failed season.** The implied harvest index is agronomically
+   plausible in the two admin-scale frames — KE_LONG {{KDMP_HI_LONG}} and ET_MEHER {{KDMP_HI_ET}}, both
+   inside 0.30–0.55 — but collapses to {{KDMP_HI_W21}} in the 2021 ward crop-cuts and {{KDMP_HI_W22}} in
+   2022, over-predicting observed yield by {{KDMP_OV21}}× and {{KDMP_OV22}}×. An implied HI of 0.04 is
+   not a harvest index; it is the model's way of saying the biomass it measured did not become
+   grain.
+
+That second row is the ASAL drought signal, and it is the reason DMP is **never** exposed as a yield
+in this pipeline. Read as a biomass diagnostic it is honest — the crop grew and then failed to fill
+— but any level derived from it in such a season is wrong by a factor of four to ten.
+
+*(This supersedes the earlier "DMP out-ranks CPI in 4/5" note in `ALL_COUNTRIES_2024.md` §5, which
+recorded the long-rains frame as a Spearman tie. On the current exports DMP leads there too.)*
+
 # 8. Departures from the Inception Report, and why
 
 Each departure states what the report proposed, what was built, and the peer-reviewed basis.
@@ -547,6 +586,31 @@ ceiling; blank means no ceiling could be fitted.
 
 {md_table(M, floatfmt="{:.2f}")}
 """
+    if len(kdmp):
+        kt = kdmp.rename(columns={"frame": "frame", "n": "n", "dm_mean": "DM kg/ha",
+                                  "obs_mean": "obs t/ha", "dmp_mae": "DMP MAE", "dmp_r": "DMP r",
+                                  "dmp_rho": "DMP rho", "cpi_mae": "CPI MAE", "cpi_r": "CPI r",
+                                  "cpi_rho": "CPI rho", "hi_implied": "HI implied",
+                                  "overpred": "over"})
+        cols = ["frame", "n", "DM kg/ha", "obs t/ha", "DMP MAE", "DMP r", "DMP rho",
+                "CPI MAE", "CPI r", "CPI rho", "HI implied", "over"]
+        wins = int((kdmp.dmp_rho > kdmp.cpi_rho).sum())
+        g = lambda fr, c: kdmp.loc[kdmp.frame == fr, c].iloc[0] if (kdmp.frame == fr).any() else float("nan")
+        doc = doc.replace("{KDMP_TABLE}", md_table(kt[cols], floatfmt="{:g}"))
+        doc = doc.replace("{KDMP_FIG}", fig("chart_dmp_kenya.png",
+            "Figure 24. The Kenya DMP assessment. Left: DMP out-ranks CPI in every frame. "
+            "Right: the harvest index implied by the observations — plausible at admin scale, "
+            "collapsing in the drought ward crop-cuts, which is why DMP is never reported as a yield."))
+        doc = doc.replace("{KDMP_WINS}", str(wins)).replace("{KDMP_N}", str(len(kdmp)))
+        doc = doc.replace("{KDMP_SHORT_D}", f"{g('KE_SHORT','dmp_rho'):+.2f}")
+        doc = doc.replace("{KDMP_SHORT_C}", f"{g('KE_SHORT','cpi_rho'):+.2f}")
+        doc = doc.replace("{KDMP_HI_LONG}", f"{g('KE_LONG','hi_implied'):.3f}")
+        doc = doc.replace("{KDMP_HI_ET}", f"{g('ET_MEHER','hi_implied'):.3f}")
+        doc = doc.replace("{KDMP_HI_W21}", f"{g('KE_WARD_2021','hi_implied'):.3f}")
+        doc = doc.replace("{KDMP_HI_W22}", f"{g('KE_WARD_2022','hi_implied'):.3f}")
+        doc = doc.replace("{KDMP_OV21}", f"{g('KE_WARD_2021','overpred'):.1f}")
+        doc = doc.replace("{KDMP_OV22}", f"{g('KE_WARD_2022','overpred'):.1f}")
+
     p = os.path.join(R, "ICPAC_WORKFLOW_REPORT.md")
     open(p, "w").write(doc)
     print(f"wrote {p}  ({len(doc)/1000:.1f} k chars, {doc.count('!['):d} figures)")

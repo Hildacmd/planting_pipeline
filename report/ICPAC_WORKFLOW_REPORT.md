@@ -333,6 +333,51 @@ one drags it back toward zero, which is what the numbers show. **Use DMP for ran
 products, not for level** — it cannot see ASAP crop failure (implied harvest index 0.02, far outside
 the 0.30–0.55 agronomic range of Hay 1995).
 
+## 7.5 The Kenya DMP assessment — where the covariate evidence came from
+
+DMP was not adopted on the strength of the eight-product test alone. It was first assessed against
+Kenya's own yield records, over five frames that between them span a good season, a poor season and
+two drought crop-cutting campaigns. `dmp_score.py` produces these numbers; the table is read from
+`Cropyield-Data/dmp_score_summary.csv` at build time.
+
+| frame | n | DM kg/ha | obs t/ha | DMP MAE | DMP r | DMP rho | CPI MAE | CPI r | CPI rho | HI implied | over |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| KE_LONG | 42 | 3490 | 1.57 | 0.525 | 0.76 | 0.76 | 0.673 | 0.54 | 0.59 | 0.417 | 0.9 |
+| KE_SHORT | 46 | 3248 | 1.18 | 0.519 | 0.55 | 0.72 | 0.75 | -0.01 | 0.09 | 0.337 | 1.1 |
+| KE_WARD_2021 | 66 | 2184 | 0.23 | 0.732 | 0.46 | 0.18 | 0.624 | -0.03 | -0.18 | 0.095 | 3.9 |
+| KE_WARD_2022 | 15 | 1599 | 0.06 | 0.601 | 0.5 | 0.52 | 0.067 | 0.02 | 0.19 | 0.043 | 10.3 |
+| ET_MEHER | 6 | 4416 | 2.23 | 0.536 | 0.56 | 0.6 | 1.188 | -0 | -0.4 | 0.482 | 0.8 |
+
+`MAE` and `bias` are t/ha against observed yield; `r` is Pearson and `ρ` Spearman. *HI implied* is
+the harvest index back-solved from the observations, against the 0.45 assumed in the conversion and
+the 0.30–0.55 agronomic range (Hay 1995). *over* is the factor by which DMP-derived yield exceeds
+observed at that assumed HI.
+
+
+![Figure 24. The Kenya DMP assessment. Left: DMP out-ranks CPI in every frame. Right: the harvest index implied by the observations — plausible at admin scale, collapsing in the drought ward crop-cuts, which is why DMP is never reported as a yield.](figs/chart_dmp_kenya.png)
+
+
+**Two findings, and they point in opposite directions — which is exactly why DMP is used as a
+ranking covariate and nothing more.**
+
+1. **DMP ranks better than CPI in every frame.** On Spearman it wins 5 of 5,
+   including the two where CPI is *negative* (KE_WARD_2021 and ET_MEHER). The gap is largest exactly
+   where CPI is weakest: KE_SHORT is ρ +0.72 for DMP against +0.09 for CPI, the
+   ASAL short-rains season the pipeline has never ranked well.
+2. **DMP cannot carry a level in a failed season.** The implied harvest index is agronomically
+   plausible in the two admin-scale frames — KE_LONG 0.417 and ET_MEHER 0.482, both
+   inside 0.30–0.55 — but collapses to 0.095 in the 2021 ward crop-cuts and 0.043 in
+   2022, over-predicting observed yield by 3.9× and 10.3×. An implied HI of 0.04 is
+   not a harvest index; it is the model's way of saying the biomass it measured did not become
+   grain.
+
+That second row is the ASAL drought signal, and it is the reason DMP is **never** exposed as a yield
+in this pipeline. Read as a biomass diagnostic it is honest — the crop grew and then failed to fill
+— but any level derived from it in such a season is wrong by a factor of four to ten.
+
+*(This supersedes the earlier "DMP out-ranks CPI in 4/5" note in `ALL_COUNTRIES_2024.md` §5, which
+recorded the long-rains frame as a Spearman tie. On the current exports DMP leads there too.)*
+
 # 8. Departures from the Inception Report, and why
 
 Each departure states what the report proposed, what was built, and the peer-reviewed basis.

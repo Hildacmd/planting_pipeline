@@ -271,6 +271,36 @@ def chart_irrigation():
     print("  wrote chart_irrigation.png")
 
 
+def chart_dmp_kenya():
+    """The Kenya DMP assessment: ranking skill, and the implied harvest index that limits it."""
+    p = os.path.join(H, "Cropyield-Data", "dmp_score_summary.csv")
+    if not os.path.exists(p):
+        return print("  [skip] chart_dmp_kenya: run dmp_score.py first")
+    d = pd.read_csv(p)
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(10.2, 3.9))
+    y = np.arange(len(d)); h = 0.36
+    a1.barh(y + h / 2, d.dmp_rho, h, color="#2c7fb8", label="DMP")
+    a1.barh(y - h / 2, d.cpi_rho, h, color="#bdbdbd", label="CPI")
+    a1.axvline(0, color="k", lw=0.8)
+    a1.set_yticks(y); a1.set_yticklabels(d.frame, fontsize=8)
+    a1.set_xlabel(r"Spearman $\rho$ against observed yield")
+    a1.set_title("Ranking skill: DMP vs CPI", fontsize=9)
+    a1.legend(fontsize=7, frameon=False, loc="lower right")
+    a2.barh(y, d.hi_implied, 0.6,
+            color=np.where((d.hi_implied >= 0.30) & (d.hi_implied <= 0.55), "#31a354", "#d95f0e"))
+    a2.axvspan(0.30, 0.55, color="#31a354", alpha=0.12)
+    a2.axvline(0.45, color="k", ls="--", lw=0.9)
+    a2.set_yticks(y); a2.set_yticklabels([])
+    a2.set_xlabel("harvest index implied by the observations")
+    a2.set_title("Why DMP is a RANKING covariate, not a level\n"
+                 "green band = agronomic 0.30-0.55; dashed = the 0.45 assumed", fontsize=9)
+    for i, (hi, ov) in enumerate(zip(d.hi_implied, d.overpred)):
+        a2.text(max(hi, 0.02) + 0.012, i, f"{ov:.1f}x", va="center", fontsize=7.5)
+    fig.suptitle("Kenya DMP assessment - MODIS GPP stand-in for Copernicus DMP", fontsize=10)
+    fig.tight_layout(); fig.savefig(os.path.join(FIG, "chart_dmp_kenya.png")); plt.close(fig)
+    print("  wrote chart_dmp_kenya.png")
+
+
 def chart_mask():
     f = os.path.join(H, "maize_ctm", "mask_comparison.csv")
     if not os.path.exists(f):
@@ -297,5 +327,5 @@ if __name__ == "__main__":
     print("maps by crop:"); maps_by_crop(); more_maps()
     print("charts:"); chart_coverage(); chart_planting_windows()
     chart_stress_decomposition(); chart_ym_skill(); chart_dmp()
-    chart_irrigation(); chart_mask()
+    chart_irrigation(); chart_mask(); chart_dmp_kenya()
     print(f"\nfigures in {FIG}")
