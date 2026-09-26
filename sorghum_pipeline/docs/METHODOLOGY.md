@@ -346,3 +346,13 @@ temperature stress on floret fertility and individual grain weight of grain sorg
 Singh, V., Nguyen, C. T., van Oosterom, E. J., Chapman, S. C., Jordan, D. R., & Hammer, G. L.
 (2015). Sorghum genotypes differ in high temperature responses for seed set. *Field Crops
 Research*, 171, 32–40.
+
+## Irrigation caveat
+
+This water balance is rainfed: `Wb = SW + P` credits soil water and CHIRPS rainfall and nothing
+else. Sorghum exposure is low in most of the region but **not** in Somalia (12.0 % of physical area
+irrigated nationally, 84.2 % in Jubbada Hoose and 76.5 % in Shabeellaha Dhexe) or in Sudan (four
+states at 31-51 %, though the 3.3 M ha Al Qadarif bulk is rainfed). The Sudan Kharif fitted ceiling
+carries r = -0.33, which is a symptom of this.
+
+See `../crop_pipeline/docs/IRRIGATED_WATER_BALANCE.md` for the per-product grades and the gaps.

@@ -104,3 +104,14 @@ including its 82 teff points, carry `provenance = SIMULATED_reconstructed_from_p
 and its own methodology note says: *"Do not use them as authoritative in-situ truth for accuracy
 assessment."* The locations are random draws inside a bounding box, so any accuracy figure computed
 from them would be meaningless.
+
+## Irrigation
+
+The water balance is rainfed by construction (`Wb = SW + P`, no irrigation term). Of the 44 products
+across the five crops, **2 must not be read as crop condition** (Sudan wheat Shitwi, Sudan maize
+Kharif), 7 carry a material bias, 2 a local one, and 33 are unaffected. Sudan maize Kharif 2024 is
+measurably inverted: CPI vs SPAM irrigated share gives Spearman rho = -0.717, p = 0.003 over 15
+states, so the Gezira reports worse condition than rainfed Darfur.
+
+Read **`docs/IRRIGATED_WATER_BALANCE.md`** before reporting any Sudan, Somalia or Ethiopia product.
+It holds the per-product exposure grades, the seven gaps, and the reproduction commands.
