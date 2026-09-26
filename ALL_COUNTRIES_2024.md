@@ -215,6 +215,7 @@ See `Methodology_Testing/` and the memory notes for the full protocols and figur
 | **South Sudan key error** | `KeyError 'South Sudan'` in GAUL lookup | Key `GAUL_NAME` as `South_Sudan`; `.replace(" ", "_")` fallback |
 | **GEE task cap** | Only ~2–3 concurrent on free tier | Queue accepts ~3,000; stage by viability and let it drain |
 | **Cached-WHC western footprint** | Rwanda & Burundi products were **entirely empty**; western Uganda / Tanzania / South Sudan silently clipped. The materialized SoilGrids WHC asset ends at **32.3 °E**; west of it WHC is masked, so the whole water balance (S_water, WSI) and CPI collapse | `get_whc` now fills any gap in the cached asset with a live SoilGrids + Saxton-Rawls WHC build (`unmask(fill, sameFootprint=False)`) — fast cached path where it exists, SoilGrids everywhere else. Affected products deleted and re-run |
+| **Irrigation is invisible to the water balance** | The FAO-56 bucket is supplied from `Wb = SW + P` — soil water plus CHIRPS rainfall, dry start — with no irrigation term. On an irrigated crop the scheme meets the shortfall the model never sees, so `S_water` is high and CPI and yield read low: the deficit is the **irrigation requirement**, not crop stress. Sudan's Shitwi wheat returned WRSI 0, `S_water` 100 % and CPI 0 across all 18 localities *including the Gezira* | **Partly filled — quantified and flagged, not corrected.** Exposure measured per (country, crop) from SPAM 2020's `_I`/`_A` technology split (`crop_pipeline/irrigation/`): of 41 products, **1 invalid**, **6 materially biased**, **2 locally biased**, **32 unaffected**. Sudan wheat is excluded from apps and Atlas (its asset is kept — the deficit *is* the irrigation requirement); onset for it is taken as a fixed scheme planting date, since the CHIRPS 25/20 mm rule cannot fire in a November dry season. Every asset now carries `irrigation_exposure`, and the apps show a banner. **The balance itself is unchanged** — see `crop_pipeline/docs/IRRIGATED_WATER_BALANCE.md` §6–7 |
 | **Green-up onset fails in cloudy highlands** | Rwanda/Burundi **Season A** (the main season) yielded only ~64 planting pixels vs 3,365 maize pixels — S-2/S-1/FPAR cue fusion cannot find a sustained green-up under persistent equatorial-highland cloud | Route **Season A** to **rainfall-anchored** onset (CHIRPS 25/20 mm + climatology), the same method used for short/second seasons; full coverage restored |
 
 ---
@@ -227,6 +228,14 @@ See `Methodology_Testing/` and the memory notes for the full protocols and figur
   (was +2.03) and held-out **MAE 0.61** (was 2.3). Kenya Short rains is **level-only** (r ≈ 0 — the
   model sets the right average but does not rank ASAL counties, consistent with the crop-cutting finding).
   Ethiopia Meher **MAE 0.41** (small n, 2024 model vs 2021 obs).
+- **Irrigation caveat.** 9 of the 41 products across the five crops sit on partly or wholly irrigated
+  area, where a low CPI is irrigation demand rather than crop failure. Sudan millet Kharif is the
+  clearest measurable case: across its 15 states, CPI ranks **negatively** against the SPAM irrigated
+  share (Spearman ρ = −0.68, p = 0.005) — Al Jazirah (71.9 % irrigated) and Khartoum (95.4 %) score
+  lowest while fully-rainfed Darfur and Kurdufan score 53–87. Sudan sorghum is the counter-example and
+  the caution: four states are 31–51 % irrigated yet ρ = −0.17 (p = 0.50), because the 3.3 M ha
+  Al Qadarif bulk is rainfed. **Exposure flags a product for inspection; it does not by itself prove
+  the product is wrong.**
 - **Coverage caveat.** 13 of 16 products use a **fallback Yₘ** — their CPI (the season-quality signal)
   is fully valid, but the absolute t/ha is provisional until each country's sub-national statistics
   are matched to admin polygons.

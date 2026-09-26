@@ -7,6 +7,7 @@ window, and per-level GeoJSON+attributes. The app switches between products clie
 """
 import json, pandas as pd, geopandas as gpd
 from shapely import wkt
+import irrigation_exposure as IRR
 
 # --- product registry: id -> config ---
 PRODUCTS = [
@@ -121,7 +122,9 @@ for _id, _cr, _c, _s, _pfx, _tok, _win, _ln in _WTM:
         # is not a caveat, it is a false statement, and in an early-warning app it is the dangerous
         # kind. The asset and the reduce CSV are kept: their DEFICIT is the irrigation requirement
         # and is meaningful. CPI, yield and stress are not, until the balance can credit irrigation.
-        "exclude_from_apps": ((_c, _s.rsplit(" ", 1)[0]) == ("Sudan", "Shitwi")),
+        # Driven by the SPAM 2020 exposure grade, not by a hardcoded country-season, so any future
+        # product on a majority-irrigated crop is caught without anyone remembering to add it.
+        "exclude_from_apps": IRR.grade(_c, _cr) == "INVALID as rainfed",
         "exclude_reason": "irrigated: the rainfed water balance returns CPI 0 everywhere",
     })
 
@@ -194,6 +197,11 @@ def crop_ym_scale(cfg):
 def build_product(cfg):
     scale_y = crop_ym_scale(cfg)
     note = cfg.get("note", "")
+    # IRRIGATION EXPOSURE. The water balance credits rainfall only, so on an irrigated crop CPI and
+    # yield read low and that is not crop condition. The grade rides on the product so the app can
+    # show a banner rather than burying it in a footnote.
+    _irr = IRR.record(cfg["country"], cfg.get("crop") or "maize")
+    _iclause = IRR.app_note(cfg["country"], cfg.get("crop") or "maize")
     if cfg.get("crop") not in (None, "maize"):
         note = note.replace(" · YIELD UNCALIBRATED, report CPI not yield", "")
         if scale_y is not None:
@@ -206,9 +214,16 @@ def build_product(cfg):
             note += f" · yield on the fitted ceiling Ym = {ym:.2f} t/ha"
         else:
             note += " · YIELD UNCALIBRATED — report CPI, not yield"
+    # NOTE: deliberately NOT appended to `note`. The app renders it as a banner (prod["irr"]),
+    # and duplicating it into the italic subtitle made the same sentence appear twice.
+    # `_iclause` stays available for any consumer that has no banner.
     prod = {"id": cfg["id"], "country": cfg["country"], "season": cfg["season"],
             "crop": cfg["crop"], "scale": cfg["scale"], "win": cfg["win"],
             "note": note, "levels": {}}
+    if _irr and _irr["grade"] not in ("negligible", "unknown"):
+        prod["irr"] = {"grade": _irr["grade"], "pct": _irr["national_irr_pct"],
+                       "ha": _irr["irr_area_ha"], "units": _irr["compromised_units"],
+                       "msg": IRR.GUIDANCE[_irr["grade"]]}
     for lvl in (1, 2, 3):
         try:
             pl = gload(f"{cfg['base']}_L{lvl}_skill_WKT.csv")
@@ -262,6 +277,11 @@ from collections import Counter
 byc = Counter(p["crop"] for p in data["products"])
 print(f"\napp_data.json — {len(js)/1e6:.2f} MB · {len(data['products'])} products "
       f"({', '.join(f'{v} {k}' for k, v in sorted(byc.items()))})")
+_flag = [p for p in data["products"] if p.get("irr")]
+if _flag:
+    print(f"IRRIGATION-FLAGGED IN APP ({len(_flag)}):")
+    for p in _flag:
+        print(f"    {p['crop']:8s} {p['country']:12s} {p['season']:18s} {p['irr']['grade']}")
 if excluded:
     print(f"DELIBERATELY EXCLUDED ({len(excluded)}):")
     for x in excluded:

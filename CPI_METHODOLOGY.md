@@ -34,6 +34,15 @@ Ky:  vegetative 0.40 · flowering 1.50 · grain-fill 0.50
 This is the FAO-33 water-limited yield reduction — the same Ky that stress-weights the risk monitor
 [Doorenbos & Kassam 1979].
 
+> **The balance is rainfed, and that is a modelling choice with consequences.** `run_wrsi_staged`
+> supplies its bucket from `Wb = SW + P` — soil water plus CHIRPS rainfall — with a dry start
+> (`init_soil_water_frac: 0.0`). There is no irrigation, groundwater or river-diversion term. So
+> `S_water` answers *"could rainfall alone have met demand?"*. On a rainfed crop that is water
+> stress. On an irrigated crop the scheme met the shortfall, so `S_water` is high, CPI and yield
+> come out low, and **the deficit is the irrigation requirement rather than crop stress**. Those
+> are different quantities. Section 6 gives the affected products; the full treatment is
+> `crop_pipeline/docs/IRRIGATED_WATER_BALANCE.md`.
+
 ### 3.2 Heat stress `S_heat` — flowering heat
 Maize is acutely heat-sensitive at silking (pollen sterility), so heat is accumulated **only during the
 flowering stage** from ERA5-Land dekad-mean Tmax:
@@ -83,6 +92,14 @@ Ym (reference potential):  short-duration maize ≈ 4.5 t/ha · medium/long ≈ 
   only). Treat **yield (t/ha)** as the reliable figure; total production as indicative.
 - **Parameters (HEAT_K, VEG_W, HEAT_TCAP) are first-pass**; refine against local trials.
 - **Resolution:** CPI inherits ~5.5–11 km climate content on the 250 m grid — an admin-scale estimate.
+- **Irrigation is invisible to the balance (see 3.1).** Measured against SPAM 2020's irrigated/rainfed
+  technology split, of the 41 products across the five crops: **1 is invalid as a rainfed product**
+  (Sudan wheat Shitwi, 98.4 % of wheat area irrigated — excluded from the apps and the Atlas), **6 are
+  materially biased** (Somalia maize and sorghum in both seasons, Sudan sorghum Kharif, Sudan millet
+  Kharif), **2 are locally biased** (Ethiopia maize Meher and Belg, via Afar), and **32 are rainfed to
+  within a rounding error** and need no caveat. Every Earth Engine asset now carries the grade as the
+  property `irrigation_exposure`, and the apps show it as a banner. Do not rank an irrigated admin unit
+  against rainfed ones in the same table.
 
 ## 7. Measured (2024, L1 medians)
 

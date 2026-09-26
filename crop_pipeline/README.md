@@ -107,11 +107,16 @@ from them would be meaningless.
 
 ## Irrigation
 
-The water balance is rainfed by construction (`Wb = SW + P`, no irrigation term). Of the 44 products
-across the five crops, **2 must not be read as crop condition** (Sudan wheat Shitwi, Sudan maize
-Kharif), 7 carry a material bias, 2 a local one, and 33 are unaffected. Sudan maize Kharif 2024 is
-measurably inverted: CPI vs SPAM irrigated share gives Spearman rho = -0.717, p = 0.003 over 15
-states, so the Gezira reports worse condition than rainfed Darfur.
+The water balance is rainfed by construction (`Wb = SW + P`, no irrigation term). Of the 41 products
+that exist across the five crops, **1 must not be read as crop condition** (Sudan wheat Shitwi,
+98.4 % of wheat area irrigated — excluded from the apps and Atlas), 6 carry a material bias, 2 a
+local one, and 32 are unaffected. The one measurable inversion is **Sudan millet Kharif**: across its
+15 states CPI ranks negatively against the SPAM irrigated share (Spearman rho = -0.68, p = 0.005), so
+Al Jazirah and Khartoum score below fully-rainfed Darfur. Sudan sorghum is the counter-example —
+four states at 31-51 % irrigated yet rho = -0.17 (p = 0.50), because the 3.3 M ha Al Qadarif bulk is
+rainfed. **Exposure flags a product for inspection; it does not prove it wrong.**
 
-Read **`docs/IRRIGATED_WATER_BALANCE.md`** before reporting any Sudan, Somalia or Ethiopia product.
-It holds the per-product exposure grades, the seven gaps, and the reproduction commands.
+Grades live in `irrigation_exposure.py`: they stamp every Earth Engine asset (`irrigation_exposure`
+and five companion properties), drive the app banner, and decide the app exclusion. Read
+**`docs/IRRIGATED_WATER_BALANCE.md`** before reporting any Sudan, Somalia or Ethiopia product — it
+holds the per-product grades, the eight gaps, and the reproduction commands.

@@ -349,10 +349,17 @@ Research*, 171, 32–40.
 
 ## Irrigation caveat
 
-This water balance is rainfed: `Wb = SW + P` credits soil water and CHIRPS rainfall and nothing
-else. Sorghum exposure is low in most of the region but **not** in Somalia (12.0 % of physical area
-irrigated nationally, 84.2 % in Jubbada Hoose and 76.5 % in Shabeellaha Dhexe) or in Sudan (four
-states at 31-51 %, though the 3.3 M ha Al Qadarif bulk is rainfed). The Sudan Kharif fitted ceiling
-carries r = -0.33, which is a symptom of this.
+This water balance is rainfed: `Wb = SW + P` credits soil water and CHIRPS rainfall and nothing else.
+Sorghum exposure is negligible across most of the region but **not** in Somalia (12.0 % of physical
+area irrigated nationally, 84.2 % in Jubbada Hoose and 76.5 % in Shabeellaha Dhexe) or Sudan (four
+states at 31-51 %, 288,569 ha irrigated in total — though the 3.3 M ha Al Qadarif bulk is rainfed, and
+the national product still ranks sensibly: rho(CPI, irrigated %) = -0.17, p = 0.50). Both Somalia
+products and Sudan Kharif are graded **materially biased**; the other 14 sorghum products are
+negligible.
 
-See `../crop_pipeline/docs/IRRIGATED_WATER_BALANCE.md` for the per-product grades and the gaps.
+The Sudan Kharif fitted ceiling carries **r = -0.33**, which is the expected symptom: where CPI is
+depressed by unseen irrigation but reported yield includes irrigated production, the least-squares fit
+compensates by inflating Ym and leaves the spatial pattern inverted.
+
+Every sorghum asset now carries `irrigation_exposure` and the apps show a banner. See
+`../crop_pipeline/docs/IRRIGATED_WATER_BALANCE.md` for the per-product grades and the gaps.

@@ -25,6 +25,7 @@ H = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(H)
 sys.path.insert(0, ROOT); sys.path.insert(0, H)
 from src import utils                                                 # noqa: E402
 import ctm_mask as CTM                                                # noqa: E402
+import irrigation_exposure as IRR                                     # noqa: E402
 from params import get, CROPS                                         # noqa: E402
 
 YEAR = 2024
@@ -149,7 +150,10 @@ def build_product_image(ee, row, soil, aoi=None, rich=False):
                  "irrigated": irrigated,
                  "water_balance_note": ("deficit is the IRRIGATION REQUIREMENT, not crop stress"
                                         if irrigated else "rainfed: deficit is crop water stress"),
-                 "mask_asset": CTM.asset(country)}))
+                 "mask_asset": CTM.asset(country),
+                 # Irrigation exposure of this (country, crop) from SPAM 2020, so a reader can tell
+                 # from the asset alone whether CPI here is crop condition or irrigation demand.
+                 **IRR.asset_properties(country, crop)}))
     return out, aoi, {"planting": planting, "staged": staged, "cpi": cpi_img, "yld": yld,
                       "mask": mask, "kc": k, "ss": ss_use, "se": se_use,
                       "onset_method": ("fixed" if irrigated else

@@ -26,6 +26,7 @@ sys.path.insert(0, ROOT); sys.path.insert(0, H)
 
 from src import utils                                   # noqa: E402
 import sorghum_params as P                              # noqa: E402
+import irrigation_exposure as IRR                      # noqa: E402
 
 YEAR = 2024
 # arm A = the Inception Report Table 2.0 calendar; arm B = the GEOGLAM CM4EW sorghum-specific one.
@@ -136,7 +137,10 @@ def build_product_image(ee, row, soil, aoi=None, rich=False):
                  "crop_calendar_source": row["crop_calendar_source"],
                  "cycle_dekads": p["LGP_dekads"],
                  "onset_method": "rainfall" if rain else "greenup",
-                 "mask_asset": P.mask_asset(country)}))
+                 "mask_asset": P.mask_asset(country),
+                 # Irrigation exposure from SPAM 2020 - Somalia and Sudan sorghum are both
+                 # materially irrigated; see crop_pipeline/docs/IRRIGATED_WATER_BALANCE.md
+                 **IRR.asset_properties(country, "sorghum")}))
     meta = {"planting": planting, "staged": staged, "Sw": Sw, "Sh": Sh, "Sv": Sv,
             "cpi": cpi_img, "yld": yld, "mask": mask, "kc": p,
             "ss": ss_use, "se": se_use, "onset_method": "rainfall" if rain else "greenup"}
