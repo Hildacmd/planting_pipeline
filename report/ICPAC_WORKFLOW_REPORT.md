@@ -48,8 +48,6 @@ rather than failing mid-build (`crop_coverage.py`).
 
 ![Figure 1. What the crop-type mask permits and what was built. 'mask only' = buildable, no calendar row yet; 'dropped' = a decision, recorded with its evidence.](figs/chart_coverage.png)
 
-*Figure 1. What the crop-type mask permits and what was built. 'mask only' = buildable, no calendar row yet; 'dropped' = a decision, recorded with its evidence.*
-
 
 **Deliberate exclusions**, recorded in `crop_coverage.ACCEPTED` / `.DROPPED` so a decision is never
 mistaken for an oversight:
@@ -107,37 +105,25 @@ the crop-type mask from the start; the raise is what keeps it that way.
 
 ![Figure 2. Detected planting window per product — median p10 to p90 across admin units, dot = p50. The spread is the product's own detected variability, not the calendar window.](figs/chart_planting_windows.png)
 
-*Figure 2. Detected planting window per product — median p10 to p90 across admin units, dot = p50. The spread is the product's own detected variability, not the calendar window.*
-
 
 
 ![Figure 3. Maize — modal planting dekad, 2024. One hue, dark to bright: dekad is an ordered quantity and a qualitative palette would invite the reader to see categories where there is a sequence.](figs/map_planting_maize.png)
-
-*Figure 3. Maize — modal planting dekad, 2024. One hue, dark to bright: dekad is an ordered quantity and a qualitative palette would invite the reader to see categories where there is a sequence.*
 
 
 
 ![Figure 4. Sorghum — modal planting dekad, 2024, 18 products across 10 countries.](figs/map_planting_sorghum.png)
 
-*Figure 4. Sorghum — modal planting dekad, 2024, 18 products across 10 countries.*
-
 
 
 ![Figure 5. Wheat — modal planting dekad, 2024.](figs/map_planting_wheat.png)
-
-*Figure 5. Wheat — modal planting dekad, 2024.*
 
 
 
 ![Figure 6. Millet — modal planting dekad, 2024.](figs/map_planting_millet.png)
 
-*Figure 6. Millet — modal planting dekad, 2024.*
-
 
 
 ![Figure 7. Teff — modal planting dekad, Ethiopia Meher 2024.](figs/map_planting_teff.png)
-
-*Figure 7. Teff — modal planting dekad, Ethiopia Meher 2024.*
 
 
 ## 5.2 Validation — the strongest link in the chain
@@ -196,49 +182,33 @@ means a flowering deficit costs maize roughly three times what it costs sorghum.
 
 ![Figure 8. What actually drives CPI in each product. Water stress dominates almost everywhere — which is exactly why unmodelled irrigation (§7.3) is the pipeline's largest systematic error.](figs/chart_stress_decomposition.png)
 
-*Figure 8. What actually drives CPI in each product. Water stress dominates almost everywhere — which is exactly why unmodelled irrigation (§7.3) is the pipeline's largest systematic error.*
-
 
 
 ![Figure 9. Sorghum — WRSI at flowering, the critical stage.](figs/map_wrsiflo_sorghum.png)
-
-*Figure 9. Sorghum — WRSI at flowering, the critical stage.*
 
 
 
 ![Figure 10. Maize — crop-failure risk, ASAP convention: % of crop area with stage WRSI < 50 (Rembold et al. 2019).](figs/map_risk_maize.png)
 
-*Figure 10. Maize — crop-failure risk, ASAP convention: % of crop area with stage WRSI < 50 (Rembold et al. 2019).*
-
 
 
 ![Figure 11. Sorghum — crop-failure risk, 2024.](figs/map_risk_sorghum.png)
-
-*Figure 11. Sorghum — crop-failure risk, 2024.*
 
 
 
 ![Figure 12. Sorghum — cumulative season water deficit (mm). On an irrigated product this quantity is the irrigation requirement, not crop stress (§7.3).](figs/map_deficit_sorghum.png)
 
-*Figure 12. Sorghum — cumulative season water deficit (mm). On an irrigated product this quantity is the irrigation requirement, not crop stress (§7.3).*
-
 
 
 ![Figure 13. Sorghum — SPI-3 at end of season, the meteorological drought context for the balance.](figs/map_spi_sorghum.png)
-
-*Figure 13. Sorghum — SPI-3 at end of season, the meteorological drought context for the balance.*
 
 
 
 ![Figure 14. Sorghum — fused canopy condition (FCCI) from Sentinel-2, Sentinel-1 and FPAR: an observation-side check on a model-side product.](figs/map_fcci_sorghum.png)
 
-*Figure 14. Sorghum — fused canopy condition (FCCI) from Sentinel-2, Sentinel-1 and FPAR: an observation-side check on a model-side product.*
-
 
 
 ![Figure 15. Sorghum — share of crop area planted before the climatological last viable planting date (LVPD).](figs/map_viable_sorghum.png)
-
-*Figure 15. Sorghum — share of crop area planted before the climatological last viable planting date (LVPD).*
 
 
 # 7. Module 3 — Crop Performance Index and yield
@@ -264,33 +234,23 @@ ceiling is the *attainable* yield in the yield-gap sense (van Ittersum et al. 20
 
 ![Figure 16. Sorghum — Crop Performance Index, 2024.](figs/map_cpi_sorghum.png)
 
-*Figure 16. Sorghum — Crop Performance Index, 2024.*
-
 
 
 ![Figure 17. Sorghum — estimated yield (t/ha), 2024.](figs/map_yield_sorghum.png)
-
-*Figure 17. Sorghum — estimated yield (t/ha), 2024.*
 
 
 
 ![Figure 18. Maize — Crop Performance Index, 2024.](figs/map_cpi_maize.png)
 
-*Figure 18. Maize — Crop Performance Index, 2024.*
-
 
 
 ![Figure 19. Maize — estimated yield (t/ha), 2024.](figs/map_yield_maize.png)
-
-*Figure 19. Maize — estimated yield (t/ha), 2024.*
 
 
 ## 7.2 Yield is the weakest link, and here is the evidence
 
 
 ![Figure 20. Yield-pattern skill of every fitted ceiling. Bars left of zero are products where the model orders admin units BACKWARDS against reported yield.](figs/chart_ym_skill.png)
-
-*Figure 20. Yield-pattern skill of every fitted ceiling. Bars left of zero are products where the model orders admin units BACKWARDS against reported yield.*
 
 
 Of **22 fitted ceilings**: **5 rank usably** (r ≥ 0.4), **8 rank backwards** (r < 0).
@@ -327,8 +287,6 @@ Exposure is graded per (country, crop) from MapSPAM 2020's irrigated/rainfed tec
 
 ![Figure 21. Admin units where the rainfed balance is reading irrigation demand as crop stress.](figs/chart_irrigation.png)
 
-*Figure 21. Admin units where the rainfed balance is reading irrigation demand as crop stress.*
-
 
 The clearest measurable case is **Sudan millet Kharif**: across its 15 states CPI ranks *negatively*
 against the irrigated share (Spearman ρ = −0.678, p = 0.005) — Al Jazirah (71.9 % irrigated) and
@@ -354,8 +312,6 @@ monotonic transforms, so harvest index, above-ground fraction and grain moisture
 
 
 ![Figure 22. DMP vs CPI as a ranking covariate, paired bootstrap 95 % CI (Efron & Tibshirani 1993). Left panel: products where CPI ranks backwards. Right panel: the control set where CPI already works.](figs/chart_dmp_rank.png)
-
-*Figure 22. DMP vs CPI as a ranking covariate, paired bootstrap 95 % CI (Efron & Tibshirani 1993). Left panel: products where CPI ranks backwards. Right panel: the control set where CPI already works.*
 
 
 | set | DMP better | CPI better | indistinguishable | median Δρ |
@@ -448,8 +404,6 @@ All 16 maize products were re-run on the crop-type mask and compared.
 
 
 ![Figure 23. WorldCereal vs ICPAC crop-type mask for maize — same balance, same parameters, same Ym. Only the stratum differs.](figs/chart_mask_comparison.png)
-
-*Figure 23. WorldCereal vs ICPAC crop-type mask for maize — same balance, same parameters, same Ym. Only the stratum differs.*
 
 
 Over 14 comparable products the level barely moves (mean CPI **+1.22**)

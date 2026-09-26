@@ -40,22 +40,31 @@ def panel(items, col, title, fname, cmap, label, vmin=None, vmax=None, pct=False
     if not items:
         return print(f"  [skip] {fname}: no product carries '{col}'")
     n = len(items); ncol = min(4, n); nrow = int(np.ceil(n / ncol))
-    fig, axes = plt.subplots(nrow, ncol, figsize=(3.2 * ncol, 3.0 * nrow))
+    # constrained layout reserves space for the suptitle and the colorbar instead of letting them
+    # sit on top of the first row; the extra height per row is for the two-line panel titles, which
+    # collided with the map above them under the default spacing.
+    fig, axes = plt.subplots(nrow, ncol, figsize=(3.2 * ncol, 3.6 * nrow),
+                             layout="constrained")
+    # country outlines have wildly different aspect ratios, so a tall map in one row can crowd the
+    # title of the panel below it. h_pad buys that row separation explicitly.
+    fig.get_layout_engine().set(h_pad=0.10, w_pad=0.04, hspace=0.03)
     axes = np.atleast_1d(axes).ravel()
     lo = vmin if vmin is not None else min(g[col].min() for _, g in items)
     hi = vmax if vmax is not None else max(g[col].max() for _, g in items)
     for ax, (name, g) in zip(axes, items):
         g.plot(column=col, ax=ax, cmap=cmap, vmin=lo, vmax=hi, linewidth=0.15,
                edgecolor="#888", missing_kwds={"color": "#eeeeee", "edgecolor": "#cccccc"})
-        ax.set_title(name, fontsize=8); ax.axis("off")
+        ax.set_title(name, fontsize=8, pad=7, linespacing=1.2); ax.axis("off")
     for ax in axes[n:]:
         ax.axis("off")
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=lo, vmax=hi))
-    cb = fig.colorbar(sm, ax=axes.tolist(), fraction=0.02, pad=0.01)
+    cb = fig.colorbar(sm, ax=axes.tolist(), fraction=0.025, pad=0.012, shrink=0.75)
     cb.set_label(label + (" (%)" if pct else ""), fontsize=8)
-    fig.suptitle(title, fontsize=11, y=0.995)
+    cb.ax.tick_params(labelsize=7)
+    fig.suptitle(title, fontsize=11)          # constrained layout places it; no manual y
     p = os.path.join(FIG, fname)
-    fig.savefig(p, bbox_inches="tight"); plt.close(fig)
+    fig.savefig(p)                            # no bbox_inches: it overrides constrained layout
+    plt.close(fig)
     print(f"  wrote {fname}  ({n} products)")
 
 

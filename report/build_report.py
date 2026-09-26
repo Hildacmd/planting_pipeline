@@ -71,7 +71,12 @@ CROPS = ["maize", "sorghum", "wheat", "teff", "millet"]
 
 
 def fig(name, caption):
-    return f"\n![{caption}]({FIG}/{name})\n\n*{caption}*\n"
+    """One figure, ONE caption.
+
+    Pandoc's implicit_figures turns `![alt](path)` into a figure whose caption IS the alt text, so
+    emitting an italic line as well produced the caption twice in the .docx - once under the image
+    as a real caption and once as body text."""
+    return f"\n![{caption}]({FIG}/{name})\n"
 
 
 def ym_skill():
