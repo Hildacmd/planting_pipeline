@@ -333,6 +333,34 @@ one drags it back toward zero, which is what the numbers show. **Use DMP for ran
 products, not for level** — not because a level failure was shown (see 7.5, which corrects that
 earlier claim) but because the representative evidence for its level is only three frames.
 
+### How it is delivered, and the two guards on it
+
+DMP reaches users in two places, and both are built so the layer cannot be mistaken for something
+it is not.
+
+**The risk monitor** carries it as a selectable layer in kg DM/ha. Because it exists on 8 of the 39
+products, the layer menu is now data-aware: an attribute the product on screen has no values for is
+disabled and labelled *"not available for this product"*, rather than drawing an empty choropleth
+that would read as "all zero" instead of "not measured here". That guard is general — every sparse
+attribute gets it, not just DMP.
+
+**The Atlas** carries one DMP layer per crop, covering only the products that have it: six sorghum
+products (Sudan Kharif, Kenya short rains, Uganda 1st and 2nd rains, Rwanda Season B, Burundi
+Season A) and two maize (Uganda 1st rains, Rwanda Season A). The rest of the region is left **blank
+rather than filled**, and the legend says why. Each crop is stretched to its own 98th percentile —
+sorghum 0–6,000 kg DM/ha, maize 0–7,500 — because a shared scale left sorghum, which sits in drier
+systems, using barely a quarter of the ramp. The cost is that the two Atlas layers are **not
+comparable between crops**, which a reader cannot see from the picture, so each legend states it and
+the builder writes those numbers into the Atlas itself rather than leaving them hand-maintained.
+
+
+![Figure 26. Sorghum dry-matter productivity on the six products that carry it. The blank countries are not missing data — DMP is computed only where CPI ranks admin units backwards, because it adds nothing where the water balance already works.](figs/map_dmp_sorghum.png)
+
+
+
+![Figure 27. Maize dry-matter productivity, Uganda 1st rains and Rwanda Season A — the two maize products whose fitted ceiling is anti-correlated with reported yield.](figs/map_dmp_maize.png)
+
+
 ## 7.5 Can DMP carry a level? Sixteen representative frames say no
 
 Dry-matter productivity (DMP) is the rate at which a canopy accumulates dry biomass, kg DM/ha/day,

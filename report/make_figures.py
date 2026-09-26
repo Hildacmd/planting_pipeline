@@ -103,6 +103,11 @@ def more_maps():
               f"map_viable_{crop}.png", "PuBuGn", "% of crop area viable", 0, 100)
         panel(items, "wrsi_flo", f"{crop.capitalize()} — WRSI at flowering (the critical stage), 2024",
               f"map_wrsiflo_{crop}.png", "RdYlBu", "WRSI", 0, 100)
+        # DMP exists on only the 8 products where CPI ranks backwards, so panel() will draw those
+        # and skip the rest - which is the honest picture of a deliberately partial layer.
+        panel(items, "dmp",
+              f"{crop.capitalize()} — dry-matter productivity, 2024 (only where CPI ranks backwards)",
+              f"map_dmp_{crop}.png", "YlGn", "kg DM/ha")
 
 
 def chart_stress_decomposition():
