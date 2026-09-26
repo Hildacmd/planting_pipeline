@@ -88,7 +88,8 @@ SIMPLIFY = {1: 0.006, 2: 0.004}
 STAGES = {"greenup": dict(ini=3, dev=4, mid=3, late=2),   # standard maize (LGP 12)
           "rainfall": dict(ini=2, dev=3, mid=2, late=2)}  # short-duration EARLY maize (LGP 9)
 RAIN_TOK = {"Uganda_2ndrains", "Rwanda_SeasonA", "Rwanda_SeasonB", "Burundi_SeasonA", "Burundi_SeasonB",
-            "Tanzania_Vuli", "Somalia_Deyr", "Ethiopia_Belg"}   # rainfall-anchored onset (EARLY maize)
+            "Tanzania_Vuli", "Somalia_Deyr", "Ethiopia_Belg",
+            "Kenya_Shortrains"}   # rainfall-anchored onset (EARLY maize)
 OUT_COLS = ["name", "county", "constituency", "geometry_wkt", "cpi", "yield_tha", "total_yield_t",
             "s_water", "s_heat", "s_veg", "wrsi_veg", "wrsi_flo", "wrsi_grf",
             "wsi_veg", "wsi_flo", "wsi_grf", "modal_dekad", "mean_dekad", "p10", "p50", "p90", "n_px",
@@ -260,8 +261,15 @@ SORGHUM_ALL = ["Sudan_Kharif", "Ethiopia_Meher", "Ethiopia_Belg", "Tanzania_Msim
                "Somalia_Deyr", "Rwanda_SeasonA", "Rwanda_SeasonB", "Burundi_SeasonA",
                "Burundi_SeasonB", "Eritrea_Kremti"]
 
+CTM_ALL = ALL + ["Kenya_Longrains", "Kenya_Shortrains", "Ethiopia_Meher"]
+
 if __name__ == "__main__":
-    default = SORGHUM_ALL if ASSET_PREFIX.startswith("sorghum") else ALL
+    if ASSET_PREFIX.startswith("sorghum"):
+        default = SORGHUM_ALL
+    elif "CTM" in ASSET_PREFIX:
+        default = CTM_ALL          # all 16 maize products, incl. Kenya and Ethiopia Meher
+    else:
+        default = ALL              # legacy cpiX_ set; Kenya/Ethiopia Meher use the planting_ path
     print(f"asset prefix {ASSET_PREFIX}_ · project {EE_PROJECT} · output {OUT_PREFIX}_*")
     for p in (_ARGS or default):
         process(p)

@@ -133,18 +133,35 @@ Full treatment, including the eight gaps and the remediation order:
 - **Short-rains season attribution.** ~39 % of mapped western Kenyan short-rains area may be the
   standing long-rains crop (KENYA_SEASON_REGIMES.md §7). The regime-aware onset is **provisional**.
 - **Ethiopia maize is locally irrigation-biased** via Afar (96.8 % irrigated, 1,707 ha).
-- **The maize products run on WorldCereal, not the ICPAC crop-type mask.** Sorghum, wheat, teff and
-  millet all use the crop-type mask; maize has not been re-run on it.
+- **The shipped maize products still run on WorldCereal, not the ICPAC crop-type mask.** All 16 have
+  now been re-run on the crop-type mask as `cpiCTMX_`/`newcCTM_` and compared, but the apps and Atlas
+  still serve the WorldCereal versions pending a decision (see Recommendations).
+- **Two products re-rank under the crop-type mask**: Uganda 1st rains (Spearman rho 0.758 between the
+  two admin rankings) and Burundi Season A (0.734). A level shift can be absorbed by re-fitting Ym;
+  a re-ranking cannot, and which units look worst is what an early-warning product is for.
+- **South Sudan maize barely exists under the crop-type mask.** 135 maize pixels against WorldCereal's
+  9,398, and Eastern Equatoria - which WorldCereal puts at 8,508 pixels, 90 % of the country's maize -
+  has none at all. The mask maps 0.013 Mha of maize against 0.295 Mha of sorghum. Only 2 of 9 states
+  retain enough pixels to produce a CPI.
 
 ## 8. Recommendations
 
-1. **Re-run maize on the ICPAC crop-type mask** and A/B it against the WorldCereal baseline. Every
-   other crop already uses it, and the CAF correction it produced elsewhere moved admin values by tens
-   of percent. This is the largest single inconsistency left in the pipeline.
-2. **Resolve short-rains season attribution** before the regime-aware onset is promoted out of
+1. ~~**Re-run maize on the ICPAC crop-type mask and A/B it.**~~ **Done, 26 September 2026** - all 16
+   products re-run and compared (`maize_ctm/compare_masks.py`, `mask_comparison.csv`). Over the 14
+   comparable products the level barely moves (mean CPI +1.22, median per-unit change 2.0) and the
+   ranking mostly holds (median rho 0.905), so the change is largely absorbable by re-fitting Ym.
+   **The switch is not automatic, for three reasons:** Uganda 1st rains and Burundi Season A re-rank
+   (rho 0.758 and 0.734); South Sudan collapses to 2 usable states; and the footprint moves in both
+   directions - WorldCereal claims 1.9x more maize area in Uganda and 1.6x in Burundi, while the
+   crop-type mask claims 1.3x more in Rwanda, 1.4x more in Kenya and 5x more in Somalia. **Decide per
+   product, not wholesale**, and re-fit Ym on the new footprint before promoting any of them.
+2. **Drop or re-scope South Sudan maize.** With 135 mapped maize pixels country-wide it cannot support
+   admin-level reporting under the crop-type mask. South Sudan is a sorghum country in the mask
+   (0.295 Mha) and the sorghum products there are sound.
+3. **Resolve short-rains season attribution** before the regime-aware onset is promoted out of
    provisional — the 39 % figure is large enough to change county rankings.
-3. **Fit Ym for Tanzania and South Sudan** from any sub-national source other than HarvestStat.
-4. **Report ASAL yield as a level, not a ranking**, in the apps as well as the docs.
+4. **Fit Ym for Tanzania and South Sudan** from any sub-national source other than HarvestStat.
+5. **Report ASAL yield as a level, not a ranking**, in the apps as well as the docs.
 
 ---
 

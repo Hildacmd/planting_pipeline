@@ -54,7 +54,9 @@ PAIRS = [("newc_Uganda_1strains_2024",   "newcCTM_Uganda_1strains_2024"),
          ("newc_Ethiopia_Belg_2024",     "newcCTM_Ethiopia_Belg_2024"),
          ("planting_Ethiopia_maize_Meher_2024_250m",  "newcCTM_Ethiopia_Meher_2024"),
          ("planting_Kenya_maize_Longrains_2024",      "newcCTM_Kenya_Longrains_2024"),
-         ("planting_Kenya_maize_Shortrains_2024_250m", "newcCTM_Kenya_Shortrains_2024")]
+         # the _rainfed stem is the shipped short-rains product (45 counties, carries CPI); the
+         # _250m stem is the earlier planting-only reduce with 16 units and no CPI column
+         ("planting_Kenya_maize_Shortrains_2024_rainfed", "newcCTM_Kenya_Shortrains_2024")]
 
 
 def load(stem, lvl):
