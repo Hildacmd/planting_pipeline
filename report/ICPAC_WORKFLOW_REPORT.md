@@ -155,24 +155,39 @@ elsewhere is validated only against calendar plausibility.
 
 A single-layer FAO-56 dekadal bucket (Allen et al. 1998), stepped over each pixel's own cycle:
 
-```
-WR(t)  = Kc(dsp) · ET0(t)                 crop water requirement
-Wb(t)  = SW(t-1) + P(t)                   water available  =  soil water + rainfall
-AET(t) = min(Wb(t), WR(t))                actual evapotranspiration
-SW(t)  = clamp(Wb(t) − AET(t), 0, WHC)    carry-over, capped at water-holding capacity
-WRSI   = 100 · ΣAET / ΣWR                 over the crop cycle
-```
+
+$$WR_t = K_{c}(d)\cdot ET_{0,t}$$
+
+$$W_{b,t} = SW_{t-1} + P_t$$
+
+$$AET_t = \min\!\left(W_{b,t},\; WR_t\right)$$
+
+$$SW_t = \min\!\left(\max\!\left(W_{b,t}-AET_t,\;0\right),\; WHC\right)$$
+
+$$WRSI = 100\cdot\frac{\sum_{t} AET_t}{\sum_{t} WR_t}$$
+
+where $t$ indexes dekads over the crop cycle, $d$ is dekads since planting, $K_c(d)$ is the FAO-56
+crop coefficient at that stage, $ET_{0,t}$ is Hargreaves reference evapotranspiration, $P_t$ is
+CHIRPS rainfall, and $WHC$ is water-holding capacity over the crop's own rooting depth. The supply
+term $W_{b,t}=SW_{t-1}+P_t$ carries **no irrigation term** - see section 7.3.
+
 
 with a dry start (`init_soil_water_frac = 0.0`), the WRSI convention (Verdin & Klaver 2002;
 Senay & Verdin 2003).
 
 ## 6.2 Stress components
 
-```
-S_water = clamp( Σ_stage Ky_stage · (1 − AET_stage/WR_stage), 0, 1 )      FAO-33, stage-weighted
-S_heat  = clamp( HEAT_K · Σ_flowering max(0, Tmax − Tcap), 0, 1 )          flowering only
-S_veg   = VCI or zFPAR, down-weighted                                      confirmation, not driver
-```
+
+$$S_{water} = \operatorname{clamp}\!\left(\sum_{s\,\in\,\{veg,\,flo,\,grf\}} K_{y,s}\left(1-\frac{AET_s}{WR_s}\right),\;0,\;1\right)$$
+
+$$S_{heat} = \operatorname{clamp}\!\left(k_{H}\sum_{t\,\in\,flo}\max\!\left(0,\;T_{max,t}-T_{cap}\right),\;0,\;1\right)$$
+
+$$S_{veg} = w_{v}\left(1-\mathrm{VCI}\right), \qquad w_{v}=0.4$$
+
+$K_{y,s}$ is the FAO-33 stage yield-response factor, $k_H$ the heat coefficient per
+heat-degree-dekad, $T_{cap}$ the crop's flowering heat threshold, and $w_v$ the vegetation
+down-weight - $S_{veg}$ confirms the balance rather than driving it.
+
 
 Ky is the FAO-33 stage yield-response factor (Doorenbos & Kassam 1979) and is **the most
 consequential parameter set in the pipeline** — maize's flowering Ky of 1.50 against sorghum's 0.55
@@ -230,10 +245,17 @@ means a flowering deficit costs maize roughly three times what it costs sorghum.
 
 ## 7.1 The model
 
-```
-CPI = 100 · (1 − S_water)(1 − S_heat)(1 − S_veg)          multiplicative
-Ya  = CPI/100 × Ym                                        Ym = attainable ceiling
-```
+
+$$CPI = 100\left(1-S_{water}\right)\left(1-S_{heat}\right)\left(1-S_{veg}\right)$$
+
+$$Y_a = \frac{CPI}{100}\cdot Y_m$$
+
+The combination is **multiplicative**, following FAO-33: a crop already lost to water deficit cannot
+be further reduced proportionally by heat. $Y_m$ is the attainable ceiling, fitted by least squares
+through the origin over HarvestStat units $i$ with reported yield $y_i$, weighted by crop area $w_i$:
+
+$$\hat{Y}_m = \frac{\sum_i w_i\, y_i\, c_i}{\sum_i w_i\, c_i^{2}}, \qquad c_i = \frac{CPI_i}{100}$$
+
 
 Ym is fitted by least squares through the origin of reported yield on CPI, with admin units weighted
 by crop area, against HarvestStat Africa v1.2 (Lee et al. 2025), 70/30 split repeated 200 times. The

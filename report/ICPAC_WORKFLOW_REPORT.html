@@ -628,17 +628,35 @@ validated only against calendar plausibility.</p>
 <h2 id="the-water-balance">6.1 The water balance</h2>
 <p>A single-layer FAO-56 dekadal bucket (Allen et al. 1998), stepped
 over each pixel’s own cycle:</p>
-<pre><code>WR(t)  = Kc(dsp) · ET0(t)                 crop water requirement
-Wb(t)  = SW(t-1) + P(t)                   water available  =  soil water + rainfall
-AET(t) = min(Wb(t), WR(t))                actual evapotranspiration
-SW(t)  = clamp(Wb(t) − AET(t), 0, WHC)    carry-over, capped at water-holding capacity
-WRSI   = 100 · ΣAET / ΣWR                 over the crop cycle</code></pre>
+<p><span class="math display"><em>W</em><em>R</em><sub><em>t</em></sub> = <em>K</em><sub><em>c</em></sub>(<em>d</em>) ⋅ <em>E</em><em>T</em><sub>0, <em>t</em></sub></span></p>
+<p><span class="math display"><em>W</em><sub><em>b</em>, <em>t</em></sub> = <em>S</em><em>W</em><sub><em>t</em> − 1</sub> + <em>P</em><sub><em>t</em></sub></span></p>
+<p><span class="math display"><em>A</em><em>E</em><em>T</em><sub><em>t</em></sub> = min  (<em>W</em><sub><em>b</em>, <em>t</em></sub>, <em>W</em><em>R</em><sub><em>t</em></sub>)</span></p>
+<p><span class="math display"><em>S</em><em>W</em><sub><em>t</em></sub> = min  (max  (<em>W</em><sub><em>b</em>, <em>t</em></sub> − <em>A</em><em>E</em><em>T</em><sub><em>t</em></sub>, 0), <em>W</em><em>H</em><em>C</em>)</span></p>
+<p><span class="math display">$$WRSI = 100\cdot\frac{\sum_{t}
+AET_t}{\sum_{t} WR_t}$$</span></p>
+<p>where <span class="math inline"><em>t</em></span> indexes dekads over
+the crop cycle, <span class="math inline"><em>d</em></span> is dekads
+since planting, <span class="math inline"><em>K</em><sub><em>c</em></sub>(<em>d</em>)</span>
+is the FAO-56 crop coefficient at that stage, <span class="math inline"><em>E</em><em>T</em><sub>0, <em>t</em></sub></span>
+is Hargreaves reference evapotranspiration, <span class="math inline"><em>P</em><sub><em>t</em></sub></span> is CHIRPS
+rainfall, and <span class="math inline"><em>W</em><em>H</em><em>C</em></span> is
+water-holding capacity over the crop’s own rooting depth. The supply
+term <span class="math inline"><em>W</em><sub><em>b</em>, <em>t</em></sub> = <em>S</em><em>W</em><sub><em>t</em> − 1</sub> + <em>P</em><sub><em>t</em></sub></span>
+carries <strong>no irrigation term</strong> - see section 7.3.</p>
 <p>with a dry start (<code>init_soil_water_frac = 0.0</code>), the WRSI
 convention (Verdin &amp; Klaver 2002; Senay &amp; Verdin 2003).</p>
 <h2 id="stress-components">6.2 Stress components</h2>
-<pre><code>S_water = clamp( Σ_stage Ky_stage · (1 − AET_stage/WR_stage), 0, 1 )      FAO-33, stage-weighted
-S_heat  = clamp( HEAT_K · Σ_flowering max(0, Tmax − Tcap), 0, 1 )          flowering only
-S_veg   = VCI or zFPAR, down-weighted                                      confirmation, not driver</code></pre>
+<p><span class="math display">$$S_{water} =
+\operatorname{clamp}\!\left(\sum_{s\,\in\,\{veg,\,flo,\,grf\}}
+K_{y,s}\left(1-\frac{AET_s}{WR_s}\right),\;0,\;1\right)$$</span></p>
+<p><span class="math display"><em>S</em><sub><em>h</em><em>e</em><em>a</em><em>t</em></sub> = clamp  (<em>k</em><sub><em>H</em></sub>∑<sub><em>t</em> ∈ <em>f</em><em>l</em><em>o</em></sub>max  (0, <em>T</em><sub><em>m</em><em>a</em><em>x</em>, <em>t</em></sub> − <em>T</em><sub><em>c</em><em>a</em><em>p</em></sub>), 0, 1)</span></p>
+<p><span class="math display"><em>S</em><sub><em>v</em><em>e</em><em>g</em></sub> = <em>w</em><sub><em>v</em></sub>(1 − VCI),   <em>w</em><sub><em>v</em></sub> = 0.4</span></p>
+<p><span class="math inline"><em>K</em><sub><em>y</em>, <em>s</em></sub></span>
+is the FAO-33 stage yield-response factor, <span class="math inline"><em>k</em><sub><em>H</em></sub></span> the heat
+coefficient per heat-degree-dekad, <span class="math inline"><em>T</em><sub><em>c</em><em>a</em><em>p</em></sub></span>
+the crop’s flowering heat threshold, and <span class="math inline"><em>w</em><sub><em>v</em></sub></span> the
+vegetation down-weight - <span class="math inline"><em>S</em><sub><em>v</em><em>e</em><em>g</em></sub></span>
+confirms the balance rather than driving it.</p>
 <p>Ky is the FAO-33 stage yield-response factor (Doorenbos &amp; Kassam
 1979) and is <strong>the most consequential parameter set in the
 pipeline</strong> — maize’s flowering Ky of 1.50 against sorghum’s 0.55
@@ -711,8 +729,18 @@ climatological last viable planting date (LVPD).</em></p>
 <h1 id="module-3-crop-performance-index-and-yield">7. Module 3 — Crop
 Performance Index and yield</h1>
 <h2 id="the-model">7.1 The model</h2>
-<pre><code>CPI = 100 · (1 − S_water)(1 − S_heat)(1 − S_veg)          multiplicative
-Ya  = CPI/100 × Ym                                        Ym = attainable ceiling</code></pre>
+<p><span class="math display"><em>C</em><em>P</em><em>I</em> = 100(1 − <em>S</em><sub><em>w</em><em>a</em><em>t</em><em>e</em><em>r</em></sub>)(1 − <em>S</em><sub><em>h</em><em>e</em><em>a</em><em>t</em></sub>)(1 − <em>S</em><sub><em>v</em><em>e</em><em>g</em></sub>)</span></p>
+<p><span class="math display">$$Y_a = \frac{CPI}{100}\cdot
+Y_m$$</span></p>
+<p>The combination is <strong>multiplicative</strong>, following FAO-33:
+a crop already lost to water deficit cannot be further reduced
+proportionally by heat. <span class="math inline"><em>Y</em><sub><em>m</em></sub></span> is the
+attainable ceiling, fitted by least squares through the origin over
+HarvestStat units <span class="math inline"><em>i</em></span> with
+reported yield <span class="math inline"><em>y</em><sub><em>i</em></sub></span>, weighted by
+crop area <span class="math inline"><em>w</em><sub><em>i</em></sub></span>:</p>
+<p><span class="math display">$$\hat{Y}_m = \frac{\sum_i w_i\, y_i\,
+c_i}{\sum_i w_i\, c_i^{2}}, \qquad c_i = \frac{CPI_i}{100}$$</span></p>
 <p>Ym is fitted by least squares through the origin of reported yield on
 CPI, with admin units weighted by crop area, against HarvestStat Africa
 v1.2 (Lee et al. 2025), 70/30 split repeated 200 times. The ceiling is
