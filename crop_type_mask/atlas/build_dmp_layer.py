@@ -14,7 +14,7 @@ the level is not usable even though the ranking is.
 
     python crop_type_mask/atlas/build_dmp_layer.py
 """
-import json, os, sys
+import json, os, re, sys
 import numpy as np, pandas as pd
 from PIL import Image
 from matplotlib.colors import LinearSegmentedColormap
@@ -36,7 +36,16 @@ JOBS = {
     "maize":   ["newc_Uganda_1strains_2024", "newc_Rwanda_SeasonA_2024"],
 }
 DMPC = LinearSegmentedColormap.from_list("dmp", ["#f7fcb9", "#addd8e", "#41ab5d", "#005a32"])
-VMAX = 8000.0          # kg DM/ha; one scale across crops so the two layers read together
+
+# PER-CROP STRETCH. A shared scale made sorghum read as uniformly pale: its products sit in drier
+# systems (median 1,857 kg DM/ha) against maize's 5,890, so three quarters of the sorghum ramp was
+# never used. Each crop is now stretched to its own 98th percentile - the 98th rather than the max,
+# so one outlier district cannot compress everything else.
+#
+# The consequence is that the two layers are NO LONGER COMPARABLE BETWEEN CROPS, and the legend has
+# to say so. This builder therefore writes the legend numbers into index.html itself, so the ramp
+# and its labels cannot drift apart.
+PCTL = 98
 
 
 def build(crop, stems):
@@ -61,16 +70,48 @@ def build(crop, stems):
     ok = np.isfinite(a)
     if not ok.any():
         return print(f"  {crop}: nothing to draw")
+    vmax = float(np.nanpercentile(a[ok], PCTL))
+    vmax = max(500.0, round(vmax / 500.0) * 500.0)          # a round number for the legend
     rgba = np.zeros((H, W, 4), "uint8")
-    rgba[ok] = (np.array(DMPC(np.clip(a[ok] / VMAX, 0, 1))) * 255).astype("uint8")
+    rgba[ok] = (np.array(DMPC(np.clip(a[ok] / vmax, 0, 1))) * 255).astype("uint8")
     rgba[..., 3] = np.where(ok, 235, 0)
     out = os.path.join(H0, "layers", f"risk_{crop}_dmp.png")
     Image.fromarray(rgba).save(out)
     print(f"  wrote risk_{crop}_dmp.png   {n_prod} product(s), "
-          f"median {np.nanmedian(a):,.0f} kg DM/ha, ramp 0-{VMAX:,.0f}")
+          f"median {np.nanmedian(a):,.0f}  p{PCTL} {np.nanpercentile(a[ok], PCTL):,.0f}  "
+          f"ramp 0-{vmax:,.0f} kg DM/ha")
+    return vmax
+
+
+def sync_legend(crop, vmax):
+    """Write this crop's own ramp numbers into index.html, so legend and image cannot disagree."""
+    p = os.path.join(H0, "index.html")
+    s = open(p).read()
+    i = s.find(f'{{id:"risk_{crop}_dmp"')
+    if i < 0:
+        return print(f"  [warn] {crop}: no index.html entry to update")
+    j = s.find("}},", i)
+    blk = s[i:j]
+    half = vmax / 2
+    fmt = lambda v: f"{int(v):,}".replace(",", "\u202f")      # thin space, as the atlas uses
+    # lambda replacement: a plain string would have re.sub parse the \u escapes as its own
+    repl = f'labels:["0","{fmt(half)}","\\u2265 {fmt(vmax)} kg DM/ha"]'
+    new = re.sub(r'labels:\[[^\]]*\]', lambda _m: repl, blk)
+    # the scale is per-crop now, so say it
+    new = new.replace("Drawn in kg DM/ha on one scale across both crops so they read together.", "")
+    if "stretched to its own" not in new:
+        new = new.replace('use:"A RANKING covariate',
+                          f'use:"Scale is stretched to THIS crop\u2019s own range (0\u2013{fmt(vmax)} '
+                          f'kg DM/ha, its 98th percentile), so colours are NOT comparable with the '
+                          f'other crop\u2019s DMP layer. A RANKING covariate', 1)
+    s = s[:i] + new + s[j:]
+    open(p, "w").write(s)
+    print(f"  index.html legend for {crop}: 0 - {vmax:,.0f} kg DM/ha")
 
 
 if __name__ == "__main__":
     for crop, stems in JOBS.items():
         print(f"=== {crop.upper()}")
-        build(crop, stems)
+        vmax = build(crop, stems)
+        if vmax:
+            sync_legend(crop, vmax)
