@@ -173,7 +173,7 @@ const LAYERS={
   flo:{label:'Flowering dekad (GDD clock)',dek:true,stops:['#08306b','#2171b5','#4292c6','#6baed6','#9ecae1','#c6dbef'],fmt:dekadLabel,note:'predicted median flowering dekad — the critical stage'},
   mat:{label:'Maturity dekad (GDD clock)',dek:true,stops:['#08306b','#2171b5','#4292c6','#6baed6','#9ecae1','#c6dbef'],fmt:dekadLabel,note:'predicted median physiological maturity — end of season'}
 };
-const ORDER=['cpi','yld','fcci','fail','failflo','spidry','spiwet','wlogp','wlog','viab','fstart','spi','wrsi','def','caf','flo','mat'];
+const ORDER=['cpi','yld','fcci','dmp','fail','failflo','spidry','spiwet','wlogp','wlog','viab','fstart','spi','wrsi','def','caf','flo','mat'];
 
 let prod=DATA.products.find(p=>p.id===DATA.default)||DATA.products[0];
 let level='1',attr='fail',selected=null,B,VW=1000,VH;
@@ -360,7 +360,24 @@ function setIrrBanner(prod){
   el.style.display='block';
 }
 const prodSel=document.getElementById('prodSel');DATA.products.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.country+' · '+p.season+' · '+p.crop;prodSel.appendChild(o);});
-function setProduct(id){prod=DATA.products.find(p=>p.id===id)||DATA.products[0];level=Object.keys(prod.levels)[0]||'1';selected=null;document.getElementById('detailBody').hidden=true;document.getElementById('detailHint').hidden=false;computeProjection();buildLevelSeg();document.getElementById('h1title').textContent=prod.country+' — 2024 '+CWC()+' Risk Monitor';document.getElementById('subtitle').innerHTML=prod.season+' · '+prod.scale+' · ASAP water-balance risk (crop-failure % of '+CW()+' area)';document.getElementById('foot').innerHTML='Water-balance risk slice (FAO-56 WRSI + CAF) · ASAP classes: Watch ≥25% · Alert ≥50% · Critical ≥75% of the mapped crop area in failure · SPI-3, GDD stage-weighting, heat &amp; VCI are the next monitoring phase (see RISK_MONITORING_DESIGN.md)';setIrrBanner(prod);render();}
+
+// A layer the current product has no data for must not be offered: DMP exists on only 8 of the 39
+// products (the ones where CPI ranks backwards), and an empty choropleth reads as "all zero"
+// rather than "not measured here". Greys out any option with no values in the product on screen.
+function syncLayerMenu(){
+  const sel=document.getElementById('attrSel'); if(!sel||!prod) return;
+  const lvl=Object.keys(prod.levels)[0]; const us=(prod.levels[lvl]||{}).units||[];
+  [...sel.options].forEach(o=>{
+    const has=us.some(u=>u.a&&u.a[o.value]!=null);
+    o.disabled=!has;
+    o.textContent=(LAYERS[o.value]?LAYERS[o.value].label:o.value)+(has?'':'  — not available for this product');
+  });
+  if(sel.selectedOptions[0] && sel.selectedOptions[0].disabled){
+    const first=[...sel.options].find(o=>!o.disabled);
+    if(first){ sel.value=first.value; attr=first.value; }
+  }
+}
+function setProduct(id){prod=DATA.products.find(p=>p.id===id)||DATA.products[0];level=Object.keys(prod.levels)[0]||'1';selected=null;document.getElementById('detailBody').hidden=true;document.getElementById('detailHint').hidden=false;computeProjection();buildLevelSeg();document.getElementById('h1title').textContent=prod.country+' — 2024 '+CWC()+' Risk Monitor';document.getElementById('subtitle').innerHTML=prod.season+' · '+prod.scale+' · ASAP water-balance risk (crop-failure % of '+CW()+' area)';document.getElementById('foot').innerHTML='Water-balance risk slice (FAO-56 WRSI + CAF) · ASAP classes: Watch ≥25% · Alert ≥50% · Critical ≥75% of the mapped crop area in failure · SPI-3, GDD stage-weighting, heat &amp; VCI are the next monitoring phase (see RISK_MONITORING_DESIGN.md)';setIrrBanner(prod);syncLayerMenu();render();}
 prodSel.value=prod.id;prodSel.onchange=()=>setProduct(prodSel.value);
 setProduct(prod.id);
 </script>
