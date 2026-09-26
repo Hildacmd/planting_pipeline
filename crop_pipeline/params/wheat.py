@@ -34,4 +34,7 @@ MASK_COUNTRIES = {"Ethiopia": 1.585, "Sudan": 0.203, "Kenya": 0.151,
                   "Tanzania": 0.078, "Rwanda": 0.019, "Burundi": 0.003}
 
 YM_DEFAULT, YM_SHORT_DEFAULT = 4.0, 3.0      # uncalibrated rainfed potentials, t/ha
-YM_CAL = {}                                   # filled by the calibration, keyed (country, season)
+YM_CAL = {
+    ("Ethiopia", "Meher"): 2.69,   # n52 2012-2021  MAE 0.48 vs 1.08  r 0.15  level only
+    ("Kenya", "Long rains"): 3.11,   # n16 2010-2020  MAE 0.54 vs 0.89  r 0.07  level only
+}                                   # filled by the calibration, keyed (country, season)

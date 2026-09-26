@@ -31,4 +31,6 @@ EMERGENCE_OFFSET = 1                          # src/planting_date.EMERGENCE_OFFS
 MASK_COUNTRIES = {"Ethiopia": 2.716}
 
 YM_DEFAULT, YM_SHORT_DEFAULT = 2.0, 1.5       # uncalibrated; teff yields far below wheat
-YM_CAL = {}
+YM_CAL = {
+    ("Ethiopia", "Meher"): 1.77,   # n60 2012-2021  MAE 0.31 vs 0.35  r 0.33  level, weak pattern
+}

@@ -95,6 +95,36 @@ for _id, _c, _s, _tok, _win, _ln in _SORGHUM:
                 + " · YIELD UNCALIBRATED, report CPI not yield",
     })
 
+# ---- 2024 wheat, teff and millet products (crop_pipeline) ---------------------------------------
+# Coverage is set by the crop-type masks, not by the statistics: millet exists only for Sudan and
+# Eritrea because no other country has a millet mask band, and teff only for Ethiopia.
+# id, crop, country, season label, base token, SOS window dekads, admin level names
+_WTM = [
+    ("wheat_et",   "wheat",  "Ethiopia", "Meher 2024",      "newcW", "Ethiopia_Meher",   [17, 24], ("Region", "Zone")),
+    ("wheat_ke",   "wheat",  "Kenya",    "Long rains 2024", "newcW", "Kenya_Longrains",  [10, 19], ("County", "Constituency")),
+    ("wheat_sd",   "wheat",  "Sudan",    "Shitwi 2024",     "newcW", "Sudan_Shitwi",     [32, 36], ("State", "Locality")),
+    ("wheat_tz",   "wheat",  "Tanzania", "Msimu 2024",      "newcW", "Tanzania_Msimu",   [34, 39], ("Region", "District")),
+    ("teff_et",    "teff",   "Ethiopia", "Meher 2024",      "newcT", "Ethiopia_Meher",   [19, 24], ("Region", "Zone")),
+    ("millet_sd",  "millet", "Sudan",    "Kharif 2024",     "newcM", "Sudan_Kharif",     [17, 26], ("State", "Locality")),
+    ("millet_er",  "millet", "Eritrea",  "Kremti 2024",     "newcM", "Eritrea_Kremti",   [17, 26], ("Region", "Sub-region")),
+]
+for _id, _cr, _c, _s, _pfx, _tok, _win, _ln in _WTM:
+    PRODUCTS.append({
+        "id": _id, "country": _c, "season": _s, "crop": _cr,
+        "base": f"{_pfx}_{_tok}_2024", "wbase": f"{_pfx}_{_tok}_2024_wrsi",
+        "win": _win, "levelnames": {1: _ln[0], 2: _ln[1]}, "scale": "250 m",
+        "note": "crop-type mask " + _cr + " band",
+        # Irrigated products are EXCLUDED from the apps. The FAO-56 water balance compares crop
+        # demand against RAINFALL, so for a crop the scheme irrigates it returns WRSI 0, S_water
+        # 100 % and CPI 0 everywhere. Sudan's Shitwi wheat came out as total failure across all 18
+        # localities including the Gezira, the most productive irrigated wheat in the region. That
+        # is not a caveat, it is a false statement, and in an early-warning app it is the dangerous
+        # kind. The asset and the reduce CSV are kept: their DEFICIT is the irrigation requirement
+        # and is meaningful. CPI, yield and stress are not, until the balance can credit irrigation.
+        "exclude_from_apps": ((_c, _s.rsplit(" ", 1)[0]) == ("Sudan", "Shitwi")),
+        "exclude_reason": "irrigated: the rainfed water balance returns CPI 0 everywhere",
+    })
+
 KEYS = {1: ["name"], 2: ["county", "name"], 3: ["county", "constituency", "name"]}
 SIMPLIFY = {1: 0.008, 2: 0.006, 3: 0.004}
 PLANT = {"modal_dekad": "md", "mean_dekad": "mean", "p10": "p10", "p50": "p50", "p90": "p90",
@@ -128,7 +158,7 @@ def coords(geom, tol):
     return out
 
 
-def sorghum_ym_scale(cfg):
+def crop_ym_scale(cfg):
     """Factor converting the asset's yield to the FITTED ceiling, or None if there is none.
 
     The sorghum assets were exported before the ceilings were fitted, so their yield band carries
@@ -136,31 +166,46 @@ def sorghum_ym_scale(cfg):
     fitted / as-built is exact. The atlas already does this; without the same step here the apps
     and the atlas would show different yields for the same unit - the apps 2 to 4 times high.
     """
-    if cfg.get("crop") != "sorghum":
+    crop = cfg.get("crop")
+    if crop in (None, "maize"):
         return None
     import sys as _sys, os as _os
-    _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "sorghum_pipeline"))
-    import sorghum_params as _P
+    _here = _os.path.dirname(_os.path.abspath(__file__))
     country, season = cfg["country"].replace(" ", "_"), cfg["season"].rsplit(" ", 1)[0]
-    if not _P.is_calibrated(country, season):
-        return None                                   # leave it as exported, and say so in the note
     s_ = season.lower()
-    as_built = (_P.SORGHUM_YM_SHORT_DEFAULT
-                if ("short" in s_ or "2nd" in s_ or "deyr" in s_) else _P.SORGHUM_YM_DEFAULT)
-    return _P.ym_for(country, season) / as_built
+    short = "short" in s_ or "2nd" in s_ or "deyr" in s_
+    if crop == "sorghum":
+        _sys.path.insert(0, _os.path.join(_here, "sorghum_pipeline"))
+        import sorghum_params as _P
+        if not _P.is_calibrated(country, season):
+            return None
+        as_built = _P.SORGHUM_YM_SHORT_DEFAULT if short else _P.SORGHUM_YM_DEFAULT
+        return _P.ym_for(country, season) / as_built
+    _sys.path.insert(0, _os.path.join(_here, "crop_pipeline"))
+    from params import get as _get
+    _P = _get(crop)
+    key = (country, season)
+    if key not in _P.YM_CAL:
+        return None                                   # leave it as exported, and say so in the note
+    as_built = _P.YM_SHORT_DEFAULT if short else _P.YM_DEFAULT
+    return _P.YM_CAL[key] / as_built
 
 
 def build_product(cfg):
-    scale_y = sorghum_ym_scale(cfg)
+    scale_y = crop_ym_scale(cfg)
     note = cfg.get("note", "")
-    if cfg.get("crop") == "sorghum":
+    if cfg.get("crop") not in (None, "maize"):
         note = note.replace(" · YIELD UNCALIBRATED, report CPI not yield", "")
         if scale_y is not None:
-            import sorghum_params as _P
-            ym = _P.ym_for(cfg["country"].replace(" ", "_"), cfg["season"].rsplit(" ", 1)[0])
+            crop = cfg["crop"]
+            country, season = cfg["country"].replace(" ", "_"), cfg["season"].rsplit(" ", 1)[0]
+            if crop == "sorghum":
+                import sorghum_params as _P; ym = _P.ym_for(country, season)
+            else:
+                from params import get as _get; ym = _get(crop).YM_CAL[(country, season)]
             note += f" · yield on the fitted ceiling Ym = {ym:.2f} t/ha"
         else:
-            note += " · YIELD UNCALIBRATED (no HarvestStat sorghum yields) — report CPI, not yield"
+            note += " · YIELD UNCALIBRATED — report CPI, not yield"
     prod = {"id": cfg["id"], "country": cfg["country"], "season": cfg["season"],
             "crop": cfg["crop"], "scale": cfg["scale"], "win": cfg["win"],
             "note": note, "levels": {}}
@@ -196,7 +241,12 @@ def build_product(cfg):
 
 data = {"products": [], "default": PRODUCTS[0]["id"]}
 skipped = []
+excluded = []
 for cfg in PRODUCTS:
+    if cfg.get("exclude_from_apps"):
+        excluded.append(f"{cfg['crop']}: {cfg['country']} {cfg['season']} "
+                        f"— {cfg['exclude_reason']}")
+        continue
     print(f"== {cfg['country']} · {cfg['season']} · {cfg['crop']} ({cfg['scale']}) ==")
     prod = build_product(cfg)
     if not prod["levels"]:
@@ -212,6 +262,10 @@ from collections import Counter
 byc = Counter(p["crop"] for p in data["products"])
 print(f"\napp_data.json — {len(js)/1e6:.2f} MB · {len(data['products'])} products "
       f"({', '.join(f'{v} {k}' for k, v in sorted(byc.items()))})")
+if excluded:
+    print(f"DELIBERATELY EXCLUDED ({len(excluded)}):")
+    for x in excluded:
+        print("   ", x)
 if skipped:
     print(f"not built, no reduce CSV yet ({len(skipped)}):")
     for x in skipped:

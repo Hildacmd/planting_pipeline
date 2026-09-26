@@ -37,4 +37,6 @@ EMERGENCE_OFFSET = 2
 MASK_COUNTRIES = {"Sudan": 2.278, "Eritrea": 0.030}
 
 YM_DEFAULT, YM_SHORT_DEFAULT = 2.0, 1.5       # uncalibrated rainfed potentials, t/ha
-YM_CAL = {}
+YM_CAL = {
+    ("Sudan", "Kharif"): 0.63,   # n14 2015-2023  MAE 0.14 vs 0.81  r 0.24  level only
+}
