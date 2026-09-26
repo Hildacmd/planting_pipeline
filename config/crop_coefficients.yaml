@@ -21,8 +21,9 @@ soil:
   # `python build_whc_asset.py --depth-cm N --submit`. A depth with no asset falls back to a live
   # SoilGrids build, which is correct but costs compute on every single run.
   whc_assets:
+    60:  "projects/ee-manzikye/assets/whc_saxton_soilgrids_gha_60cm_250m"     # teff (shallow-rooted)
     100: "projects/ee-manzikye/assets/whc_saxton_soilgrids_gha_250m"          # maize, wheat
-    150: "projects/ee-manzikye/assets/whc_saxton_soilgrids_gha_150cm_250m"    # sorghum (FAO-56 1.0-2.0 m)
+    150: "projects/ee-manzikye/assets/whc_saxton_soilgrids_gha_150cm_250m"    # sorghum, millet (FAO-56 1.0-2.0 m)
   # legacy single-asset form, still honoured
   whc_asset: "projects/ee-manzikye/assets/whc_saxton_soilgrids_gha_250m"
   whc_asset_root_depth_cm: 100

@@ -199,3 +199,9 @@ crop_type_mask/regional_report/figures/
 soilgrids_vwc/
 maize_ctm/work/
 sorghum_pipeline/work/
+
+# Crop dossier outputs are COPIES of the reduce CSVs already tracked at the repo root, placed there
+# by build_crop_dossiers.py so each crop folder is self-contained on disk and in Google Drive.
+# *.csv is a Git LFS pattern, so committing ~70 MB of duplicates would spend LFS quota for files
+# git already has. The folders are rebuilt by `python build_crop_dossiers.py`.
+crop_products/*/outputs/
