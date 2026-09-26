@@ -44,6 +44,23 @@ JOBS = [
  ("sorghum", "Uganda_1strains",  "newcS", "sorghumX", "Uganda",  "First",    range(2009, 2010), 13),
 ]
 
+# The CONTROL set: the five products where CPI already ranks usably (r > 0.4 in the shipped
+# calibration). If DMP also wins here it is simply the better predictor; if CPI holds, then DMP is
+# specifically a rescue for the products where the water balance is failing - a narrower and much
+# more defensible claim.
+#
+# The two maize products have no legacy rich asset carrying planting_dekad, so they use the
+# crop-type-mask asset AND the matching newcCTM_ CPI: the footprint stays internally consistent, but
+# their CPI baseline is the CTM value (Ethiopia Meher 0.45, Kenya Long 0.48) rather than the shipped
+# WorldCereal one (0.64, 0.57). Noted in the output as footprint=ctm.
+CONTROL = [
+ ("maize",   "Ethiopia_Meher",  "newcCTM", "cpiCTMX",  "Ethiopia", "Meher",    range(2012, 2022), 12),
+ ("maize",   "Kenya_Longrains", "newcCTM", "cpiCTMX",  "Kenya",    "Long",     range(2015, 2025), 12),
+ ("sorghum", "Kenya_Longrains", "newcS",   "sorghumX", "Kenya",    "Long",     range(2015, 2017), 12),
+ ("sorghum", "Rwanda_SeasonA",  "newcS",   "sorghumX", "Rwanda",   "Season A", range(2010, 2018),  9),
+ ("sorghum", "Burundi_SeasonB", "newcS",   "sorghumX", "Burundi",  "Season B", range(2012, 2015),  9),
+]
+
 
 def product_units(prefix, tok):
     f = os.path.join(H, f"{prefix}_{tok}_2024_L2_skill_WKT.csv")
@@ -104,7 +121,11 @@ def boot_delta(o, a, b, n=2000, seed=42):
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--only"); a = ap.parse_args()
+    ap = argparse.ArgumentParser(); ap.add_argument("--only")
+    ap.add_argument("--set", default="anti", choices=["anti", "control"],
+                    help="anti = the 8 anti-correlated products; control = the 5 where CPI works")
+    a = ap.parse_args()
+    JOB_SET = JOBS if a.set == "anti" else CONTROL
     ee.Initialize(project=os.environ.get("EE_PROJECT", "ee-manzikye"))
     d = pd.read_csv(os.path.join(HS, "hvstat_africa_data_v1.2.csv"), low_memory=False)
     d.columns = [c.lower() for c in d.columns]
@@ -113,7 +134,7 @@ def main():
     PROD = {"sorghum": "Sorghum", "maize": "Maize"}
 
     rows = []
-    for crop, tok, pfx, rich, hs_c, hs_s, yrs, cyc in JOBS:
+    for crop, tok, pfx, rich, hs_c, hs_s, yrs, cyc in JOB_SET:
         if a.only and a.only != tok:
             continue
         label = f"{crop} {tok}"
@@ -149,7 +170,8 @@ def main():
         o, c, m = j.obs.values, j.cpi.values, j.dm.values
         r_cpi = spearmanr(o, c).statistic; r_dmp = spearmanr(o, m).statistic
         mu, lo, hi = boot_delta(o, c, m)
-        rows.append(dict(crop=crop, product=tok, n=len(j), scale_m=scale,
+        rows.append(dict(crop=crop, product=tok, footprint=("ctm" if pfx == "newcCTM" else "wc"),
+                         n=len(j), scale_m=scale,
                          rho_cpi=round(r_cpi, 3), rho_dmp=round(r_dmp, 3),
                          d_rho=round(r_dmp - r_cpi, 3),
                          ci_lo=round(lo, 3), ci_hi=round(hi, 3),
@@ -161,8 +183,8 @@ def main():
     if not rows:
         return print("\nno products scored")
     out = pd.DataFrame(rows)
-    out.to_csv(os.path.join(H, "maize_ctm", "dmp_rank_test.csv"), index=False)
-    print("\n=== DMP vs CPI as a ranking covariate, on the anti-correlated products ===")
+    out.to_csv(os.path.join(H, "maize_ctm", f"dmp_rank_test_{a.set}.csv"), index=False)
+    print(f"\n=== DMP vs CPI as a ranking covariate — {a.set.upper()} set ===")
     print(out.to_string(index=False))
     print(f"\n  DMP ranks better (CI excludes 0): {int((out.verdict == 'DMP better').sum())} of {len(out)}")
     print(f"  CPI ranks better                : {int((out.verdict == 'CPI better').sum())}")
@@ -170,7 +192,7 @@ def main():
     print(f"  median delta rho                : {out.d_rho.median():+.3f}")
     print(f"  DMP rho positive in             : {int((out.rho_dmp > 0).sum())} of {len(out)} "
           f"(CPI positive in {int((out.rho_cpi > 0).sum())})")
-    print("\nwritten: maize_ctm/dmp_rank_test.csv")
+    print(f"\nwritten: maize_ctm/dmp_rank_test_{a.set}.csv")
 
 
 if __name__ == "__main__":
