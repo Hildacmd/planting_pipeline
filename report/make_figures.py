@@ -313,6 +313,34 @@ def chart_dmp_kenya():
     print("  wrote chart_dmp_kenya.png")
 
 
+def chart_dmp_levels():
+    """Implied harvest index across every representative admin-scale frame - the level test."""
+    p = os.path.join(H, "Cropyield-Data", "dmp_levels_summary.csv")
+    if not os.path.exists(p):
+        return print("  [skip] chart_dmp_levels: run dmp_levels.py first")
+    d = pd.read_csv(p).sort_values("hi_implied")
+    lab = d.crop.str[:3] + " " + d["product"].str.replace("_", " ")
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(10.4, 0.34 * len(d) + 2.0),
+                                 gridspec_kw={"width_ratios": [1.25, 1]})
+    y = np.arange(len(d))
+    a1.axvspan(0.30, 0.55, color="#31a354", alpha=0.14, label="agronomic 0.30-0.55")
+    a1.barh(y, d.hi_implied, 0.66, color=np.where(d.hi_in_range, "#31a354", "#d95f0e"))
+    a1.axvline(0.45, color="k", ls="--", lw=0.9, label="0.45 assumed")
+    a1.set_yticks(y); a1.set_yticklabels(lab, fontsize=7.5)
+    a1.set_xlabel("harvest index implied by observed yield")
+    a1.set_title(f"Implied HI: inside the band in only "
+                 f"{int(d.hi_in_range.sum())} of {len(d)} frames", fontsize=9)
+    a1.legend(fontsize=7, frameon=False, loc="lower right")
+    a2.barh(y, d.overpred, 0.66, color="#756bb1")
+    a2.axvline(1.0, color="k", lw=0.9)
+    a2.set_yticks(y); a2.set_yticklabels([])
+    a2.set_xlabel("DMP-derived yield / observed")
+    a2.set_title(f"Over-prediction: median {d.overpred.median():.2f}x", fontsize=9)
+    fig.suptitle("Can DMP carry a level? Every representative admin-scale frame", fontsize=10)
+    fig.tight_layout(); fig.savefig(os.path.join(FIG, "chart_dmp_levels.png")); plt.close(fig)
+    print("  wrote chart_dmp_levels.png")
+
+
 def chart_mask():
     f = os.path.join(H, "maize_ctm", "mask_comparison.csv")
     if not os.path.exists(f):
@@ -339,5 +367,5 @@ if __name__ == "__main__":
     print("maps by crop:"); maps_by_crop(); more_maps()
     print("charts:"); chart_coverage(); chart_planting_windows()
     chart_stress_decomposition(); chart_ym_skill(); chart_dmp()
-    chart_irrigation(); chart_mask(); chart_dmp_kenya()
+    chart_irrigation(); chart_mask(); chart_dmp_kenya(); chart_dmp_levels()
     print(f"\nfigures in {FIG}")
