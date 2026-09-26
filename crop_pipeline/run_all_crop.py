@@ -26,6 +26,7 @@ sys.path.insert(0, ROOT); sys.path.insert(0, H)
 from src import utils                                                 # noqa: E402
 import ctm_mask as CTM                                                # noqa: E402
 import irrigation_exposure as IRR                                     # noqa: E402
+import crop_coverage as COV                                           # noqa: E402
 from params import get, CROPS                                         # noqa: E402
 
 YEAR = 2024
@@ -171,6 +172,10 @@ def main():
     rows = list(csv.DictReader(open(CALENDAR)))
     want = ["wheat", "teff", "millet"] if a.crop in ("all", "wtm") else [a.crop]
     rows = [r for r in rows if r["crop"] in want]
+    # THE CROP-TYPE MASK DECIDES WHAT RUNS WHERE. A calendar row for a country whose mask carries
+    # no band for that crop cannot be computed - CTM.crop_mask would raise mid-build. Drop it at
+    # planning time instead, so the printed plan is the plan that can actually run.
+    rows = [r for c in want for r in COV.gate([x for x in rows if x["crop"] == c], c)]
     if a.country:
         rows = [r for r in rows if r["country"] == a.country.replace(" ", "_")]
 

@@ -27,6 +27,7 @@ sys.path.insert(0, ROOT); sys.path.insert(0, H)
 from src import utils                                   # noqa: E402
 import sorghum_params as P                              # noqa: E402
 import irrigation_exposure as IRR                      # noqa: E402
+import crop_coverage as COV                            # noqa: E402
 
 YEAR = 2024
 # arm A = the Inception Report Table 2.0 calendar; arm B = the GEOGLAM CM4EW sorghum-specific one.
@@ -51,6 +52,10 @@ def load_rows(stage, calendar="report", differing_only=False):
         rows = list(csv.DictReader(f))
     want = {"high": ["High"], "medium": ["Medium"], "all": ["High", "Medium", "Low"]}[stage]
     rows = [r for r in rows if r["crop_viability"] in want]
+    # The crop-type mask decides what runs where - see crop_coverage.py. Sorghum happens to have a
+    # band in all ten sorghum countries, so this drops nothing today; it is here so that adding a
+    # country to the calendar without adding it to the mask fails visibly at planning time.
+    rows = COV.gate(rows, "sorghum")
     if differing_only:
         with open(CALENDARS["report"][0]) as f:
             a = {(r["country"], r["season"]): r["sos_detection_window"] for r in csv.DictReader(f)}

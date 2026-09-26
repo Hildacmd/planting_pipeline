@@ -31,6 +31,7 @@ sys.path.insert(0, ROOT)
 
 from src import utils                                   # noqa: E402
 import ctm_mask as CTM                                   # noqa: E402
+import irrigation_exposure as IRR                        # noqa: E402
 import run_all_maize_2024 as M                           # noqa: E402
 
 EE_PROJECT = os.environ.get("EE_PROJECT", "ee-manzikye")
@@ -103,7 +104,10 @@ def main():
         M.RICH = a.rich
         out, aoi, _ = M.build_product_image(ee, r, kc, soil, rich=a.rich, mask=mask)
         out = out.set({"crop_mask": "ICPAC crop-type mask", "mask_asset": CTM.asset(c),
-                       "mask_min_fraction": a.min_fraction or 10})
+                       "mask_min_fraction": a.min_fraction or 10,
+                       # SPAM 2020 irrigation exposure, so the asset says on its own whether a low
+                       # CPI here is crop condition or unmet irrigation demand.
+                       **IRR.asset_properties(c, "maize")})
         ee.batch.Export.image.toAsset(image=out.clip(aoi), description=desc, assetId=asset_id,
                                       region=aoi, scale=250, maxPixels=int(1e13)).start()
         print("  started     : " + line)

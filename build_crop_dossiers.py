@@ -437,14 +437,30 @@ def irrigation_block(crop, st):
     return "| country | grade | detail |\n|---|---|---|\n" + "\n".join(rows)
 
 
+def to_word(md_path, title):
+    """Render a dossier to .docx and .html beside it. Partners read Word, not Markdown."""
+    import subprocess
+    base = md_path[:-3]
+    ok = []
+    for ext, args in ((".docx", []), (".html", ["-s", "--toc"])):
+        try:
+            subprocess.run(["pandoc", md_path, "--metadata", f"title={title}", *args,
+                            "-o", base + ext], check=True, capture_output=True)
+            ok.append(ext)
+        except Exception as e:
+            print(f"    [warn] {ext} not written: {str(e)[:80]}")
+    return ok
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     summary = []
     for c in CROPS:
         n, files, fit, irr, t2 = write_crop(c)
+        ext = to_word(f"{OUT}/{c}/METHODOLOGY.md", f"{c.capitalize()} — product dossier")
         summary.append((c, n, fit, irr, t2, files))
         print(f"  {c:8s} {n:2d} products · {fit} fitted Ym · {irr} irrigation-flagged · "
-              f"{files} output CSVs")
+              f"{files} output CSVs · {'+'.join(e.lstrip('.') for e in ext) or 'md only'}")
 
     idx = ["# Crop product dossiers", "",
            "One folder per crop. Each holds the products, a machine-readable status table, and a",
@@ -464,6 +480,7 @@ def main():
             "irrigated crop, and which products it affects).", "",
             "Regenerate: `python build_crop_dossiers.py`"]
     open(f"{OUT}/README.md", "w").write("\n".join(idx) + "\n")
+    to_word(f"{OUT}/README.md", "Crop product dossiers")
     print(f"\n{tot} products across {len(CROPS)} crops → {OUT}/")
 
 
