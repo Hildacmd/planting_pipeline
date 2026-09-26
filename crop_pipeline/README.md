@@ -60,3 +60,47 @@ property `ym_calibrated` records it. Report CPI until the calibration has run.
 Two calendar disagreements worth putting to partners, both Ethiopian and both of the same shape as
 the maize one that was tested and resolved in the operative window's favour: **teff** operative
 Jun-d3 against GEOGLAM May-d2, and **wheat** operative Jun-d2 against GEOGLAM May-d1.
+
+## Irrigated products need a different onset, and a different reading of the water balance
+
+Sudan's Shitwi wheat is scheme-irrigated winter wheat on the Nile and the Gezira, sown in November
+in the dry season. **Neither onset method can find it.** The CHIRPS 25/20 mm rule needs 25 mm in a
+dekad and Sudan gets essentially none in November; green-up onset is gated to a rainfall-driven
+climatological onset that does not exist there. The first run produced an asset with 10,478 wheat
+mask pixels and **zero valid ones** — an empty product that reduced to 0 of 0 units.
+
+Irrigated products now take a **fixed planting dekad** at the start of the calendar's indicative
+window, because planting on a scheme is scheduled rather than rain-driven. The asset records
+`onset_method = "fixed (irrigated scheme)"` and `irrigated = true`.
+
+**Read their water balance differently.** WRSI and `S_water` compare crop demand against
+**rainfall**. For a rainfed crop that is water stress. For an irrigated crop the shortfall is met by
+the scheme, so the deficit is the **irrigation requirement** — useful in its own right, and not the
+same quantity. CPI and yield for an irrigated product must not be pooled with rainfed ones.
+
+## Independent validation: EthCT2020
+
+`crop_type_mask/validation_ethct/` scores the Ethiopian masks against **EthCT2020**, 2,428 real
+field polygons surveyed in 2020, quality `very good`, from three independent sources.
+
+| Crop | Fields | AUC vs other crops' fields | 95 % |
+|---|---|---|---|
+| maize | 96 | **0.770** | [0.717, 0.821] |
+| wheat | 2,077 | **0.757** | [0.728, 0.785] |
+| teff | 255 | **0.661** | [0.632, 0.689] |
+
+All three separate. This is a **harder** test than the AUC quoted in the regional report, which used
+cropland as the background: here the background is fields of *other* crops, so it asks whether the
+mask tells crops apart rather than merely finding cropland.
+
+**A caveat specific to teff.** Its AUC is comfortably above chance, but the mean teff fraction at
+teff fields (7.20 %) is no higher than at other crops' fields (7.45 %). The skill is in the ranking,
+not the level: the mask puts teff fields above non-teff fields more often than not, while a few
+non-teff fields carry a very high teff fraction and pull the mean up. Report the teff mask as
+ranking teff land, not as estimating how much teff is in a cell.
+
+**Do not use `ethiopia_crop_ground_truth_points.csv` in the same folder.** All 6,823 of its rows,
+including its 82 teff points, carry `provenance = SIMULATED_reconstructed_from_published_counts_and_extent`,
+and its own methodology note says: *"Do not use them as authoritative in-situ truth for accuracy
+assessment."* The locations are random draws inside a bounding box, so any accuracy figure computed
+from them would be meaningless.

@@ -32,7 +32,24 @@ CALENDAR = f"{H}/config/season_calendar_wtm.csv"
 EE_PROJECT = os.environ.get("EE_PROJECT", "ee-manzikye")
 # Seasons where green-up detection is unreliable and onset is taken from the CHIRPS rainfall rule.
 RAINFALL_ANCHORED = {"Short rains", "2nd rains", "Season A", "Season B", "Vuli", "Deyr", "Belg",
-                     "2nd", "Shitwi"}
+                     "2nd"}
+
+# IRRIGATED products get a FIXED planting dekad, because neither onset method can find them.
+# Sudan's Shitwi wheat is scheme-irrigated winter wheat on the Nile and the Gezira, sown in
+# November in the dry season. The CHIRPS 25/20 mm rule needs 25 mm in a dekad and Sudan gets
+# essentially none in November, so the rainfall onset returned nothing and the first run produced
+# an asset with 10,478 wheat mask pixels and ZERO valid ones. Green-up onset fares no better: it is
+# gated to a rainfall-driven climatological onset that does not exist here.
+#
+# Planting on a scheme is scheduled, not rain-driven, so the start of the calendar's indicative
+# window is the right anchor. It is an assumption about timing, and it is recorded on the asset.
+#
+# READ THE WATER BALANCE DIFFERENTLY FOR THESE. WRSI and S_water compare crop demand against
+# RAINFALL. For a rainfed crop that is water stress. For an irrigated crop the shortfall is met by
+# the scheme, so the deficit is not stress but the IRRIGATION REQUIREMENT - useful, and not the
+# same quantity. CPI and yield for an irrigated product are therefore not comparable with a rainfed
+# one and must not be pooled with them.
+IRRIGATED = {("Sudan", "Shitwi")}
 
 
 def ym_for(p, country, season):
@@ -75,9 +92,14 @@ def build_product_image(ee, row, soil, aoi=None, rich=False):
     mask = CTM.crop_mask(ee, country, crop)
     k = kc_for(p, row); kc_use = {crop: k}
     rain = season in RAINFALL_ANCHORED
+    irrigated = (country.replace(" ", "_"), season) in IRRIGATED
     wrsi_year, ss_use, se_use = YEAR, ss, se
 
-    if rain:
+    if irrigated:
+        plant_dk, _ = utils.sos_window_dekads(row["indicative_planting_window"])
+        planting = (ee.Image.constant(int(plant_dk)).rename("planting_dekad")
+                    .updateMask(mask).toInt16())
+    elif rain:
         pet = WR.pet_dekadal(ee, aoi, YEAR); ch = WR.chirps_dekadal(ee, aoi, YEAR)
         clim = WR.chirps_clim_dekadal(ee, aoi, range(ss, 37), range(1981, 2025))
         onset = WR.wrsi_onset(ee, ch, ss, se, pet_ic=pet).unmask(
@@ -122,11 +144,16 @@ def build_product_image(ee, row, soil, aoi=None, rich=False):
                  "ky_flo": p.KY["flo"], "heat_tcap": p.HEAT_TCAP,
                  "root_depth_m": k["root_depth_m"],
                  "crop_calendar_source": row["crop_calendar_source"],
-                 "onset_method": "rainfall" if rain else "greenup",
+                 "onset_method": ("fixed (irrigated scheme)" if irrigated
+                                  else "rainfall" if rain else "greenup"),
+                 "irrigated": irrigated,
+                 "water_balance_note": ("deficit is the IRRIGATION REQUIREMENT, not crop stress"
+                                        if irrigated else "rainfed: deficit is crop water stress"),
                  "mask_asset": CTM.asset(country)}))
     return out, aoi, {"planting": planting, "staged": staged, "cpi": cpi_img, "yld": yld,
                       "mask": mask, "kc": k, "ss": ss_use, "se": se_use,
-                      "onset_method": "rainfall" if rain else "greenup"}
+                      "onset_method": ("fixed" if irrigated else
+                                       "rainfall" if rain else "greenup")}
 
 
 def main():
@@ -153,7 +180,8 @@ def main():
         p = get(r["crop"]); k = kc_for(p, r); ym, cal = ym_for(p, r["country"], r["season"])
         pfx = r["crop"] + ("X" if a.rich else "")
         desc = f"{pfx}_{r['country']}_{r['season']}_{YEAR}".replace(" ", "")
-        method = "rainfall" if r["season"] in RAINFALL_ANCHORED else "greenup"
+        method = ("fixed-irr" if (r["country"], r["season"]) in IRRIGATED
+                  else "rainfall" if r["season"] in RAINFALL_ANCHORED else "greenup")
         line = (f"{r['crop'] + ' ' + r['country'] + ' ' + r['season']:<28}{method:<9}"
                 f"{k['LGP_dekads']:>6}{p.KY['flo']:>8.2f}{p.HEAT_TCAP:>6.0f}"
                 f"{k['root_depth_m']:>6.1f}{ym:>7.2f}  {CTM.asset(r['country']).rsplit('/',1)[-1]}"
