@@ -87,6 +87,69 @@ the three-dekad disagreements remain a question for national partners that this 
 Eritrea and South Sudan could not be scored at all: Eritrea is absent from HarvestStat, and South
 Sudan has two units.
 
+### 3.1.1 Calendar provenance, and where a window was inferred rather than read
+
+Every calendar row records its source in `crop_calendar_source`, and the GEOGLAM CM4EW window is
+carried alongside in `cm4ew_*` so the two can be compared. Three source classes exist and they do
+not carry equal weight.
+
+**Read from Table 2.0.** The planting months are published for that country and season. Sixteen of
+the eighteen sorghum products, and eighteen of the twenty maize products, are of this kind.
+
+**Inferred from the season span.** Table 2.0 gives **one** planting column per country. Where a
+country has two seasons, the published months describe the dominant one and the second has none.
+For those, the rule applied is:
+
+> planting occupies the **first two months** of the span given in the "Main season(s)" column.
+
+**This is an assumption, not a source.** It affects one row: South Sudan's second season, where the
+table gives `Apr-Jun` for the country and `2nd Jul-Nov (SW)` as the span, from which Jul to Aug was
+taken. A gap between an inferred window and the operative calendar is a gap against a guess, so it
+is reported separately and never counted as a disagreement between sources. In this case GEOGLAM,
+which does publish a second-season maize window, gives Aug-d1 to Sep-d3 and **agrees exactly with
+the operative calendar**, which is the better evidence of the two.
+
+**Not in Table 2.0 at all.** Djibouti, which the report records as minimal cropping.
+
+### 3.1.2 What to do about a disagreement: the Ethiopia Meher case
+
+The maize provenance check (`build_calendar_maize.py`) puts the operative calendar, Table 2.0 and
+the GEOGLAM maize calendar side by side. Three products disagree by two dekads or more, and one is
+large enough to matter.
+
+**Ethiopia Meher maize.** The operative window opens at Apr-d1; Table 2.0 says Jun-d1, six dekads
+later, and GEOGLAM says May-d2, four dekads later. It is the largest maize product in the region at
+2.03 Mha, so a two-month error would be consequential.
+
+**The operative window is kept, for three reasons that should be stated together.**
+
+1. **It is crop-specific where the others are not.** Table 2.0 gives one calendar per country
+   covering every crop it monitors, and Ethiopia's row is led by the Kiremt onset that governs teff
+   and short-cycle cereals. The operative row carries its own rationale: long-cycle maize planted on
+   **Belg** moisture in the western and south-western highlands and the Rift, which is genuinely
+   earlier than the Kiremt-onset crops.
+2. **The product behaves as though the window is right.** Ethiopia Meher maize has the **best rank
+   skill of any maize product in the series**: Pearson r 0.64 against reported zone yields, held-out
+   error 0.71 against 1.38 t/ha for the uncalibrated ceiling. A planting window wrong by four to six
+   dekads would place the modelled flowering stage, which carries three times the yield weight of
+   any other, about two months from the truth. That is not consistent with the best pattern skill in
+   the set.
+3. **Changing it silently would move every Ethiopian maize product** and invalidate the calibration
+   that currently fits.
+
+**So the position is: operate on the current window, cite the discrepancy, and put it to Ethiopian
+partners.** The discrepancy is recorded in `config/season_calendar_maize_provenance.csv` with the
+gap in dekads against both independent sources, so it travels with the data rather than living only
+in a conversation.
+
+**What would settle it.** The A/B machinery already exists — `run_all_sorghum.py --calendar` runs a
+second arm and `score_calendar_ab.py` scores both against HarvestStat. Ethiopia Meher maize has 76
+reporting units over ten years, the largest sample of any product in the series, and the gap to test
+is four to six dekads rather than the three that the sorghum A/B could not separate. It is the one
+case in the region where such a test has a real chance of being decisive. Until it is run, the
+honest statement is that the operative window is supported by its skill and by a documented
+agronomic rationale, and contradicted by two country-generalised calendars.
+
 ## 3.2 Planting date
 
 Main seasons use the fused green-up: a dekadal greenness proxy from Sentinel-2 red edge and

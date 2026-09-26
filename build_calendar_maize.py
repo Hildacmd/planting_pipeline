@@ -29,10 +29,18 @@ MON = {m: i + 1 for i, m in enumerate(
     ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"])}
 
 # Inception Report Table 2.0, the planting months of each maize season it lists.
+#
+# INFERRED entries are marked. Table 2.0 gives ONE planting column per country, so where a country
+# has two seasons the published months cover the dominant one and the other has to be inferred.
+# The rule used is: planting occupies the first two months of the season span given in the "Main
+# season(s)" column. That is an assumption, not a source, and a window derived this way must not
+# be reported as a disagreement with the operative calendar - it is a disagreement with a guess.
+INFERRED = {("South Sudan", "2nd")}
 REPORT = {
     ("Sudan", "Kharif"):        ("Jun", "Jul"),
     ("South Sudan", "Main"):    ("Apr", "Jun"),
-    ("South Sudan", "2nd"):     ("Jul", "Aug"),   # inferred from the 2nd season span Jul-Nov
+    ("South Sudan", "2nd"):     ("Jul", "Aug"),   # INFERRED: Table 2.0 gives only "Apr-Jun" for
+                                                  # the country and "2nd Jul-Nov (SW)" as the span
     ("Eritrea", "Kremti"):      ("Jun", "Jul"),
     ("Ethiopia", "Meher"):      ("Jun", "Jul"),
     ("Ethiopia", "Belg"):       ("Feb", "Mar"),
@@ -125,6 +133,8 @@ def main():
         cmw = cm.get((c, s), {}).get("window", "")
         rows.append(dict(
             country=c, season=s, crop_viability=r["crop_viability"],
+            report_source=("inferred from the season span" if (c, s) in INFERRED
+                           else "Table 2.0" if rep else "not in Table 2.0"),
             operative_planting=r["indicative_planting_window"],
             operative_sos=r["sos_detection_window"],
             report_planting=repw, cm4ew_planting=cmw,
@@ -137,11 +147,16 @@ def main():
     out.to_csv(p, index=False)
 
     show = ["country", "season", "crop_viability", "operative_planting",
-            "report_planting", "cm4ew_planting", "gap_report_dekads", "gap_cm4ew_dekads"]
+            "report_planting", "report_source", "cm4ew_planting",
+            "gap_report_dekads", "gap_cm4ew_dekads"]
     print(out[show].to_string(index=False))
     print(f"\n{len(out)} maize products -> {p}")
 
-    big = out[(out.gap_cm4ew_dekads.abs() >= 2) | (out.gap_report_dekads.abs() >= 2)]
+    # A gap against an INFERRED window is a gap against an assumption, so it is reported
+    # separately and never counted as a source disagreement.
+    pub = out.report_source != "inferred from the season span"
+    big = out[(out.gap_cm4ew_dekads.abs() >= 2) | (pub & (out.gap_report_dekads.abs() >= 2))]
+    inf = out[~pub]
     nocm = out[out.cm4ew_planting == ""]
     print(f"\nDISAGREEMENTS of 2 dekads or more: {len(big)} of {len(out)}")
     for _, r in big.iterrows():
@@ -151,6 +166,13 @@ def main():
         if pd.notna(r.gap_cm4ew_dekads) and abs(r.gap_cm4ew_dekads) >= 2:
             src.append(f"CM4EW {r.gap_cm4ew_dekads:+.0f}")
         print(f"   {r.country} {r.season}: operative {r.operative_planting}  ({', '.join(src)})")
+    for _, r in inf.iterrows():
+        print(f"\nINFERRED, not a source disagreement: {r.country} {r.season}. Table 2.0 gives no "
+              f"planting months for this season; {r.report_planting} is this script's assumption "
+              f"that planting fills the first two months of the season span. GEOGLAM, which does "
+              f"publish it, gives {r.cm4ew_planting or 'nothing'} "
+              f"({'agrees with' if r.gap_cm4ew_dekads == 0 else 'differs from'} the operative "
+              f"window).")
     if len(nocm):
         print(f"\nNo GEOGLAM maize calendar to check against ({len(nocm)}): "
               f"{', '.join(sorted(set(nocm.country + ' ' + nocm.season)))}")

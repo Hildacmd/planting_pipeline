@@ -15,7 +15,12 @@ season set, the asset prefix and the crop mask. The mask matters most: WorldCere
 class, so `crop_mask_image` would return the temporary-crops extent, which is all cropland.
 Maize behaviour with no flag is unchanged.
 """
-import sys, os, csv, ee, argparse, pandas as pd, geopandas as gpd
+import sys, os, csv, ee, argparse, socket, pandas as pd, geopandas as gpd
+
+# Earth Engine calls go out over HTTP with no timeout of their own. A request that never returns
+# blocks forever: one Sudan run sat at 0 % CPU for 24 hours having written nothing. A default
+# socket timeout turns that into an exception the retry ladder can act on.
+socket.setdefaulttimeout(900)
 sys.path.insert(0, os.path.dirname(__file__))
 def _opt(name, default):
     flag = f"--{name}"
