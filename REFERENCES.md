@@ -96,3 +96,86 @@
 *Note: a few DOIs above are foundational standards (Verdin & Klaver, Senay & Verdin, Funk,
 Myneni) cited from established literature; the 2023–2026 fusion papers were surfaced in this
 session's web searches. Verify DOIs against your library before formal publication.*
+
+## Productivity / biomass-based yield (DMP, added 2026-09)
+- Monteith, J.L. (1972). *Solar radiation and productivity in tropical ecosystems.* Journal of
+  Applied Ecology 9(3), 747–766. https://doi.org/10.2307/2401901  — light-use-efficiency basis of DMP.
+- Running, S.W. et al. (2004). *A continuous satellite-derived measure of global terrestrial primary
+  production.* BioScience 54(6), 547–560. — MOD17 GPP/NPP algorithm (the MODIS stand-in for CGLS DMP).
+- Zhao, M. et al. (2005). *Improvements of the MODIS terrestrial gross and net primary production
+  global data set.* Remote Sensing of Environment 95(2), 164–176.
+  https://doi.org/10.1016/j.rse.2004.12.011
+- Hay, R.K.M. (1995). *Harvest index: a review of its use in plant breeding and crop physiology.*
+  Annals of Applied Biology 126(1), 197–216. https://doi.org/10.1111/j.1744-7348.1995.tb05015.x
+  — the 0.30–0.55 agronomic range against which the implied HI is read as a mask diagnostic.
+
+## Thermal time / phenology (added 2026-09)
+- McMaster, G.S. & Wilhelm, W.W. (1997). *Growing degree-days: one equation, two interpretations.*
+  Agricultural and Forest Meteorology 87(4), 291–300. https://doi.org/10.1016/S0168-1923(97)00027-0
+
+## Yield ceiling / yield gap (added 2026-09)
+- van Ittersum, M.K. et al. (2013). *Yield gap analysis with local to global relevance — a review.*
+  Field Crops Research 143, 4–17. https://doi.org/10.1016/j.fcr.2012.09.009
+- Lobell, D.B., Cassman, K.G. & Field, C.B. (2009). *Crop yield gaps: their importance, magnitudes,
+  and causes.* Annual Review of Environment and Resources 34, 179–204.
+  https://doi.org/10.1146/annurev.environ.041008.093740
+
+## Validation statistics (added 2026-09)
+- Stone, M. (1974). *Cross-validatory choice and assessment of statistical predictions.* JRSS B
+  36(2), 111–147.  — leave-one-out CV.
+- Efron, B. & Tibshirani, R.J. (1993). *An Introduction to the Bootstrap.* Chapman & Hall.
+  — paired bootstrap CI on the arm difference.
+
+## Agro-ecological zoning, growing period & maize maturity classes (added 2026-09)
+
+**Agro-ecological zoning & growing period**
+- FAO (1978). *Report on the Agro-ecological Zones Project, Vol. 1: Methodology and Results for Africa.* World Soil Resources Report 48, FAO, Rome. — origin of the Length of Growing Period (LGP) concept and the P/PET ≥ 0.5 moisture-adequacy criterion used in `src/agroecology.lgp_dekads`.
+- Fischer, G., van Velthuizen, H., Nachtergaele, F. et al. (2021). *Global Agro-Ecological Zones (GAEZ v4) — Model Documentation.* FAO & IIASA. https://doi.org/10.4060/cb4744en — the current operational LGP/AEZ product against which a pipeline LGP should be benchmarked.
+
+**Maize thermal time & phenology modelling**
+- Jones, C.A. & Kiniry, J.R. (1986). *CERES-Maize: A Simulation Model of Maize Growth and Development.* Texas A&M University Press. — thermal-time accumulation and stage partitioning for maize.
+- Kiniry, J.R. & Bonhomme, R. (1991). *Predicting maize phenology.* In: Hodges, T. (ed.) *Predicting Crop Phenology*, CRC Press, 115–131. — GDD-to-stage targets and cultivar maturity classes.
+
+**Kenyan maize varieties, maturity classes & agro-ecological matching**
+- Jaetzold, R., Schmidt, H., Hornetz, B. & Shisanya, C. (2006–2012). *Farm Management Handbook of Kenya, Vol. II: Natural Conditions and Farm Management Information* (2nd edn). Ministry of Agriculture, Kenya / GTZ. — the standard Kenyan agro-ecological zone reference, including recommended maize maturity class and variety by zone; basis for `config/maize_variety_gdd.csv`.
+- Hassan, R.M. (ed.) (1998). *Maize Technology Development and Transfer: A GIS Application for Research Planning in Kenya.* CAB International, Wallingford. — GIS characterisation of Kenyan maize production systems and the altitude/maturity convention of the H5/H6 hybrid series.
+- De Groote, H., Owuor, G., Doss, C., Ouma, J., Muhammad, L. & Danda, K. (2005). *The maize green revolution in Kenya revisited.* electronic Journal of Agricultural and Development Economics (eJADE) 2(1), 32–49. — adoption of hybrid maturity classes by agro-ecological zone.
+
+**Non-parametric testing**
+- Mann, H.B. & Whitney, D.R. (1947). *On a test of whether one of two random variables is stochastically larger than the other.* Annals of Mathematical Statistics 18(1), 50–60. https://doi.org/10.1214/aoms/1177730491 — used in §5.2 to test whether model error is larger where the thermal requirement exceeds the moisture window.
+
+
+## Yield response to water, crop area maps, boundaries (added 2026-09-26)
+- Doorenbos, J. & Kassam, A.H. (1979). *Yield response to water.* FAO Irrigation & Drainage Paper 33,
+  FAO, Rome. https://www.fao.org/3/x0490e/x0490e00.htm (companion to FAO-56) — the stage yield-response
+  factors Ky (vegetative / flowering / grain-fill) that weight `S_water`, and the multiplicative
+  combination of stage stresses. **The single most consequential parameter set in this pipeline.**
+- International Food Policy Research Institute (IFPRI). *Global Spatially-Disaggregated Crop Production
+  Statistics Data (MapSPAM), version 2020.* Harvard Dataverse. https://mapspam.info — crop area shares
+  by technology (irrigated `_I`, rainfed `_R`, all `_A`), the prior for the crop-type mask's dasymetric
+  allocation and the basis of the irrigation-exposure grading. *Cite the exact version DOI from the
+  Dataverse record used; the release identifier is not reproduced here.*
+- GADM. *Database of Global Administrative Areas, version 4.1.* https://gadm.org — admin-1/2/3
+  boundaries for the zonal reductions.
+- FAO. *GAUL: Global Administrative Unit Layers.* https://data.apps.fao.org/catalog/ — legacy admin
+  boundaries, retained only where GADM lacks a layer.
+
+## Prognostic vs diagnostic phenology — why forecasting needs the thermal clock (added 2026-09)
+- Ritchie, J.T. & NeSmith, D.S. (1991). *Temperature and crop development.* Agronomy Monograph 31,
+  ASA-CSSA-SSSA, 5-29.
+- Holzworth, D.P. et al. (2014). *APSIM - evolution towards a new generation of agricultural systems
+  simulation.* Environmental Modelling & Software 62, 327-350.
+  https://doi.org/10.1016/j.envsoft.2014.07.009
+- Basso, B. & Liu, L. (2019). *Seasonal crop yield forecast: Methods, applications, and accuracies.*
+  Advances in Agronomy 154, 201-255. https://doi.org/10.1016/bs.agron.2018.11.002
+- Funk, C. & Budde, M.E. (2009). *Phenologically-tuned MODIS NDVI-based production anomaly estimates
+  for Zimbabwe.* Remote Sensing of Environment 113(1), 115-125.
+  https://doi.org/10.1016/j.rse.2008.08.015  - index-based estimation is mid-season onward.
+- Becker-Reshef, I. et al. (2010). *A generalized regression-based model for forecasting winter wheat
+  yields...* Remote Sensing of Environment 114(6), 1312-1323.
+  https://doi.org/10.1016/j.rse.2010.01.010
+- Rembold, F. et al. (2013). *Using low resolution satellite imagery for yield prediction and yield
+  anomaly detection.* Remote Sensing 5(4), 1704-1733. https://doi.org/10.3390/rs5041704
+- Jones, P.G. & Thornton, P.K. (2003). *The potential impacts of climate change on maize production
+  in Africa and Latin America in 2055.* Global Environmental Change 13(1), 51-59.
+  https://doi.org/10.1016/S0959-3780(02)00090-0  - LGP as agro-climatic screening axis.
