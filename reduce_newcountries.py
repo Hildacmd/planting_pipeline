@@ -61,6 +61,13 @@ def _opt(name, default):
 ASSET_PREFIX = _opt("asset-prefix", "cpiX")      # cpiX | sorghumX | cpiCTMX
 CROP = _opt("crop", "sorghum" if _opt("asset-prefix", "cpiX").startswith("sorghum") else "maize")
 OUT_PREFIX = _opt("out-prefix", "newc")          # newc | newcS | newcCTM
+# crop_area_frac must be measured over the SAME mask the product was computed in, or the weight and
+# the product disagree. cpiCTMX_ products are computed in the ICPAC crop-type mask, so their CAF
+# comes from it too; the legacy cpiX_ maize products stay on WorldCereal, which is what they were
+# computed in. Override with --caf-source {auto,worldcereal,ctm}.
+CAF_SOURCE = _opt("caf-source", "auto")
+if CAF_SOURCE == "auto":
+    CAF_SOURCE = "ctm" if (CROP != "maize" or "CTM" in ASSET_PREFIX) else "worldcereal"
 EE_PROJECT = _opt("project", os.environ.get("EE_PROJECT", "ee-manzikye"))
 ee.Initialize(project=EE_PROJECT)
 PROJ = f"projects/{EE_PROJECT}/assets"
@@ -125,11 +132,15 @@ def _crop_mask(ee, country):
     the threshold that decides which units the atlas colours. Weighted by maize, a district that
     grows maize and no sorghum counted fully towards a sorghum ceiling.
     """
-    if CROP == "maize":
+    if CAF_SOURCE == "worldcereal":
         from run import crop_mask_image
         return crop_mask_image(ee, "maize", "maize", None)
     import ctm_mask as CTM
     return CTM.crop_fraction(ee, country, CROP).divide(100)   # frac_<crop> is a percentage
+
+
+print(f"[caf] crop_area_frac measured over: "
+      f"{'ICPAC crop-type mask' if CAF_SOURCE == 'ctm' else 'ESA WorldCereal maize'}")
 
 
 def reduce_stats(img, fc, ctok):
